@@ -42,8 +42,8 @@ privateProperties = {
 local NotificationHolder = loadstring(game:HttpGet("https://raw.githubusercontent.com/BocusLuke/UI/main/STX/Module.Lua"))()
 local Notification = loadstring(game:HttpGet("https://raw.githubusercontent.com/BocusLuke/UI/main/STX/Client.Lua"))()
 
-local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/R3TH-PRIV/R3THPRIV/main/OtherScripts/VenyxUI.lua"))()
-local R3TH = library.new("R3TH PRIV                                                                             .gg/pethicial", 5013109572)
+local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/VenyxUI.lua"))()
+local R3TH = library.new("Ashbornn Hub 1.1.0 ", 5013109572)
 
 
 local Universal = R3TH:addPage("Universal", 5012540623)
@@ -53,13 +53,14 @@ local Fling = Universal:addSection("Fling")
 local Game = Universal:addSection("Game")
 local Combat = R3TH:addPage("Combat", 5012544944)
 local Murderer = Combat:addSection("Murderer")
+local GrabGun = Combat:addSection("Grab Gun")
 local Sheriff = Combat:addSection("Sheriff")
 local Innocent = Combat:addSection("Innocent")
 local Main0 = R3TH:addPage("Main", 5012540623)
 local Teleports = Main0:addSection("Teleports")
 local Map = Main0:addSection("Map")
 local Chams = Main0:addSection("Chams")
-local Main = Main0:addSection("Main")
+local Main = Main0:addSection("Main/Visual")
 local Misc = Main0:addSection("Misc")
 local Toggles = R3TH:addPage("Toggles", 5012544092)
 local World = Toggles:addSection("World")
@@ -72,19 +73,6 @@ local Target = Target0:addSection("Target")
 local LoopTarget = Target0:addSection("Loop Target")
 local FE = Target0:addSection("FE")
 local Antijoin = Target0:addSection("Anti Join")
-local MultiKill = R3TH:addPage("Multi Kill", 5012538583)
-local Mutlikill1 = MultiKill:addSection("Mutli Kill 1")
-local Mutlikill2 = MultiKill:addSection("Mutli Kill 2")
-local Mutlikill3 = MultiKill:addSection("Mutli Kill 3")
-local Mutlikill4 = MultiKill:addSection("Mutli Kill 4")
-local Mutlikill5 = MultiKill:addSection("Mutli Kill 5")
-local Mutlikill6 = MultiKill:addSection("Mutli Kill 6")
-local Mutlikill7 = MultiKill:addSection("Mutli Kill 7")
-local Mutlikill8 = MultiKill:addSection("Mutli Kill 8")
-local Mutlikill9 = MultiKill:addSection("Mutli Kill 9")
-local Mutlikill10 = MultiKill:addSection("Mutli Kill 10")
-local Mutlikill11 = MultiKill:addSection("Mutli Kill 11")
-local Mutlikill12 = MultiKill:addSection("Mutli Kill 12")
 local Settings0 = R3TH:addPage("Settings", 5012544372)
 local Settings = Settings0:addSection("Settings")
 local Credits = Settings0:addSection("Credits")
@@ -149,7 +137,7 @@ function toggleui()
     Button.TextWrapped = true
     Button.Draggable = true
     
-    UICorner.Parent = Button
+    UICorner.Parent = Buttond
     
     UICorner_2.Parent = Button
     
@@ -170,16 +158,37 @@ function toggleui()
     end
 end
 
+-- Create a ScreenGui object to hold the button
+local gui = Instance.new("ScreenGui")
+gui.Name = "AshbornnHubGui"
+gui.Parent = game.CoreGui
+
+-- Create the button
+local button = Instance.new("TextButton")
+button.Name = "ToggleButton"
+button.Text = "Open"
+button.Size = UDim2.new(0, 80, 0, 30) -- Adjust the size as needed
+button.Position = UDim2.new(0, 10, 0, 10) -- Position at top left with 10px offset
+button.BackgroundColor3 = Color3.new(204, 0, 0) -- Black background
+button.TextColor3 = Color3.new(1, 1, 1) -- White text
+button.Parent = gui
+
+-- Functionality for the button
+button.MouseButton1Click:Connect(function()
+    -- Call the toggle function in your AshbornnHub module
+    R3TH:toggle()
+end)
+
 function sendnotification(notificationmessage)
     if WVryGeXr38ZZtdJWtrBtyeEKdm9Kkweaxm7tnUpuCcH835AQN2aLxV2NeG76kYZuWnCZz4yRr == true then
         StarterGui:SetCore("SendNotification", {
-            Title = "R3TH PRIV";
+            Title = "Ashbornn";
             Text = notificationmessage;
             Duration = 5;
         })
     else
         Notification:Notify(
-            {Title = "R3TH PRIV", Description = notificationmessage},
+            {Title = "Ashbornn", Description = notificationmessage},
             {OutlineColor = Color3.fromRGB(80, 80, 80),Time = 5, Type = "default"}
         )
     end
@@ -196,6 +205,12 @@ function loadesp()
         R3THESP.NamesOutline = false
     end
 end
+
+
+
+
+
+
 
 function startFly()
     if not p.Character or not p.Character.Head or flying then return end
@@ -837,6 +852,25 @@ Murderer:addToggle("Auto Kill All", false, function(autokillall)
     pcall(autokillallloopfix)
     end
 end)
+
+GrabGun:addButton("Grab Gun", function()
+    local currentX = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame.X
+    local currentY = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame.Y
+    local currentZ = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame.Z
+
+    if workspace:FindFirstChild("GunDrop") then
+        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = workspace:FindFirstChild("GunDrop").CFrame
+        wait(0.30)
+        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(currentX, currentY, currentZ)
+    else
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = "Gun not Found",
+            Text = "Wait for the Sheriff's death to grab the gun.",
+            Duration = 2.5
+        })
+    end
+end)
+
 
 Murderer:addToggle("Knife Aura", false, function(knifeaura)
     knifeauraloop = knifeaura
