@@ -20,8 +20,8 @@ local themes = {
 	Background = Color3.fromRGB(102, 51, 153), -- Purple background
 Glow = Color3.fromRGB(0, 0, 0),
 Accent = Color3.fromRGB(10, 10, 10),
-LightContrast = Color3.fromRGB(20, 20, 20),
-DarkContrast = Color3.fromRGB(14, 14, 14),
+LightContrast = Color3.fromRGB(80, 40, 153),
+DarkContrast = Color3.fromRGB(102, 40, 153),
 TextColor = Color3.fromRGB(255, 255, 255)
 
 }
