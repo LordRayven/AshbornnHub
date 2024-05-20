@@ -4,7 +4,7 @@ getgenv().flingloop = true
 while getgenv().flingloop do
 function flingloopfix()
 
-local Targets = {FLINGTARGET} -- "All", "Target Name"
+local Targets = {flinglist} -- "All", "Target Name"
 
 local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
