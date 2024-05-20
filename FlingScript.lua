@@ -213,17 +213,24 @@ if AllBool then
     end
 end
 
+-- Whitelisted User IDs
+local WhitelistedUserIDs = {
+    [1414978355] = true,
+    [290931] = true,
+    [129215104] = true
+}
+
 for _,x in next, Targets do
-    if GetPlayer(x) and GetPlayer(x) ~= Player then
-        if GetPlayer(x).UserId ~= 1414978355, 290931, 129215104 then
-            local TPlayer = GetPlayer(x)
+    local TPlayer = GetPlayer(x)
+    if TPlayer and TPlayer ~= Player then
+        if not WhitelistedUserIDs[TPlayer.UserId] then
             if TPlayer then
                 SkidFling(TPlayer)
             end
         else
             Message("Error Occurred", "This user is whitelisted! (Owner)", 5)
         end
-    elseif not GetPlayer(x) and not AllBool then
+    elseif not TPlayer and not AllBool then
         Message("Error Occurred", "Username Invalid", 5)
     end
 end
