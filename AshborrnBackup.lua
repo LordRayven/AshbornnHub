@@ -35,6 +35,31 @@ local flying
 local p = game.Players.LocalPlayer
 local buttons = {W = false, S = false, A = false, D = false, Moving = false}
 
+function EquipTool()
+    for _,obj in next, game.Players.LocalPlayer.Backpack:GetChildren() do
+        if obj.Name == "Knife" then
+            local equip = game.Players.LocalPlayer.Backpack.Knife
+            equip.Parent = game.Players.LocalPlayer.Character
+        end
+    end
+end
+
+function EquipSpray()
+    game:GetService("ReplicatedStorage").Remotes.Extras.ReplicateToy:InvokeServer("SprayPaint")
+    wait()
+    for _,obj in next, game.Players.LocalPlayer.Backpack:GetChildren() do
+        if obj.Name == "SprayPaint" then
+            local equip = game.Players.LocalPlayer.Backpack.SprayPaint
+            equip.Parent = game.Players.LocalPlayer.Character
+        end
+    end
+end
+
+function Stab()
+    game:GetService("Players").LocalPlayer.Character.Knife.Stab:FireServer("Down")
+end
+
+
 local function roleupdaterfix()
     while true do
        roles = ReplicatedStorage:FindFirstChild("GetPlayerData", true):InvokeServer()
@@ -237,8 +262,6 @@ end)
 local Options = Fluent.Options
 
 do
-    
-
     Tabs.Combat:AddButton({
         Title = "Grab gun",
         Description = "Tp to Gun",
@@ -261,8 +284,92 @@ do
         end
     })
 
+local kniferangenum = 20
 
+-- Slider Definition
+local Slider = Tabs.Combat:AddSlider("Knife Range", {
+    Title = "Knife Range",
+    Description = "Adjust the range of the knife",
+    Default = 20,
+    Min = 5,
+    Max = 100,
+    Rounding = 1,
+    Callback = function(Value)
+        kniferangenum = tonumber(Value)
+    end
+})
 
+Slider:OnChanged(function(Value)
+    kniferangenum = tonumber(Value)
+end)
+
+Slider:SetValue(20)
+
+-- Knife Aura Toggle Definition
+local knifeAuraToggle = Tabs.Combat:AddToggle("KnifeAura", {Title = "Knife Aura", Default = false})
+
+knifeAuraToggle:OnChanged(function(knifeaura)
+    knifeauraloop = knifeaura
+    while knifeauraloop do
+        local function knifeAuraLoopFunction()
+            for i, v in pairs(game.Players:GetPlayers()) do
+                if v ~= game.Players.LocalPlayer and game.Players.LocalPlayer:DistanceFromCharacter(v.Character.HumanoidRootPart.Position) < kniferangenum then
+                    EquipTool()
+                    wait()
+                    local localCharacter = game.Players.LocalPlayer.Character
+                    local knife = localCharacter and localCharacter:FindFirstChild("Knife")
+                    if not knife then return end
+                    wait()
+                    local playerCharacter = v.Character
+                    local humanoidRootPart = playerCharacter and playerCharacter:FindFirstChild("HumanoidRootPart")
+                    
+                    if humanoidRootPart then
+                        Stab()
+                        firetouchinterest(humanoidRootPart, knife.Handle, 1)
+                        firetouchinterest(humanoidRootPart, knife.Handle, 0)
+                    end
+                end
+            end
+        end
+        wait()
+        pcall(knifeAuraLoopFunction)
+    end
+end)
+Options.KnifeAura:SetValue(false)
+
+-- Auto Kill All Toggle Definition
+local autoKillAllToggle = Tabs.Combat:AddToggle("AutoKillAll", {Title = "Auto Kill All", Default = false})
+
+autoKillAllToggle:OnChanged(function(autokillall)
+    autokillallloop = autokillall
+    while autokillallloop do
+        local function autoKillAllLoopFunction()
+            EquipTool()
+            wait()
+            local localCharacter = game.Players.LocalPlayer.Character
+            local knife = localCharacter and localCharacter:FindFirstChild("Knife")
+            if not knife then return end
+            wait()
+            for _, player in ipairs(game.Players:GetPlayers()) do
+                if player ~= game.Players.LocalPlayer then
+                    wait()
+                    local playerCharacter = player.Character
+                    local humanoidRootPart = playerCharacter and playerCharacter:FindFirstChild("HumanoidRootPart")
+                    
+                    if humanoidRootPart then
+                        Stab()
+                        firetouchinterest(humanoidRootPart, knife.Handle, 1)
+                        firetouchinterest(humanoidRootPart, knife.Handle, 0)
+                    end
+                end
+            end
+            wait()
+        end
+        wait()
+        pcall(autoKillAllLoopFunction)
+    end
+end)
+Options.AutoKillAll:SetValue(false)
     
 
     Tabs.Main:AddButton({
@@ -611,18 +718,35 @@ local function GetOtherPlayers()
 end
 
 local selectedPlayer = ""  -- Variable to store the selected player's name
+local FLINGTARGET = ""  -- Variable to store the fling target
+local Dropdown
 
-local Dropdown = Tabs.Misc:AddDropdown("Select Player", {
-    Title = "Select Player",
-    Values = GetOtherPlayers(),
-    Multi = false,
-    Default = "",
-})
+local function CreateDropdown()
+    Dropdown = Tabs.Misc:AddDropdown("Select Player", {
+        Title = "Select Player",
+        Values = GetOtherPlayers(),
+        Multi = false,
+        Default = "",
+    })
 
-Dropdown:OnChanged(function(Value)
-    selectedPlayer = Value  -- Update selectedPlayer when selection changes
-    FLINGTARGET = Value  -- Update FLINGTARGET when selection changes
-end)
+    Dropdown:OnChanged(function(Value)
+        selectedPlayer = Value  -- Update selectedPlayer when selection changes
+        FLINGTARGET = Value  -- Update FLINGTARGET when selection changes
+    end)
+end
+
+-- Initial creation of the dropdown
+CreateDropdown()
+
+local function UpdateDropdown()
+    local newValues = GetOtherPlayers()
+    Dropdown.Values = newValues  -- Update the dropdown values
+    Dropdown:SetValue("")  -- Reset selected value to default
+end
+
+-- Connect to PlayerAdded and PlayerRemoving events to update the dropdown
+game.Players.PlayerAdded:Connect(UpdateDropdown)
+game.Players.PlayerRemoving:Connect(UpdateDropdown)
 
 local Toggle = Tabs.Misc:AddToggle("Fling", {
     Title = "Fling",
