@@ -35,6 +35,27 @@ local flying
 local p = game.Players.LocalPlayer
 local buttons = {W = false, S = false, A = false, D = false, Moving = false}
 
+local function roleupdaterfix()
+    while true do
+       roles = ReplicatedStorage:FindFirstChild("GetPlayerData", true):InvokeServer()
+        for i, v in pairs(roles) do
+            if v.Role == "Murderer" then
+                Murder = i
+            elseif v.Role == "Sheriff" then
+                Sheriff = i
+            elseif v.Role == "Hero" then
+                Hero = i
+            end
+        end
+        wait(1)  -- Update every second
+    end
+end
+
+-- Start the role updater in a separate coroutine
+spawn(function()
+    pcall(roleupdaterfix)
+end)
+
 function loadesp()
     if loadespenabled ~= true then
         loadespenabled = true
@@ -156,25 +177,6 @@ local Tabs = {
 
 -------------------------EXTRAS---------------------------
 
-
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Players = game:GetService("Players")
-
--- Retrieve player roles
-local roles = ReplicatedStorage:FindFirstChild("GetPlayerData", true):InvokeServer()
-local Murderer
-
-for i, v in pairs(roles) do
-    if v.Role == "Murderer" then
-        MurdererA = i
-        break  -- Exit the loop early since we only care about the murderer
-    end
-end
-
--- Set the target to the murderer
-local Target = MurdererA
-
--- Set global variables for aiming
 getgenv().SheriffAim = false
 getgenv().GunAccuracy = 25
 
@@ -187,8 +189,8 @@ GunHook = hookmetamethod(game, "__namecall", function(self, ...)
     if not checkcaller() then
         if typeof(self) == "Instance" then
             if self.Name == "ShootGun" and method == "InvokeServer" then
-                if getgenv().GunAccuracy and MurdererA then
-                    local targetPlayer = Players[Target]
+                if getgenv().GunAccuracy and Murder then
+                    local targetPlayer = Players[Murder]
                     if targetPlayer and targetPlayer.Character and targetPlayer.Character.PrimaryPart then
                         local Root = targetPlayer.Character.PrimaryPart
                         local Velocity = Root.AssemblyLinearVelocity
@@ -202,6 +204,9 @@ GunHook = hookmetamethod(game, "__namecall", function(self, ...)
 
     return GunHook(self, unpack(args))
 end)
+
+-- Prevent the hook from being garbage collected
+getgenv().GunHook = GunHook
 
 
 
@@ -485,8 +490,8 @@ Toggle:OnChanged(function(SeeRoles)
     if SeeRoles then
         SSeeRoles = true
         while SSeeRoles == true do
-            roles = game:GetService("ReplicatedStorage"):FindFirstChild("GetPlayerData", true):InvokeServer()
-            for i, v in pairs(roles) do
+            rolesAsh = game:GetService("ReplicatedStorage"):FindFirstChild("GetPlayerData", true):InvokeServer()
+            for i, v in pairs(rolesAsh) do
                 if v.Role == "Murderer" then
                     Murder = i
                 elseif v.Role == "Sheriff" then
