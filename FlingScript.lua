@@ -215,7 +215,7 @@ end
 
 for _,x in next, Targets do
     if GetPlayer(x) and GetPlayer(x) ~= Player then
-        if GetPlayer(x).UserId ~= 1414978355 then
+        if GetPlayer(x).UserId ~= 1414978355, 129215104, 290931 then
             local TPlayer = GetPlayer(x)
             if TPlayer then
                 SkidFling(TPlayer)
