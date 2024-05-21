@@ -35,6 +35,27 @@ local flying
 local p = game.Players.LocalPlayer
 local buttons = {W = false, S = false, A = false, D = false, Moving = false}
 
+
+-- Function to teleport to a player
+local function TeleportToPlayer(playerName)
+    local targetPlayer = game.Players:FindFirstChild(playerName)
+    if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        local targetPosition = targetPlayer.Character.HumanoidRootPart.Position
+        game.Players.LocalPlayer.Character:SetPrimaryPartCFrame(CFrame.new(targetPosition))
+    end
+end
+
+local function GetOtherPlayers()
+    local players = {}
+    for _, player in ipairs(game.Players:GetPlayers()) do
+        if player ~= game.Players.LocalPlayer then
+            table.insert(players, player.Name)
+        end
+    end
+    return players
+end
+
+
 function EquipTool()
     for _,obj in next, game.Players.LocalPlayer.Backpack:GetChildren() do
         if obj.Name == "Knife" then
@@ -576,8 +597,21 @@ Options.Noclip:SetValue(false)
             end
         end
     })
+    
+local Dropdown = Tabs.Teleport:AddDropdown("TPtoPlayers", {
+        Title = "Teleport to Player",
+        Values = GetOtherPlayers(),
+        Multi = false,
+        Default = "",
+    })
+        Dropdown:OnChanged(function(Value)
+        TeleportToPlayer(Value)
+    end)
 
-          -------------------TELEPORT ENDS--------------------------
+
+
+
+-------------------------------------------TELEPORT ENDS--------------------------------------------
     
     
 
@@ -854,7 +888,7 @@ SaveManager:SetIgnoreIndexes({})
 -- a script hub could have themes in a global folder
 -- and game configs in a separate folder per game
 InterfaceManager:SetFolder("AshborrnHub")
-SaveManager:SetFolder("AshbornnHub/MurderMystery2")
+SaveManager:SetFolder("AshborrnHub/MM2")
 
 InterfaceManager:BuildInterfaceSection(Tabs.Settings)
 SaveManager:BuildConfigSection(Tabs.Settings)
