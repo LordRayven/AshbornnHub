@@ -826,6 +826,49 @@ Tabs.Misc:AddButton({
             })
         end
     })
+    
+local function CreateDropdownB()
+    local Dropdown = Tabs.Misc:AddDropdown("ViewPlayerd", {
+        Title = "View Player / Spectate Player",
+        Values = GetOtherPlayers(),
+        Multi = false,
+        Default = "",
+    })
+
+    Dropdown:OnChanged(function(Value)
+        if not isResetting and Value ~= "" then
+            workspace.Camera.CameraSubject = game:GetService("Players")[Value].Character:WaitForChild("Humanoid")
+            isResetting = true
+            Dropdown:SetValue("")  -- Reset selected value to default
+            isResetting = false
+        end
+    end)
+
+    return Dropdown
+end
+
+-- Initial creation of the dropdown
+local Dropdown = CreateDropdownB()
+
+local function UpdateDropdownB()
+    local newValues = GetOtherPlayers()
+    isResetting = true
+    Dropdown.Values = newValues  -- Update the dropdown values
+    Dropdown:SetValue("")  -- Reset selected value to default
+    isResetting = false
+end
+
+-- Connect to PlayerAdded and PlayerRemoving events to update the dropdown
+game.Players.PlayerAdded:Connect(UpdateDropdownB)
+game.Players.PlayerRemoving:Connect(UpdateDropdownB)
+
+Tabs.Misc:AddButton({
+    Title = "Stop Viewing",
+    Description = "Stop viewing the selected player",
+    Callback = function()
+        workspace.Camera.CameraSubject = game.Players.LocalPlayer.Character:WaitForChild("Humanoid")
+    end
+})
 
 Tabs.Misc:AddParagraph({
         Title = "This is for Scrolling",
@@ -868,6 +911,7 @@ Tabs.Misc:AddParagraph({
             game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-108.5, 145, 0.6)
         end
     })
+    
     Tabs.Teleport:AddButton({
         Title = "TP to Map",
         Description = "Teleport to map",
