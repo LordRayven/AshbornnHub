@@ -14,6 +14,11 @@ local ReplicatedStorage = game:GetService('ReplicatedStorage')
 local N=game:GetService("VirtualInputManager")
 
 local mt = getrawmetatable(game);
+local old = {};
+for i, v in next, mt do old[i] = v end;
+
+setreadonly(mt,false)
+
 
 local defualtwalkspeed = 16
 local defualtjumppower = 50
@@ -21,8 +26,6 @@ local defualtgravity = 196.1999969482422
 newwalkspeed = defualtwalkspeed
 newjumppower = defualtjumppower
 antiafk = true
-
-setreadonly(mt,false)
 
 
 local newflyspeed = 50
@@ -197,6 +200,49 @@ function HideHighlights()
 	end
 end
 
+function SpawnEmotes()
+    local Remote = game.ReplicatedStorage.Remotes.Extras.GetPlayerData:InvokeServer("GetData")
+    local Client = Players.LocalPlayer
+    local ReplicatedStorage = game:GetService('ReplicatedStorage')
+    local Modules = ReplicatedStorage.Modules
+    local EmoteModule = Modules.EmoteModule
+    local Emotes = Client.PlayerGui.MainGUI.Game:FindFirstChild("Emotes")
+    local EmoteList = {"headless","zombie","zen","ninja","floss","dab","sit"}
+    require(EmoteModule).GeneratePage(EmoteList,Emotes,'Your Emotes')
+end
+
+function clearbackpackguns()
+    for i,v in pairs(game.Players.LocalPlayer.Backpack:GetChildren()) do
+        if v.Name ~= "Emotes" then
+            if v.Name ~= "Knife" then
+                if v.Name ~= "Gun" then
+                    if v.Name ~= "Pizza" then
+                        if v.Name ~= "ChocolateMilk" then
+                            if v.Name ~= "IceCream" then
+                                if v.Name ~= "Teddy" then
+                                    if v.Name ~= "FakeBomb" then
+                                        if v.Name ~= "Fireflies" then
+                                            if v.Name ~= "GGSign" then
+                                                if v.Name ~= "SprayPaint" then
+                                                    if v.Name ~= "EggToy2023" then
+                                                        if v.Name ~= "BeachBall2023" then
+                                                            v:Remove()
+                                                        end
+                                                    end
+                                                end
+                                            end
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+    task.wait()
+end
 -------------------------END FUNCTIONS---------------------------------
 
 local Window = Fluent:CreateWindow({
@@ -222,6 +268,21 @@ local Tabs = {
 
 
 -------------------------EXTRAS---------------------------
+
+mt.__namecall = newcclosure(function(...)
+	local method = tostring(getnamecallmethod());
+	local args = {...}
+
+	if method == 'FireServer' and args[1].Name == 'SayMessageRequest' then 
+        if alwaysalivechat == true then
+            args[3] = "Alive"
+        end
+		return old.__namecall(unpack(args));
+	end
+	return old.__namecall(...)
+end)
+
+setreadonly(mt,true)
 
 getgenv().SheriffAim = false
 getgenv().GunAccuracy = 25
@@ -283,6 +344,15 @@ end)
 local Options = Fluent.Options
 
 do
+
+-------------------------------------------COMBAT---------------------------------------
+
+Tabs.Combat:AddParagraph({
+        Title = "Sheriff Hacks",
+        Content = "Under this paragraph is for Sheriff/ Innocent"
+    })
+    
+    
     Tabs.Combat:AddButton({
         Title = "Grab gun",
         Description = "Tp to Gun",
@@ -303,6 +373,19 @@ do
                 })
             end
         end
+    })
+    
+    local Toggle = Tabs.Combat:AddToggle("SilentAIM1", {Title = "Silent Aim to Murderer", Default = false })
+
+Toggle:OnChanged(function(gunsilentaim)
+    getgenv().SheriffAim = gunsilentaim
+end)
+
+Options.SilentAIM1:SetValue(false)
+
+Tabs.Combat:AddParagraph({
+        Title = "Murderer Hacks",
+        Content = "Under this paragraph is for Murderer Hacks"
     })
 
 local kniferangenum = 20
@@ -391,16 +474,57 @@ autoKillAllToggle:OnChanged(function(autokillall)
     end
 end)
 Options.AutoKillAll:SetValue(false)
+
+Tabs.Combat:AddParagraph({
+        Title = "This is for Scrolling",
+        Content = "For scrolling only"
+    })
+    Tabs.Combat:AddParagraph({
+        Title = "This is for Scrolling",
+        Content = "For scrolling only"
+    })
+Tabs.Combat:AddParagraph({
+        Title = "This is for Scrolling",
+        Content = "For scrolling only"
+    })
+Tabs.Combat:AddParagraph({
+        Title = "This is for Scrolling",
+        Content = "For scrolling only"
+    })
+    
+Tabs.Combat:AddParagraph({
+        Title = "This is for Scrolling",
+        Content = "For scrolling only"
+    })
+    
+Tabs.Combat:AddParagraph({
+        Title = "This is for Scrolling",
+        Content = "For scrolling only"
+    })
+
+
+
+
+--------------------------------------------COMBAT-----------------------------------------------
     
 
-    Tabs.Main:AddButton({
-        Title = "Infinite Yield",
-        Description = "Best script for all games",
-        Callback = function()
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))()
-        end
-    })
-    ---------------------MISC
+    
+----------------------------------------------MISC---------------------------------------------------
+    
+    local Toggle = Tabs.Misc:AddToggle("AlwaysAliveChat", {Title = "Always Alive Chat", Default = false})
+
+Toggle:OnChanged(function(alwaysalive)
+    if alwaysalive == true then
+        alwaysalivechat = true
+        wait()
+    end
+    if alwaysalive == false then
+        alwaysalivechat = false
+        wait()
+    end
+end)
+
+Options.AlwaysAliveChat:SetValue(false)
     
 Tabs.Misc:AddButton({
     Title = "Get fake knife",
@@ -512,8 +636,109 @@ Toggle:OnChanged(function(enablefly)
     end
 end)
 
-    ---------------------MISC
-    local Toggle = Tabs.Misc:AddToggle("Noclip", {Title = "Noclip", Default = false })
+----------------------------------------------------MISC---------------------------------------------------
+
+    local FLINGTARGET = "" -- Initialize FLINGTARGET variable
+
+local function GetOtherPlayers()
+    local players = {}
+    for _, player in ipairs(game.Players:GetPlayers()) do
+        if player ~= game.Players.LocalPlayer then
+            table.insert(players, player.Name)
+        end
+    end
+    return players
+end
+
+local selectedPlayer = ""  -- Variable to store the selected player's name
+local FLINGTARGET = ""  -- Variable to store the fling target
+local Dropdown
+
+local function CreateDropdown()
+    Dropdown = Tabs.Misc:AddDropdown("Select Player", {
+        Title = "Select Player",
+        Values = GetOtherPlayers(),
+        Multi = false,
+        Default = "",
+    })
+
+    Dropdown:OnChanged(function(Value)
+        selectedPlayer = Value  -- Update selectedPlayer when selection changes
+        FLINGTARGET = Value  -- Update FLINGTARGET when selection changes
+    end)
+end
+
+-- Initial creation of the dropdown
+CreateDropdown()
+
+local function UpdateDropdown()
+    local newValues = GetOtherPlayers()
+    Dropdown.Values = newValues  -- Update the dropdown values
+    Dropdown:SetValue("")  -- Reset selected value to default
+end
+
+-- Connect to PlayerAdded and PlayerRemoving events to update the dropdown
+game.Players.PlayerAdded:Connect(UpdateDropdown)
+game.Players.PlayerRemoving:Connect(UpdateDropdown)
+
+local Toggle = Tabs.Misc:AddToggle("Fling", {
+    Title = "Fling",
+    Default = false
+})
+
+Toggle:OnChanged(function(flingplayer)
+    if flingplayer == true then
+        -- Ensure a player is selected before executing the script
+        if selectedPlayer ~= "" then
+            -- You can pass the selectedPlayer to the loaded script if needed
+            getgenv().FLINGTARGET = selectedPlayer
+            loadstring(game:HttpGet('https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/FlingScript.lua'))()
+            wait()
+        else
+            -- Handle case when no player is selected
+            print("No player selected for flinging.")
+        end
+    end
+    
+    if flingplayer == false then
+        getgenv().flingloop = false
+        wait()
+    end
+end)
+
+    
+    
+    local Toggle = Tabs.Misc:AddToggle("Fling", {Title = "Fling Murderer", Default = false })
+
+Toggle:OnChanged(function(flingplayer)
+getgenv().FLINGTARGET = Murder
+    if flingplayer then
+        loadstring(game:HttpGet('https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/FlingScript.lua'))()
+        wait()
+    else
+        getgenv().flingloop = false
+        wait()
+    end
+end)
+
+Options.Fling:SetValue(false)
+
+local Toggle = Tabs.Misc:AddToggle("Fling", {Title = "Fling Sheriff", Default = false })
+
+Toggle:OnChanged(function(flingplayer)
+getgenv().FLINGTARGET = Sheriff
+    if flingplayer then
+        loadstring(game:HttpGet('https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/FlingScript.lua'))()
+        wait()
+    else
+        getgenv().flingloop = false
+        wait()
+    end
+end)
+
+Options.Fling:SetValue(false)
+
+local Toggle = Tabs.Misc:AddToggle("Noclip", {Title = "Noclip", Default = false })
 
 Toggle:OnChanged(function(noclip)
     loopnoclip = noclip
@@ -536,9 +761,105 @@ Toggle:OnChanged(function(noclip)
 end)
 
 Options.Noclip:SetValue(false)
+
+local Toggle = Tabs.Misc:AddToggle("GetEmotes", {Title = "Get All Emotes", Default = false})
+
+Toggle:OnChanged(function(getallemotes)
+    emotesondeath = getallemotes
+    if emotesondeath == true then
+        SpawnEmotes()
+        wait()
+    end
+end)
+
+Options.GetEmotes:SetValue(false)
+
+
+Tabs.Misc:AddButton({
+        Title = "Rejoin",
+        Description = "Rejoining on this current server",
+        Callback = function()
+            Window:Dialog({
+                Title = "Rejoin this server?",
+                Content = "Do you want to rejoin this server? ",
+                Buttons = {
+                    {
+                        Title = "Confirm",
+                        Callback = function()
+                            game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, game.JobId, game:GetService("Players").LocalPlayer)
+        wait()
+                        end
+                    },
+                    {
+                        Title = "Cancel",
+                        Callback = function()
+                            print("Rejoin cancelled.")
+                        end
+                    }
+                }
+            })
+        end
+    })
+
+Tabs.Misc:AddButton({
+        Title = "Serverhop",
+        Description = "Join to another server",
+        Callback = function()
+            Window:Dialog({
+                Title = "Join to another server?",
+                Content = "Do you want to join to another server?",
+                Buttons = {
+                    {
+                        Title = "Confirm",
+                        Callback = function()
+                            loadstring(game:HttpGet("https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/ServerHop.lua", true))()
+        wait()
+                        end
+                    },
+                    {
+                        Title = "Cancel",
+                        Callback = function()
+                            print("Serverhop cancelled.")
+                        end
+                    }
+                }
+            })
+        end
+    })
+
+Tabs.Misc:AddParagraph({
+        Title = "This is for Scrolling",
+        Content = "For scrolling only"
+    })
+    Tabs.Misc:AddParagraph({
+        Title = "This is for Scrolling",
+        Content = "For scrolling only"
+    })
+Tabs.Misc:AddParagraph({
+        Title = "This is for Scrolling",
+        Content = "For scrolling only"
+    })
+Tabs.Misc:AddParagraph({
+        Title = "This is for Scrolling",
+        Content = "For scrolling only"
+    })
     
-    ----------------------MISC ENDS
-    -------------------------------TELEPORTS-------------------------------
+Tabs.Misc:AddParagraph({
+        Title = "This is for Scrolling",
+        Content = "For scrolling only"
+    })
+    
+Tabs.Misc:AddParagraph({
+        Title = "This is for Scrolling",
+        Content = "For scrolling only"
+    })
+
+
+    
+    
+--------------------------------------------------------MISC ENDS--------------------------------------------------
+    
+-------------------------------------------------------TELEPORTS---------------------------------------------------
 
     Tabs.Teleport:AddButton({
         Title = "TP to Lobby",
@@ -675,14 +996,7 @@ Tabs.Teleport:AddButton({
     
     
 
-    local Toggle = Tabs.Combat:AddToggle("SilentAIM1", {Title = "Silent Aim to Murderer", Default = false })
-
-Toggle:OnChanged(function(gunsilentaim)
-    getgenv().SheriffAim = gunsilentaim
-end)
-
-Options.SilentAIM1:SetValue(false)
-
+    
 ------------------------VISUAL------------------------------
     
     local Toggle = Tabs.Visual:AddToggle("ESPRoles", {Title = "ESP Roles", Default = false })
@@ -728,11 +1042,12 @@ Toggle:OnChanged(function(SeeGun)
             while SSeeGun do
                 repeat wait() until workspace:FindFirstChild("GunDrop")
                 if workspace:FindFirstChild("GunDrop") and not workspace.GunDrop:FindFirstChild("Esp_gun") then
-                    game:GetService("StarterGui"):SetCore("SendNotification", {
-                        Title = "AshbornnHub 1.1.0",
-                        Text = "Gun is Dropped",
-                        Duration = 2
-                    })
+                    Fluent:Notify({
+        Title = "Gun found",
+        Content = "Please tap the Grab Gun and move your character a little bit.",
+        SubContent = "Combat => Grab Gun", -- Optional
+        Duration = 5 -- Set to nil to make the notification not disappear
+    })
                     local espgunhigh = Instance.new("Highlight", workspace:FindFirstChild("GunDrop"))
                     espgunhigh.Name = "Esp_gun"
                     espgunhigh.FillColor = Color3.fromRGB(0, 255, 0)
@@ -777,217 +1092,63 @@ Options.Xray:SetValue(false)
 
     
     
------------------VISUAL---------------------
+--------------------------------------------------VISUAL ENDS---------------------------------------------------------------------
     
     
-    
-    local Slider = Tabs.Main:AddSlider("Slider", {
-        Title = "Slider",
-        Description = "This is a slider",
-        Default = 2,
-        Min = 0,
-        Max = 5,
-        Rounding = 1,
-        Callback = function(Value)
-            print("Slider was changed:", Value)
+    --------------------------------------------MAIN---------------------------------------------
+  Tabs.Main:AddButton({
+        Title = "Infinite Yield",
+        Description = "Best script for all games",
+        Callback = function()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))()
         end
     })
-
-    Slider:OnChanged(function(Value)
-        print("Slider changed:", Value)
-    end)
-
-    Slider:SetValue(3)
-
-    local FLINGTARGET = "" -- Initialize FLINGTARGET variable
-
-local function GetOtherPlayers()
-    local players = {}
-    for _, player in ipairs(game.Players:GetPlayers()) do
-        if player ~= game.Players.LocalPlayer then
-            table.insert(players, player.Name)
-        end
+    
+Tabs.Main:AddButton({
+    Title = "Respawn",
+    Callback = function()
+        LocalPlayer.Character:WaitForChild("Humanoid").Health = 0
+        wait()
     end
-    return players
-end
-
-local selectedPlayer = ""  -- Variable to store the selected player's name
-local FLINGTARGET = ""  -- Variable to store the fling target
-local Dropdown
-
-local function CreateDropdown()
-    Dropdown = Tabs.Misc:AddDropdown("Select Player", {
-        Title = "Select Player",
-        Values = GetOtherPlayers(),
-        Multi = false,
-        Default = "",
-    })
-
-    Dropdown:OnChanged(function(Value)
-        selectedPlayer = Value  -- Update selectedPlayer when selection changes
-        FLINGTARGET = Value  -- Update FLINGTARGET when selection changes
-    end)
-end
-
--- Initial creation of the dropdown
-CreateDropdown()
-
-local function UpdateDropdown()
-    local newValues = GetOtherPlayers()
-    Dropdown.Values = newValues  -- Update the dropdown values
-    Dropdown:SetValue("")  -- Reset selected value to default
-end
-
--- Connect to PlayerAdded and PlayerRemoving events to update the dropdown
-game.Players.PlayerAdded:Connect(UpdateDropdown)
-game.Players.PlayerRemoving:Connect(UpdateDropdown)
-
-local Toggle = Tabs.Misc:AddToggle("Fling", {
-    Title = "Fling",
-    Default = false
 })
 
-Toggle:OnChanged(function(flingplayer)
-    if flingplayer == true then
-        -- Ensure a player is selected before executing the script
-        if selectedPlayer ~= "" then
-            -- You can pass the selectedPlayer to the loaded script if needed
-            getgenv().FLINGTARGET = selectedPlayer
-            loadstring(game:HttpGet('https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/FlingScript.lua'))()
-            wait()
-        else
-            -- Handle case when no player is selected
-            print("No player selected for flinging.")
-        end
-    end
-    
-    if flingplayer == false then
-        getgenv().flingloop = false
+Tabs.Main:AddButton({
+    Title = "Open Console",
+    Callback = function()
+        game.StarterGui:SetCore("DevConsoleVisible", true)
         wait()
     end
-end)
-
+})
     
     
-    local Toggle = Tabs.Misc:AddToggle("Fling", {Title = "Fling Murderer", Default = false })
-
-Toggle:OnChanged(function(flingplayer)
-getgenv().FLINGTARGET = Murder
-    if flingplayer then
-        loadstring(game:HttpGet('https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/FlingScript.lua'))()
-        wait()
-    else
-        getgenv().flingloop = false
-        wait()
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     end
-end)
-
-Options.Fling:SetValue(false)
-
-local Toggle = Tabs.Misc:AddToggle("Fling", {Title = "Fling Sheriff", Default = false })
-
-Toggle:OnChanged(function(flingplayer)
-getgenv().FLINGTARGET = Sheriff
-    if flingplayer then
-        loadstring(game:HttpGet('https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/FlingScript.lua'))()
-        wait()
-    else
-        getgenv().flingloop = false
-        wait()
-    end
-end)
-
-Options.Fling:SetValue(false)
-
-Tabs.Misc:AddParagraph({
-        Title = "This is for Scrolling",
-        Content = "For scrolling only"
-    })
-    Tabs.Misc:AddParagraph({
-        Title = "This is for Scrolling",
-        Content = "For scrolling only"
-    })
-Tabs.Misc:AddParagraph({
-        Title = "This is for Scrolling",
-        Content = "For scrolling only"
-    })
-Tabs.Misc:AddParagraph({
-        Title = "This is for Scrolling",
-        Content = "For scrolling only"
-    })
-    
-Tabs.Misc:AddParagraph({
-        Title = "This is for Scrolling",
-        Content = "For scrolling only"
-    })
-    
-Tabs.Misc:AddParagraph({
-        Title = "This is for Scrolling",
-        Content = "For scrolling only"
-    })
-    
-    
-    
-    
-
-    local Keybind = Tabs.Main:AddKeybind("Keybind", {
-        Title = "KeyBind",
-        Mode = "Toggle", -- Always, Toggle, Hold
-        Default = "LeftControl", -- String as the name of the keybind (MB1, MB2 for mouse buttons)
-
-        -- Occurs when the keybind is clicked, Value is `true`/`false`
-        Callback = function(Value)
-            print("Keybind clicked!", Value)
-        end,
-
-        -- Occurs when the keybind itself is changed, `New` is a KeyCode Enum OR a UserInputType Enum
-        ChangedCallback = function(New)
-            print("Keybind changed!", New)
-        end
-    })
-
-    -- OnClick is only fired when you press the keybind and the mode is Toggle
-    -- Otherwise, you will have to use Keybind:GetState()
-    Keybind:OnClick(function()
-        print("Keybind clicked:", Keybind:GetState())
-    end)
-
-    Keybind:OnChanged(function()
-        print("Keybind changed:", Keybind.Value)
-    end)
-
-    task.spawn(function()
-        while true do
-            wait(1)
-
-            -- example for checking if a keybind is being pressed
-            local state = Keybind:GetState()
-            if state then
-                print("Keybind is being held down")
-            end
-
-            if Fluent.Unloaded then break end
-        end
-    end)
-
-    Keybind:SetValue("MB2", "Toggle") -- Sets keybind to MB2, mode to Hold
-
-    local Input = Tabs.Main:AddInput("Input", {
-        Title = "Input",
-        Default = "Default",
-        Placeholder = "Placeholder",
-        Numeric = false, -- Only allows numbers
-        Finished = false, -- Only calls callback when you press enter
-        Callback = function(Value)
-            print("Input changed:", Value)
-        end
-    })
-
-    Input:OnChanged(function()
-        print("Input updated:", Input.Value)
-    end)
-end
-
+    ------------------------------------------MAIN ENDS------------------------------------
 
 -- Addons:
 -- SaveManager (Allows you to have a configuration system)
