@@ -3,7 +3,6 @@ local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/d
 local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
 
 -------------------FUNCTION-----------------------
-roles = game:GetService("ReplicatedStorage"):FindFirstChild("GetPlayerData", true):InvokeServer()
 applyesptrans = 0.5
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
@@ -35,6 +34,73 @@ local cam
 local flying
 local p = game.Players.LocalPlayer
 local buttons = {W = false, S = false, A = false, D = false, Moving = false}
+
+
+-- Function to teleport to a player
+local function TeleportToPlayer(playerName)
+    local targetPlayer = game.Players:FindFirstChild(playerName)
+    if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        local targetPosition = targetPlayer.Character.HumanoidRootPart.Position
+        game.Players.LocalPlayer.Character:SetPrimaryPartCFrame(CFrame.new(targetPosition))
+    end
+end
+
+local function GetOtherPlayers()
+    local players = {}
+    for _, player in ipairs(game.Players:GetPlayers()) do
+        if player ~= game.Players.LocalPlayer then
+            table.insert(players, player.Name)
+        end
+    end
+    return players
+end
+
+
+function EquipTool()
+    for _,obj in next, game.Players.LocalPlayer.Backpack:GetChildren() do
+        if obj.Name == "Knife" then
+            local equip = game.Players.LocalPlayer.Backpack.Knife
+            equip.Parent = game.Players.LocalPlayer.Character
+        end
+    end
+end
+
+function EquipSpray()
+    game:GetService("ReplicatedStorage").Remotes.Extras.ReplicateToy:InvokeServer("SprayPaint")
+    wait()
+    for _,obj in next, game.Players.LocalPlayer.Backpack:GetChildren() do
+        if obj.Name == "SprayPaint" then
+            local equip = game.Players.LocalPlayer.Backpack.SprayPaint
+            equip.Parent = game.Players.LocalPlayer.Character
+        end
+    end
+end
+
+function Stab()
+    game:GetService("Players").LocalPlayer.Character.Knife.Stab:FireServer("Down")
+end
+
+
+local function roleupdaterfix()
+    while true do
+       roles = ReplicatedStorage:FindFirstChild("GetPlayerData", true):InvokeServer()
+        for i, v in pairs(roles) do
+            if v.Role == "Murderer" then
+                Murder = i
+            elseif v.Role == "Sheriff" then
+                Sheriff = i
+            elseif v.Role == "Hero" then
+                Hero = i
+            end
+        end
+        wait(1)  -- Update every second
+    end
+end
+
+-- Start the role updater in a separate coroutine
+spawn(function()
+    pcall(roleupdaterfix)
+end)
 
 function loadesp()
     if loadespenabled ~= true then
@@ -145,11 +211,11 @@ local Window = Fluent:CreateWindow({
 
 -- Fluent provides Lucide Icons https://lucide.dev/icons/ for the tabs, icons are optional
 local Tabs = {
-    Main = Window:AddTab({ Title = "Main", Icon = "" }),
-    Visual = Window:AddTab({ Title = "Visual", Icon = "" }),
-    Combat = Window:AddTab({ Title = "Combat", Icon = "" }),
-    Misc = Window:AddTab({ Title = "Misc", Icon = "" }),
-    Teleport = Window:AddTab({ Title = "Teleport", Icon = "" }),
+    Main = Window:AddTab({ Title = "Main", Icon = "box" }),
+    Visual = Window:AddTab({ Title = "Visual", Icon = "eye" }),
+    Combat = Window:AddTab({ Title = "Combat", Icon = "swords" }),
+    Misc = Window:AddTab({ Title = "Misc", Icon = "triangle-alert" }),
+    Teleport = Window:AddTab({ Title = "Teleport", Icon = "zap" }),
     Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
 }
 
@@ -157,32 +223,38 @@ local Tabs = {
 
 -------------------------EXTRAS---------------------------
 
+getgenv().SheriffAim = false
+getgenv().GunAccuracy = 25
 
-setreadonly(mt,true)
-
-getgenv().SheriffAim = false;
-getgenv().GunAccuracy = 25;
-
+-- Hook to modify gun shooting behavior
 local GunHook
-GunHook = hookmetamethod(game, "__namecall", function(self, ...) -------------copy code for shoot player
-	local method = getnamecallmethod()
-	local args = { ... }
-	if not checkcaller() then
-		if typeof(self) == "Instance" then
-			if self.Name == "ShootGun" and method == "InvokeServer" then
-				if getgenv().SheriffAim and getgenv().GunAccuracy then
-					if Murderer then
-						local Root = Players[tostring(Murder)].Character.PrimaryPart;
-						local Veloc = Root.AssemblyLinearVelocity;
-						local Pos = Root.Position + (Veloc * Vector3.new(getgenv().GunAccuracy / 200, 0, getgenv().GunAccuracy/ 200));
-						args[2] = Pos;
-					end;
-				end;
-			end;
-		end;
-	end;
-	return GunHook(self, unpack(args));
-end);
+GunHook = hookmetamethod(game, "__namecall", function(self, ...)
+    local method = getnamecallmethod()
+    local args = { ... }
+
+    if not checkcaller() then
+        if typeof(self) == "Instance" then
+            if self.Name == "ShootGun" and method == "InvokeServer" then
+                if getgenv().GunAccuracy and Murder then
+                    local targetPlayer = Players[Murder]
+                    if targetPlayer and targetPlayer.Character and targetPlayer.Character.PrimaryPart then
+                        local Root = targetPlayer.Character.PrimaryPart
+                        local Velocity = Root.AssemblyLinearVelocity
+                        local Position = Root.Position + (Velocity * Vector3.new(getgenv().GunAccuracy / 200, 0, getgenv().GunAccuracy / 200))
+                        args[2] = Position
+                    end
+                end
+            end
+        end
+    end
+
+    return GunHook(self, unpack(args))
+end)
+
+-- Prevent the hook from being garbage collected
+getgenv().GunHook = GunHook
+
+
 
 
 -- Create a ScreenGui object to hold the button
@@ -211,8 +283,6 @@ end)
 local Options = Fluent.Options
 
 do
-    
-
     Tabs.Combat:AddButton({
         Title = "Grab gun",
         Description = "Tp to Gun",
@@ -235,8 +305,92 @@ do
         end
     })
 
+local kniferangenum = 20
 
+-- Slider Definition
+local Slider = Tabs.Combat:AddSlider("Knife Range", {
+    Title = "Knife Range",
+    Description = "Adjust the range of the knife",
+    Default = 20,
+    Min = 5,
+    Max = 100,
+    Rounding = 1,
+    Callback = function(Value)
+        kniferangenum = tonumber(Value)
+    end
+})
 
+Slider:OnChanged(function(Value)
+    kniferangenum = tonumber(Value)
+end)
+
+Slider:SetValue(20)
+
+-- Knife Aura Toggle Definition
+local knifeAuraToggle = Tabs.Combat:AddToggle("KnifeAura", {Title = "Knife Aura", Default = false})
+
+knifeAuraToggle:OnChanged(function(knifeaura)
+    knifeauraloop = knifeaura
+    while knifeauraloop do
+        local function knifeAuraLoopFunction()
+            for i, v in pairs(game.Players:GetPlayers()) do
+                if v ~= game.Players.LocalPlayer and game.Players.LocalPlayer:DistanceFromCharacter(v.Character.HumanoidRootPart.Position) < kniferangenum then
+                    EquipTool()
+                    wait()
+                    local localCharacter = game.Players.LocalPlayer.Character
+                    local knife = localCharacter and localCharacter:FindFirstChild("Knife")
+                    if not knife then return end
+                    wait()
+                    local playerCharacter = v.Character
+                    local humanoidRootPart = playerCharacter and playerCharacter:FindFirstChild("HumanoidRootPart")
+                    
+                    if humanoidRootPart then
+                        Stab()
+                        firetouchinterest(humanoidRootPart, knife.Handle, 1)
+                        firetouchinterest(humanoidRootPart, knife.Handle, 0)
+                    end
+                end
+            end
+        end
+        wait()
+        pcall(knifeAuraLoopFunction)
+    end
+end)
+Options.KnifeAura:SetValue(false)
+
+-- Auto Kill All Toggle Definition
+local autoKillAllToggle = Tabs.Combat:AddToggle("AutoKillAll", {Title = "Auto Kill All", Default = false})
+
+autoKillAllToggle:OnChanged(function(autokillall)
+    autokillallloop = autokillall
+    while autokillallloop do
+        local function autoKillAllLoopFunction()
+            EquipTool()
+            wait()
+            local localCharacter = game.Players.LocalPlayer.Character
+            local knife = localCharacter and localCharacter:FindFirstChild("Knife")
+            if not knife then return end
+            wait()
+            for _, player in ipairs(game.Players:GetPlayers()) do
+                if player ~= game.Players.LocalPlayer then
+                    wait()
+                    local playerCharacter = player.Character
+                    local humanoidRootPart = playerCharacter and playerCharacter:FindFirstChild("HumanoidRootPart")
+                    
+                    if humanoidRootPart then
+                        Stab()
+                        firetouchinterest(humanoidRootPart, knife.Handle, 1)
+                        firetouchinterest(humanoidRootPart, knife.Handle, 0)
+                    end
+                end
+            end
+            wait()
+        end
+        wait()
+        pcall(autoKillAllLoopFunction)
+    end
+end)
+Options.AutoKillAll:SetValue(false)
     
 
     Tabs.Main:AddButton({
@@ -413,38 +567,111 @@ Options.Noclip:SetValue(false)
     
     
     Tabs.Teleport:AddButton({
-        Title = "TP to Murderer",
-        Description = "Teleport to Murderer",
-        Callback = function()
-            local Players = game:GetService("Players")
-            for i, player in pairs(Players:GetPlayers()) do
-                local bp = player.Backpack:GetChildren()
-                for i, tool in pairs(bp) do
-                    if tool.Name == "Knife" then
-                        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = game.Players[tool.Parent.Parent.Name].Character.HumanoidRootPart.CFrame
-                    end
-                end
-            end
-        end
+    Title = "TP to Murderer",
+    Description = "Teleport to Murderer",
+    Callback = function()
+        local tptoplayer = players:FindFirstChild(Murder)
+        LocalPlayer.Character:WaitForChild("HumanoidRootPart").CFrame = CFrame.new(tptoplayer.Character:WaitForChild("HumanoidRootPart").Position)
+    end
+})
+
+Tabs.Teleport:AddButton({
+    Title = "TP to Sheriff",
+    Description = "Teleport to Sheriff",
+    Callback = function()
+        local tptoplayer = players:FindFirstChild(Sheriff)
+        LocalPlayer.Character:WaitForChild("HumanoidRootPart").CFrame = CFrame.new(tptoplayer.Character:WaitForChild("HumanoidRootPart").Position)
+    end
+})
+    
+local Dropdown
+local isResetting = false
+
+local function CreateDropdown()
+    Dropdown = Tabs.Teleport:AddDropdown("TPtoPlayer", {
+        Title = "Teleport to Player",
+        Values = GetOtherPlayers(),
+        Multi = false,
+        Default = "",
     })
 
+    Dropdown:OnChanged(function(Value)
+        if not isResetting and Value ~= "" then
+            TeleportToPlayer(Value)
+            isResetting = true
+            Dropdown:SetValue("")  -- Reset selected value to default
+            isResetting = false
+        end
+    end)
+end
+
+-- Initial creation of the dropdown
+CreateDropdown()
+
+local function UpdateDropdownA()
+    local newValues = GetOtherPlayers()
+    isResetting = true
+    Dropdown.Values = newValues  -- Update the dropdown values
+    Dropdown:SetValue("")  -- Reset selected value to default
+    isResetting = false
+end
+
+-- Connect to PlayerAdded and PlayerRemoving events to update the dropdown
+game.Players.PlayerAdded:Connect(UpdateDropdownA)
+game.Players.PlayerRemoving:Connect(UpdateDropdownA)
+
+Tabs.Teleport:AddButton({
+        Title = "TP to Secret Room",
+        Description = "Teleport to Lobby's Secret Room",
+        Callback = function()
+            game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-152, 153, 113)
+        end
+    })
+    
     Tabs.Teleport:AddButton({
-        Title = "TP to Sheriff",
-        Description = "Teleport to Sheriff",
+        Title = "TP to Secret Room",
+        Description = "Teleport to Lobby's Secret Room",
         Callback = function()
-            local Players = game:GetService("Players")
-            for i, player in pairs(Players:GetPlayers()) do
-                local bp = player.Backpack:GetChildren()
-                for i, tool in pairs(bp) do
-                    if tool.Name == "Gun" then
-                        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = game.Players[tool.Parent.Parent.Name].Character.HumanoidRootPart.CFrame
-                    end
-                end
-            end
+            game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-152, 153, 113)
+        end
+    })
+    
+Tabs.Teleport:AddButton({
+        Title = "TP to Secret Room",
+        Description = "Teleport to Lobby's Secret Room",
+        Callback = function()
+            game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-152, 153, 113)
+        end
+    })
+    
+Tabs.Teleport:AddButton({
+        Title = "TP to Secret Room",
+        Description = "Teleport to Lobby's Secret Room",
+        Callback = function()
+            game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-152, 153, 113)
+        end
+    })
+    
+Tabs.Teleport:AddButton({
+        Title = "TP to Secret Room",
+        Description = "Teleport to Lobby's Secret Room",
+        Callback = function()
+            game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-152, 153, 113)
+        end
+    })
+    
+Tabs.Teleport:AddButton({
+        Title = "TP to Secret Room",
+        Description = "Teleport to Lobby's Secret Room",
+        Callback = function()
+            game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-152, 153, 113)
         end
     })
 
-          -------------------TELEPORT ENDS--------------------------
+
+
+
+-------------------------------------------TELEPORT ENDS--------------------------------------------
     
     
 
@@ -464,8 +691,8 @@ Toggle:OnChanged(function(SeeRoles)
     if SeeRoles then
         SSeeRoles = true
         while SSeeRoles == true do
-            roles = game:GetService("ReplicatedStorage"):FindFirstChild("GetPlayerData", true):InvokeServer()
-            for i, v in pairs(roles) do
+            rolesAsh = game:GetService("ReplicatedStorage"):FindFirstChild("GetPlayerData", true):InvokeServer()
+            for i, v in pairs(rolesAsh) do
                 if v.Role == "Murderer" then
                     Murder = i
                 elseif v.Role == "Sheriff" then
@@ -585,18 +812,35 @@ local function GetOtherPlayers()
 end
 
 local selectedPlayer = ""  -- Variable to store the selected player's name
+local FLINGTARGET = ""  -- Variable to store the fling target
+local Dropdown
 
-local Dropdown = Tabs.Misc:AddDropdown("Select Player", {
-    Title = "Select Player",
-    Values = GetOtherPlayers(),
-    Multi = false,
-    Default = "",
-})
+local function CreateDropdown()
+    Dropdown = Tabs.Misc:AddDropdown("Select Player", {
+        Title = "Select Player",
+        Values = GetOtherPlayers(),
+        Multi = false,
+        Default = "",
+    })
 
-Dropdown:OnChanged(function(Value)
-    selectedPlayer = Value  -- Update selectedPlayer when selection changes
-    FLINGTARGET = Value  -- Update FLINGTARGET when selection changes
-end)
+    Dropdown:OnChanged(function(Value)
+        selectedPlayer = Value  -- Update selectedPlayer when selection changes
+        FLINGTARGET = Value  -- Update FLINGTARGET when selection changes
+    end)
+end
+
+-- Initial creation of the dropdown
+CreateDropdown()
+
+local function UpdateDropdown()
+    local newValues = GetOtherPlayers()
+    Dropdown.Values = newValues  -- Update the dropdown values
+    Dropdown:SetValue("")  -- Reset selected value to default
+end
+
+-- Connect to PlayerAdded and PlayerRemoving events to update the dropdown
+game.Players.PlayerAdded:Connect(UpdateDropdown)
+game.Players.PlayerRemoving:Connect(UpdateDropdown)
 
 local Toggle = Tabs.Misc:AddToggle("Fling", {
     Title = "Fling",
@@ -623,6 +867,66 @@ Toggle:OnChanged(function(flingplayer)
     end
 end)
 
+    
+    
+    local Toggle = Tabs.Misc:AddToggle("Fling", {Title = "Fling Murderer", Default = false })
+
+Toggle:OnChanged(function(flingplayer)
+getgenv().FLINGTARGET = Murder
+    if flingplayer then
+        loadstring(game:HttpGet('https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/FlingScript.lua'))()
+        wait()
+    else
+        getgenv().flingloop = false
+        wait()
+    end
+end)
+
+Options.Fling:SetValue(false)
+
+local Toggle = Tabs.Misc:AddToggle("Fling", {Title = "Fling Sheriff", Default = false })
+
+Toggle:OnChanged(function(flingplayer)
+getgenv().FLINGTARGET = Sheriff
+    if flingplayer then
+        loadstring(game:HttpGet('https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/FlingScript.lua'))()
+        wait()
+    else
+        getgenv().flingloop = false
+        wait()
+    end
+end)
+
+Options.Fling:SetValue(false)
+
+Tabs.Misc:AddParagraph({
+        Title = "This is for Scrolling",
+        Content = "For scrolling only"
+    })
+    Tabs.Misc:AddParagraph({
+        Title = "This is for Scrolling",
+        Content = "For scrolling only"
+    })
+Tabs.Misc:AddParagraph({
+        Title = "This is for Scrolling",
+        Content = "For scrolling only"
+    })
+Tabs.Misc:AddParagraph({
+        Title = "This is for Scrolling",
+        Content = "For scrolling only"
+    })
+    
+Tabs.Misc:AddParagraph({
+        Title = "This is for Scrolling",
+        Content = "For scrolling only"
+    })
+    
+Tabs.Misc:AddParagraph({
+        Title = "This is for Scrolling",
+        Content = "For scrolling only"
+    })
+    
+    
     
     
 
@@ -704,7 +1008,7 @@ SaveManager:SetIgnoreIndexes({})
 -- a script hub could have themes in a global folder
 -- and game configs in a separate folder per game
 InterfaceManager:SetFolder("AshborrnHub")
-SaveManager:SetFolder("AshbornnHub/MurderMystery2")
+SaveManager:SetFolder("AshborrnHub/MM2")
 
 InterfaceManager:BuildInterfaceSection(Tabs.Settings)
 SaveManager:BuildConfigSection(Tabs.Settings)
