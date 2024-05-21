@@ -598,15 +598,41 @@ Options.Noclip:SetValue(false)
         end
     })
     
-local Dropdown = Tabs.Teleport:AddDropdown("TPtoPlayers", {
+local Dropdown
+local isResetting = false
+
+local function CreateDropdown()
+    Dropdown = Tabs.Teleport:AddDropdown("TPtoPlayer", {
         Title = "Teleport to Player",
         Values = GetOtherPlayers(),
         Multi = false,
         Default = "",
     })
-        Dropdown:OnChanged(function(Value)
-        TeleportToPlayer(Value)
+
+    Dropdown:OnChanged(function(Value)
+        if not isResetting and Value ~= "" then
+            TeleportToPlayer(Value)
+            isResetting = true
+            Dropdown:SetValue("")  -- Reset selected value to default
+            isResetting = false
+        end
     end)
+end
+
+-- Initial creation of the dropdown
+CreateDropdown()
+
+local function UpdateDropdownA()
+    local newValues = GetOtherPlayers()
+    isResetting = true
+    Dropdown.Values = newValues  -- Update the dropdown values
+    Dropdown:SetValue("")  -- Reset selected value to default
+    isResetting = false
+end
+
+-- Connect to PlayerAdded and PlayerRemoving events to update the dropdown
+game.Players.PlayerAdded:Connect(UpdateDropdownA)
+game.Players.PlayerRemoving:Connect(UpdateDropdownA)
 
 
 
