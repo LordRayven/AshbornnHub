@@ -228,7 +228,13 @@ for _,x in next, Targets do
                 SkidFling(TPlayer)
             end
         else
-            Message("Error Occurred", "This user is whitelisted! (Owner)", 5)
+            
+            Fluent:Notify({
+        Title = "Error Occured",
+        Content = "This player user is the Owner",
+        SubContent = "Why did you do that? jk enjoy the script", -- Optional
+        Duration = 5 -- Set to nil to make the notification not disappear
+    })
         end
     elseif not TPlayer and not AllBool then
         Message("Error Occurred", "Username Invalid", 5)
