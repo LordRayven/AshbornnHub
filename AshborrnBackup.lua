@@ -299,7 +299,7 @@ GunHook = hookmetamethod(game, "__namecall", function(self, ...)
     if not checkcaller() then
         if typeof(self) == "Instance" then
             if self.Name == "ShootGun" and method == "InvokeServer" then
-                if getgenv().GunAccuracy and Murder then
+                if getgenv().GunAccuracy and Murder and getgenv().SheriffAim then
                     local targetPlayer = Players[Murder]
                     if targetPlayer and targetPlayer.Character and targetPlayer.Character.PrimaryPart then
                         local Root = targetPlayer.Character.PrimaryPart
