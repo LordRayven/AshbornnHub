@@ -1,4 +1,6 @@
 -- made by rang#2415
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
 local Config = {
     Box = false,
     BoxOutline = false,
@@ -13,6 +15,43 @@ local Config = {
     NamesFont = 3,  -- Increase font type for better readability
     NamesSize = 16  -- Increase size for better visibility
 }
+
+local roles = {}
+
+local function roleUpdater()
+    while true do
+        roles = ReplicatedStorage:FindFirstChild("GetPlayerData", true):InvokeServer()
+        wait(1)  -- Update every second
+    end
+end
+
+spawn(roleUpdater)
+
+local function IsAlive(Player)
+    for i, v in pairs(roles) do
+        if Player.Name == i then
+            if not v.Killed and not v.Dead then
+                return true
+            else
+                return false
+            end
+        end
+    end
+    return false
+end
+
+local function getRoleColor(playerName)
+    for i, v in pairs(roles) do
+        if v.Role == "Murderer" and i == playerName then
+            return Color3.fromRGB(225, 0, 0) -- Red color
+        elseif v.Role == "Sheriff" and i == playerName then
+            return Color3.fromRGB(0, 0, 225) -- Blue color
+        elseif v.Role == "Hero" and i == playerName then
+            return Color3.fromRGB(255, 255, 0) -- Yellow color
+        end
+    end
+    return Color3.fromRGB(0, 225, 0) -- Green color for alive players
+end
 
 local function CreateEsp(Player)
     local Box = Drawing.new("Square")
@@ -52,7 +91,11 @@ local function CreateEsp(Player)
 
             if Config.Names then
                 Name.Visible = IsVisible
-                Name.Color = Config.NamesColor
+                if IsAlive(Player) then
+                    Name.Color = getRoleColor(Player.Name)
+                else
+                    Name.Color = Color3.fromRGB(100, 100, 100) -- Gray color if not alive
+                end
                 Name.Text = Player.Name .. " " .. math.floor((workspace.CurrentCamera.CFrame.p - Player.Character.HumanoidRootPart.Position).magnitude) .. "m"
                 Name.Center = true
                 Name.Outline = Config.NamesOutline
