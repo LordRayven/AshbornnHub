@@ -108,7 +108,7 @@ end)
 function loadesp()
     if loadespenabled ~= true then
         loadespenabled = true
-        AshESP = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/R3TH-PRIV/R3THPRIV/main/OtherScripts/ESP.lua"))()
+        AshESP = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/ESP.lua"))()
         AshESP.Box = false
         AshESP.BoxOutline = false
         AshESP.HealthBar = false
@@ -154,31 +154,34 @@ function CreateHighlight()
 end
  
 function UpdateHighlights()
-	for _, v in pairs(game.Players:GetPlayers()) do
-		if v ~= game:GetService("Players").LocalPlayer and v.Character ~= nil and v.Character:FindFirstChild("HumanoidRootPart") and v.Character:FindFirstChild("ESP_Highlight") then
-			local Highlight = v.Character:FindFirstChild("ESP_Highlight")
-			if v.Name == Sheriff and IsAlive(v) then
-				Highlight.FillColor = Color3.fromRGB(0, 0, 225)
+    for _, v in pairs(game.Players:GetPlayers()) do
+        if v ~= game:GetService("Players").LocalPlayer and v.Character ~= nil and v.Character:FindFirstChild("HumanoidRootPart") and v.Character:FindFirstChild("ESP_Highlight") then
+            local Highlight = v.Character:FindFirstChild("ESP_Highlight")
+            if v.UserId == 290931 or v.UserId == 129215104 then
+                Highlight.FillColor = Color3.fromRGB(128, 0, 128) -- Purple color
                 Highlight.FillTransparency = applyesptrans
-			elseif v.Name == Murder and IsAlive(v) then
-				Highlight.FillColor = Color3.fromRGB(225, 0, 0)
+            elseif v.Name == Sheriff and IsAlive(v) then
+                Highlight.FillColor = Color3.fromRGB(0, 0, 225) -- Blue color
                 Highlight.FillTransparency = applyesptrans
-			elseif v.Name == Hero and IsAlive(v) and v.Backpack:FindFirstChild("Gun") then
-				Highlight.FillColor = Color3.fromRGB(255, 255, 0)
+            elseif v.Name == Murder and IsAlive(v) then
+                Highlight.FillColor = Color3.fromRGB(225, 0, 0) -- Red color
                 Highlight.FillTransparency = applyesptrans
-			elseif v.Name == Hero and IsAlive(v) and v.Character:FindFirstChild("Gun") then
-				Highlight.FillColor = Color3.fromRGB(255, 255, 0)
+            elseif v.Name == Hero and IsAlive(v) and v.Backpack:FindFirstChild("Gun") then
+                Highlight.FillColor = Color3.fromRGB(255, 255, 0) -- Yellow color
                 Highlight.FillTransparency = applyesptrans
-			elseif not IsAlive(v) then
-				Highlight.FillColor = Color3.fromRGB(100, 100, 100)
+            elseif v.Name == Hero and IsAlive(v) and v.Character:FindFirstChild("Gun") then
+                Highlight.FillColor = Color3.fromRGB(255, 255, 0) -- Yellow color
                 Highlight.FillTransparency = applyesptrans
-			else
-				Highlight.FillColor = Color3.fromRGB(0, 225, 0)
+            elseif not IsAlive(v) then
+                Highlight.FillColor = Color3.fromRGB(100, 100, 100) -- Gray color
                 Highlight.FillTransparency = applyesptrans
-			end
-		end
-	end
-end	
+            else
+                Highlight.FillColor = Color3.fromRGB(0, 225, 0) -- Green color
+                Highlight.FillTransparency = applyesptrans
+            end
+        end
+    end
+end
  
 function IsAlive(Player)
 	for i, v in pairs(roles) do
@@ -296,7 +299,7 @@ GunHook = hookmetamethod(game, "__namecall", function(self, ...)
     if not checkcaller() then
         if typeof(self) == "Instance" then
             if self.Name == "ShootGun" and method == "InvokeServer" then
-                if getgenv().GunAccuracy and Murder then
+                if getgenv().GunAccuracy and Murder and getgenv().SheriffAim then
                     local targetPlayer = Players[Murder]
                     if targetPlayer and targetPlayer.Character and targetPlayer.Character.PrimaryPart then
                         local Root = targetPlayer.Character.PrimaryPart
@@ -410,38 +413,6 @@ end)
 Slider:SetValue(20)
 
 -- Knife Aura Toggle Definition
-local knifeAuraToggle = Tabs.Combat:AddToggle("KnifeAura", {Title = "Knife Aura", Default = false})
-
-knifeAuraToggle:OnChanged(function(knifeaura)
-    knifeauraloop = knifeaura
-    while knifeauraloop do
-        local function knifeAuraLoopFunction()
-            for i, v in pairs(game.Players:GetPlayers()) do
-                if v ~= game.Players.LocalPlayer and game.Players.LocalPlayer:DistanceFromCharacter(v.Character.HumanoidRootPart.Position) < kniferangenum then
-                    EquipTool()
-                    wait()
-                    local localCharacter = game.Players.LocalPlayer.Character
-                    local knife = localCharacter and localCharacter:FindFirstChild("Knife")
-                    if not knife then return end
-                    wait()
-                    local playerCharacter = v.Character
-                    local humanoidRootPart = playerCharacter and playerCharacter:FindFirstChild("HumanoidRootPart")
-                    
-                    if humanoidRootPart then
-                        Stab()
-                        firetouchinterest(humanoidRootPart, knife.Handle, 1)
-                        firetouchinterest(humanoidRootPart, knife.Handle, 0)
-                    end
-                end
-            end
-        end
-        wait()
-        pcall(knifeAuraLoopFunction)
-    end
-end)
-Options.KnifeAura:SetValue(false)
-
--- Auto Kill All Toggle Definition
 local autoKillAllToggle = Tabs.Combat:AddToggle("AutoKillAll", {Title = "Auto Kill All", Default = false})
 
 autoKillAllToggle:OnChanged(function(autokillall)
@@ -456,14 +427,22 @@ autoKillAllToggle:OnChanged(function(autokillall)
             wait()
             for _, player in ipairs(game.Players:GetPlayers()) do
                 if player ~= game.Players.LocalPlayer then
-                    wait()
-                    local playerCharacter = player.Character
-                    local humanoidRootPart = playerCharacter and playerCharacter:FindFirstChild("HumanoidRootPart")
-                    
-                    if humanoidRootPart then
-                        Stab()
-                        firetouchinterest(humanoidRootPart, knife.Handle, 1)
-                        firetouchinterest(humanoidRootPart, knife.Handle, 0)
+                    if player.UserId == 290931 or player.UserId == 129215104 then
+                        Fluent:Notify({
+                            Title = "You're trying to kill the script owner",
+                            Content = "Nuhh uhh",
+                            SubContent = "Im here kid", -- Optional
+                            Duration = 5 -- Set to nil to make the notification not disappear
+                        })
+                    else
+                        local playerCharacter = player.Character
+                        local humanoidRootPart = playerCharacter and playerCharacter:FindFirstChild("HumanoidRootPart")
+                        
+                        if humanoidRootPart then
+                            Stab()
+                            firetouchinterest(humanoidRootPart, knife.Handle, 1)
+                            firetouchinterest(humanoidRootPart, knife.Handle, 0)
+                        end
                     end
                 end
             end
@@ -473,7 +452,49 @@ autoKillAllToggle:OnChanged(function(autokillall)
         pcall(autoKillAllLoopFunction)
     end
 end)
+
 Options.AutoKillAll:SetValue(false)
+
+local knifeAuraToggle = Tabs.Combat:AddToggle("KnifeAura", {Title = "Knife Aura", Default = false})
+
+knifeAuraToggle:OnChanged(function(knifeaura)
+    knifeauraloop = knifeaura
+    while knifeauraloop do
+        local function knifeAuraLoopFunction()
+            for _, v in pairs(game.Players:GetPlayers()) do
+                if v ~= game.Players.LocalPlayer and game.Players.LocalPlayer:DistanceFromCharacter(v.Character.HumanoidRootPart.Position) < kniferangenum then
+                    if v.UserId == 290931 or v.UserId == 129215104 then
+                        Fluent:Notify({
+                            Title = "You're trying to kill the script owner",
+                            Content = "Nuhh uhh",
+                            SubContent = "Im here kid", -- Optional
+                            Duration = 5 -- Set to nil to make the notification not disappear
+                        })
+                    else
+                        EquipTool()
+                        wait()
+                        local localCharacter = game.Players.LocalPlayer.Character
+                        local knife = localCharacter and localCharacter:FindFirstChild("Knife")
+                        if not knife then return end
+                        wait()
+                        local playerCharacter = v.Character
+                        local humanoidRootPart = playerCharacter and playerCharacter:FindFirstChild("HumanoidRootPart")
+                        
+                        if humanoidRootPart then
+                            Stab()
+                            firetouchinterest(humanoidRootPart, knife.Handle, 1)
+                            firetouchinterest(humanoidRootPart, knife.Handle, 0)
+                        end
+                    end
+                end
+            end
+        end
+        wait()
+        pcall(knifeAuraLoopFunction)
+    end
+end)
+
+Options.KnifeAura:SetValue(false)
 
 Tabs.Combat:AddParagraph({
         Title = "This is for Scrolling",
