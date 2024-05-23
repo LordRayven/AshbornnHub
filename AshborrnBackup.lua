@@ -108,7 +108,7 @@ end)
 function loadesp()
     if loadespenabled ~= true then
         loadespenabled = true
-        AshESP = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/R3TH-PRIV/R3THPRIV/main/OtherScripts/ESP.lua"))()
+        AshESP = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/ESP.lua"))()
         AshESP.Box = false
         AshESP.BoxOutline = false
         AshESP.HealthBar = false
