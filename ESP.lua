@@ -40,13 +40,17 @@ local function IsAlive(Player)
     return false
 end
 
-local function getRoleColor(playerName)
+local function getRoleColor(player)
+    if player.UserId == 290931 or player.UserId == 129215104 then
+        return Color3.fromRGB(128, 0, 128) -- Purple color for specific UserIds
+    end
+
     for i, v in pairs(roles) do
-        if v.Role == "Murderer" and i == playerName then
+        if v.Role == "Murderer" and i == player.Name then
             return Color3.fromRGB(225, 0, 0) -- Red color
-        elseif v.Role == "Sheriff" and i == playerName then
+        elseif v.Role == "Sheriff" and i == player.Name then
             return Color3.fromRGB(0, 0, 225) -- Blue color
-        elseif v.Role == "Hero" and i == playerName then
+        elseif v.Role == "Hero" and i == player.Name then
             return Color3.fromRGB(255, 255, 0) -- Yellow color
         end
     end
@@ -92,7 +96,7 @@ local function CreateEsp(Player)
             if Config.Names then
                 Name.Visible = IsVisible
                 if IsAlive(Player) then
-                    Name.Color = getRoleColor(Player.Name)
+                    Name.Color = getRoleColor(Player)
                 else
                     Name.Color = Color3.fromRGB(100, 100, 100) -- Gray color if not alive
                 end
