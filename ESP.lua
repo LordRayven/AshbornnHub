@@ -66,15 +66,19 @@ local function CreateEsp(Player)
 
     local Updater = game:GetService("RunService").RenderStepped:Connect(function()
         if Player.Character and Player.Character:FindFirstChild("Humanoid") and Player.Character:FindFirstChild("HumanoidRootPart") and Player.Character.Humanoid.Health > 0 and Player.Character:FindFirstChild("Head") then
-            local TargetPos, IsVisible = workspace.CurrentCamera:WorldToViewportPoint(Player.Character.HumanoidRootPart.Position)
-            local scale = 1 / (TargetPos.Z * math.tan(math.rad(workspace.CurrentCamera.FieldOfView * 0.5)) * 2) * 100
+            local LocalPlayer = game:GetService("Players").LocalPlayer
+            local TargetPos, IsVisible = workspace.CurrentCamera:WorldToViewportPoint(Player.Character.Head.Position)
+            local LocalPos = workspace.CurrentCamera:WorldToViewportPoint(LocalPlayer.Character.Head.Position)
+            local MidPoint = (TargetPos + LocalPos) / 2
+
+            local scale = 1 / (MidPoint.Z * math.tan(math.rad(workspace.CurrentCamera.FieldOfView * 0.5)) * 2) * 100
             local width, height = math.floor(40 * scale), math.floor(60 * scale)
-            
+
             if Config.Box then
                 Box.Visible = IsVisible
                 Box.Color = Config.BoxColor
                 Box.Size = Vector2.new(width, height)
-                Box.Position = Vector2.new(TargetPos.X - Box.Size.X / 2, TargetPos.Y - Box.Size.Y / 2)
+                Box.Position = Vector2.new(MidPoint.X - Box.Size.X / 2, MidPoint.Y - Box.Size.Y / 2)
                 Box.Thickness = 1
                 Box.ZIndex = 69
 
@@ -104,7 +108,7 @@ local function CreateEsp(Player)
                 Name.Center = true
                 Name.Outline = Config.NamesOutline
                 Name.OutlineColor = Config.NamesOutlineColor
-                Name.Position = Vector2.new(TargetPos.X, TargetPos.Y - height * 0.5 - 15)
+                Name.Position = Vector2.new(MidPoint.X, MidPoint.Y - height * 0.5 - 15)
                 Name.Font = Config.NamesFont
                 Name.Size = Config.NamesSize
             else
@@ -123,7 +127,7 @@ local function CreateEsp(Player)
                 HealthBar.Filled = true
                 HealthBar.ZIndex = 69
 
-                local barPos = Vector2.new(TargetPos.X - Box.Size.X / 2, TargetPos.Y - Box.Size.Y / 2)
+                local barPos = Vector2.new(MidPoint.X - Box.Size.X / 2, MidPoint.Y - Box.Size.Y / 2)
                 if Config.HealthBarSide == "Left" then
                     HealthBarOutline.Size = Vector2.new(2, height)
                     HealthBarOutline.Position = barPos + Vector2.new(-3, 0)
