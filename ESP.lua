@@ -13,7 +13,7 @@ local Config = {
     NamesColor = Color3.fromRGB(255, 255, 255),
     NamesOutlineColor = Color3.fromRGB(0, 0, 0),
     NamesFont = 3,  -- Increase font type for better readability
-    NamesSize = 20  -- Increase size for better visibility
+    NamesSize = 16  -- Increase size for better visibility
 }
 
 local roles = {}
@@ -66,7 +66,7 @@ local function CreateEsp(Player)
 
     local Updater = game:GetService("RunService").RenderStepped:Connect(function()
         if Player.Character and Player.Character:FindFirstChild("Humanoid") and Player.Character:FindFirstChild("HumanoidRootPart") and Player.Character.Humanoid.Health > 0 and Player.Character:FindFirstChild("Head") then
-            local HeadPos, IsVisible = workspace.CurrentCamera:WorldToViewportPoint(Player.Character.Head.Position + Vector3.new(0, 0.5, 0))
+            local HeadPos, IsVisible = workspace.CurrentCamera:WorldToViewportPoint(Player.Character.Head.Position + Vector3.new(0, 0.2, 0))
             local scale = 1 / (HeadPos.Z * math.tan(math.rad(workspace.CurrentCamera.FieldOfView * 0.5)) * 2) * 100
             local width, height = math.floor(40 * scale), math.floor(60 * scale)
 
@@ -104,7 +104,7 @@ local function CreateEsp(Player)
                 Name.Center = true
                 Name.Outline = Config.NamesOutline
                 Name.OutlineColor = Config.NamesOutlineColor
-                Name.Position = Vector2.new(HeadPos.X, HeadPos.Y - height * 0.5 - 15)
+                Name.Position = Vector2.new(HeadPos.X, HeadPos.Y - height * 0.5 - 10)
                 Name.Font = Config.NamesFont
                 Name.Size = Config.NamesSize
             else
