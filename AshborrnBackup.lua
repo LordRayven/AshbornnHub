@@ -39,6 +39,98 @@ local p = game.Players.LocalPlayer
 local buttons = {W = false, S = false, A = false, D = false, Moving = false}
 
 
+local AntiFlingEnabled = false
+local playerAddedConnection = nil
+local localHeartbeatConnection = nil
+
+-- Constants
+local Services = setmetatable({}, {
+    __index = function(Self, Index)
+        local NewService = game:GetService(Index)
+        if NewService then
+            Self[Index] = NewService
+        end
+        return NewService
+    end
+})
+
+local LocalPlayer = Services.Players.LocalPlayer
+
+-- Functions
+local function CharacterAdded(Player)
+    local Character = Player.Character or Player.CharacterAdded:Wait()
+    local PrimaryPart = Character:WaitForChild("HumanoidRootPart")
+
+    local Detected = false
+
+    local function CheckFling()
+        if not (Character:IsDescendantOf(workspace) and PrimaryPart:IsDescendantOf(Character)) then
+            return
+        end
+
+        if PrimaryPart.AssemblyAngularVelocity.Magnitude > 50 or PrimaryPart.AssemblyLinearVelocity.Magnitude > 100 then
+            if not Detected then
+                game.StarterGui:SetCore("ChatMakeSystemMessage", {
+                    Text = "Fling Exploit detected, Player: " .. tostring(Player);
+                    Color = Color3.fromRGB(255, 200, 0);
+                })
+            end
+            Detected = true
+
+            for _, Part in ipairs(Character:GetDescendants()) do
+                if Part:IsA("BasePart") then
+                    Part.CanCollide = false
+                    Part.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
+                    Part.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+                    Part.CustomPhysicalProperties = PhysicalProperties.new(0, 0, 0)
+                end
+            end
+
+            PrimaryPart.CanCollide = false
+            PrimaryPart.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
+            PrimaryPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+            PrimaryPart.CustomPhysicalProperties = PhysicalProperties.new(0, 0, 0)
+        end
+    end
+
+    Services.RunService.Heartbeat:Connect(CheckFling)
+end
+
+local function OnPlayerAdded(Player)
+    if AntiFlingEnabled and Player ~= LocalPlayer then
+        CharacterAdded(Player)
+    end
+end
+
+local function NeutralizeLocalPlayer()
+    local LastPosition = nil
+    local function CheckLocalPlayerFling()
+        pcall(function()
+            local Character = LocalPlayer.Character
+            if Character then
+                local PrimaryPart = Character:FindFirstChild("HumanoidRootPart")
+                if PrimaryPart then
+                    if PrimaryPart.AssemblyLinearVelocity.Magnitude > 250 or PrimaryPart.AssemblyAngularVelocity.Magnitude > 250 then
+                        PrimaryPart.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
+                        PrimaryPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+                        PrimaryPart.CFrame = LastPosition
+
+                        game.StarterGui:SetCore("ChatMakeSystemMessage", {
+                            Text = "You were flung. Neutralizing velocity. Thanks Ashbornn for this.";
+                            Color = Color3.fromRGB(195, 115, 255);
+                        })
+                    else
+                        LastPosition = PrimaryPart.CFrame
+                    end
+                end
+            end
+        end)
+    end
+
+    return Services.RunService.Heartbeat:Connect(CheckLocalPlayerFling)
+end
+
+
 -- Function to teleport to a player
 local function TeleportToPlayer(playerName)
     local targetPlayer = game.Players:FindFirstChild(playerName)
@@ -263,8 +355,8 @@ local Tabs = {
     Main = Window:AddTab({ Title = "Main", Icon = "box" }),
     Visual = Window:AddTab({ Title = "Visual", Icon = "eye" }),
     Combat = Window:AddTab({ Title = "Combat", Icon = "swords" }),
-    Misc = Window:AddTab({ Title = "Misc", Icon = "triangle-alert" }),
-    Teleport = Window:AddTab({ Title = "Teleport", Icon = "zap" }),
+    Misc = Window:AddTab({ Title = "Misc", Icon = "aperture" }),
+    Teleport = Window:AddTab({ Title = "Teleport", Icon = "wand" }),
     Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
 }
 
@@ -288,7 +380,7 @@ end)
 setreadonly(mt,true)
 
 getgenv().SheriffAim = false
-getgenv().GunAccuracy = 25
+getgenv().GunAccuracy = 100
 
 -- Hook to modify gun shooting behavior
 local GunHook
@@ -352,7 +444,7 @@ do
 
 Tabs.Combat:AddParagraph({
         Title = "Sheriff Hacks",
-        Content = "Under this paragraph is for Sheriff/ Innocent"
+        Content = ""
     })
     
     
@@ -386,7 +478,7 @@ end)
 
 Options.SilentAIM1:SetValue(false)
 
-Tabs.Main:AddButton({
+Tabs.Combat:AddButton({
     Title = "Shoot Murderer",
     Description = "Tp to Murderer and Shoot",
     Callback = function()
@@ -437,11 +529,31 @@ Tabs.Main:AddButton({
     end
 })
     
+    Tabs.Combat:AddParagraph({
+        Title = "",
+        Content = ""
+    })
 
 Tabs.Combat:AddParagraph({
         Title = "Murderer Hacks",
-        Content = "Under this paragraph is for Murderer Hacks"
+        Content = ""
     })
+    
+    local Toggle = Tabs.Visual:AddToggle("Invisible", {Title = "Invisible", Default = false})
+
+Toggle:OnChanged(function(invis)
+    if invis then
+        if game.Players.LocalPlayer.Character ~= nil then
+            game:GetService("ReplicatedStorage").Remotes.Gameplay.Stealth:FireServer(true)
+        end
+    else
+        if game.Players.LocalPlayer.Character ~= nil then
+            game:GetService("ReplicatedStorage").Remotes.Gameplay.Stealth:FireServer(false)
+        end
+    end
+end)
+
+Options.Invisible:SetValue(false)
 
 local kniferangenum = 20
 
@@ -548,6 +660,9 @@ end)
 
 Options.KnifeAura:SetValue(false)
 
+
+
+
 Tabs.Combat:AddParagraph({
         Title = "This is for Scrolling",
         Content = "For scrolling only"
@@ -598,10 +713,59 @@ Toggle:OnChanged(function(alwaysalive)
 end)
 
 Options.AlwaysAliveChat:SetValue(false)
+
+-- Initialize the seedeadchat variable
+local seedeadchat = false
+
+-- Define a function to handle the Fade event
+local function handleFadeEvent()
+    game:GetService("ReplicatedStorage").Remotes.Gameplay.Fade.OnClientEvent:Connect(function()
+        if seedeadchat then
+            task.wait(0.5)
+            game:GetService("ReplicatedStorage").DefaultChatSystemChatEvents.SayMessageRequest:FireServer("/join dead", "normalchat")
+        end
+    end)
+end
+
+-- Create the toggle and handle its change event
+local Toggle = Tabs.Misc:AddToggle("SeeDeadChat", {Title = "See dead chat", Default = false})
+
+Toggle:OnChanged(function(value)
+    seedeadchat = value
+    if seedeadchat then
+        handleFadeEvent()
+    end
+end)
+
+Options.SeeDeadChat:SetValue(false)
+
+local Toggle = Tabs.Main:AddToggle("AntiFling", {Title = "Anti Fling (You can't fling me)", Default = false })
+
+Toggle:OnChanged(function(enabled)
+    AntiFlingEnabled = enabled
+    if enabled then
+        playerAddedConnection = Services.Players.PlayerAdded:Connect(OnPlayerAdded)
+        for _, Player in ipairs(Services.Players:GetPlayers()) do
+            if Player ~= LocalPlayer then
+                CharacterAdded(Player)
+            end
+        end
+        localHeartbeatConnection = NeutralizeLocalPlayer()
+    else
+        if playerAddedConnection then
+            playerAddedConnection:Disconnect()
+            playerAddedConnection = nil
+        end
+        if localHeartbeatConnection then
+            localHeartbeatConnection:Disconnect()
+            localHeartbeatConnection = nil
+        end
+    end
+end)
     
 Tabs.Misc:AddButton({
     Title = "Get fake knife",
-    Description = "Fake knife they can see it(probably)",
+    Description = "Fake knife they can see it (probably)",
     Callback = function()
         if game.Players.LocalPlayer.Character ~= nil then
             local lp = game.Players.LocalPlayer
@@ -654,60 +818,51 @@ Tabs.Misc:AddButton({
     end
 })
 
-local Toggle = Tabs.Misc:AddToggle("Enable Fly", {Title = "Enable Fly", Default = false})
-
-Toggle:OnChanged(function(enablefly)
-    if flyfirst ~= true then
-        flyfirst = true
-
-        game:GetService("UserInputService").InputBegan:Connect(function(input, GPE)
-            if GPE then return end
-            for i, e in pairs(buttons) do
-                if i ~= "Moving" and input.KeyCode == Enum.KeyCode[i] then
-                    buttons[i] = true
-                    buttons.Moving = true
+Tabs.Misc:AddButton({
+    Title = "Anti Fake Lag(Delete Chroma)",
+    Description = "",
+    Callback = function()
+        for i, v in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
+            if v.Name == "LugerChroma" then
+                if v:FindFirstChild("Handle"):FindFirstChild("Chroma") then
+                    v.Handle:FindFirstChild("Chroma"):Destroy()
+                end
+                if v:FindFirstChild("Handle"):FindFirstChild("Mesh") then
+                    v.Handle:FindFirstChild("Mesh"):Destroy()
+                end
+                if v:FindFirstChild("Handle").Transparency == 0 then
+                    v.Handle.Transparency = 1
+                    v.GripPos = Vector3.new(0, -5, 0)
                 end
             end
-        end)
-
-        game:GetService("UserInputService").InputEnded:Connect(function(input, GPE)
-            if GPE then return end
-            local a = false
-            for i, e in pairs(buttons) do
-                if i ~= "Moving" then
-                    if input.KeyCode == Enum.KeyCode[i] then
-                        buttons[i] = false
-                    end
-                    if buttons[i] then a = true end
-                end
-            end
-            buttons.Moving = a
-        end)
-
-        game:GetService("RunService").Heartbeat:Connect(function(step)
-            if flying and c and c.PrimaryPart then
-                local p = c.PrimaryPart.Position
-                local cf = cam.CFrame
-                local ax, ay, az = cf:ToEulerAnglesXYZ()
-                c:SetPrimaryPartCFrame(CFrame.new(p.x, p.y, p.z) * CFrame.Angles(ax, ay, az))
-                if buttons.Moving then
-                    local t = Vector3.new()
-                    if buttons.W then t = t + (setVec(cf.LookVector)) end
-                    if buttons.S then t = t - (setVec(cf.LookVector)) end
-                    if buttons.A then t = t - (setVec(cf.RightVector)) end
-                    if buttons.D then t = t + (setVec(cf.RightVector)) end
-                    c:TranslateBy(t * step)
-                end
-            end
-        end)
+        end
     end
+})
 
-    if enablefly then
-        startFly()
-    else
-        endFly()
+Tabs.Misc:AddButton({
+    Title = "Anti Fake Lag 2(Delete LugerChroma)",
+    Description = "",
+    Callback = function()
+        for i, v in pairs(workspace:GetDescendants()) do
+            if v.Name == "LugerChroma" then
+                if v:FindFirstChild("Handle"):FindFirstChild("Mesh") then
+                    v:FindFirstChild("Handle"):FindFirstChild("Chroma"):Destroy()
+                    v:FindFirstChild("Handle"):FindFirstChild("Mesh"):Destroy()
+                end
+            end
+        end
+        for i, v in pairs(game.Players:GetPlayers()) do
+            if v.Backpack:FindFirstChild("LugerChroma") then
+                if v.Backpack:FindFirstChild("LugerChroma"):FindFirstChild("Handle"):FindFirstChild("Chroma") then
+                    v.Backpack:FindFirstChild("LugerChroma").Handle:FindFirstChild("Chroma"):Destroy()
+                end
+                if v.Backpack:FindFirstChild("LugerChroma"):FindFirstChild("Handle"):FindFirstChild("Mesh") then
+                    v.Backpack:FindFirstChild("LugerChroma").Handle:FindFirstChild("Mesh"):Destroy()
+                end
+            end
+        end
     end
-end)
+})
 
 ----------------------------------------------------MISC---------------------------------------------------
 
@@ -1238,7 +1393,7 @@ Tabs.Main:AddButton({
 })
 
 Tabs.Main:AddButton({
-    Title = "Anti-Lag",
+    Title = "Anti-Lag (Smooth parts)",
     Callback = function()
         local ToDisable = {
 	Textures = true,
@@ -1364,7 +1519,115 @@ Tabs.Main:AddButton({
         end
     end
 })
-    
+
+
+-- Toggle
+
+
+
+
+
+if _G.cons then
+    for _, v in pairs(_G.cons) do
+        v:Disconnect()
+    end
+
+    _G.cons = nil
+end
+
+local rsrv = game:GetService("RunService")
+local heartbeat = rsrv.Heartbeat
+local renderstepped = rsrv.RenderStepped
+
+local lp = game.Players.LocalPlayer
+local mouse = lp:GetMouse()
+
+local isinvisible = false
+local visible_parts = {}
+local kdown, loop
+
+local function ghost_parts()
+    for _, v in pairs(visible_parts) do
+        v.Transparency = isinvisible and 0.5 or 0
+    end
+end
+
+local function setup_character(character)
+    local hum = character:WaitForChild("Humanoid")
+    local root = character:WaitForChild("HumanoidRootPart")
+
+    visible_parts = {}
+
+    for _, v in pairs(character:GetDescendants()) do
+        if v:IsA("BasePart") and v.Transparency == 0 then
+            visible_parts[#visible_parts + 1] = v
+        end
+    end
+
+    if kdown then
+        kdown:Disconnect()
+    end
+
+    kdown = mouse.KeyDown:Connect(function(key)
+        if key == "g" then
+            isinvisible = not isinvisible
+            ghost_parts()
+        end
+    end)
+
+    if loop then
+        loop:Disconnect()
+    end
+
+    loop = heartbeat:Connect(function()
+        if isinvisible then
+            local oldcf = root.CFrame
+            local oldcamoffset = hum.CameraOffset
+
+            local newcf = oldcf * CFrame.new(-1500, -5000, -1500)
+
+            hum.CameraOffset = newcf:ToObjectSpace(CFrame.new(oldcf.Position)).Position
+            root.CFrame = newcf
+
+            renderstepped:Wait()
+
+            hum.CameraOffset = oldcamoffset
+            root.CFrame = oldcf
+        end
+    end)
+
+    _G.cons = {kdown, loop}
+end
+
+lp.CharacterAdded:Connect(function(character)
+    setup_character(character)
+    if isinvisible then
+        ghost_parts()
+    end
+end)
+
+local Toggle = Tabs.Visual:AddToggle("FEInvisible", {Title = "FE Invisible", Default = false })
+
+Toggle:OnChanged(function(value)
+    isinvisible = value
+    if lp.Character then
+        if not isinvisible then
+            -- Restore visibility
+            for _, v in pairs(visible_parts) do
+                v.Transparency = 0
+            end
+        else
+            ghost_parts()
+        end
+    end
+end)
+
+if lp.Character then
+    setup_character(lp.Character)
+    if isinvisible then
+        ghost_parts()
+    end
+end
     
     
     
