@@ -380,7 +380,7 @@ end)
 setreadonly(mt,true)
 
 getgenv().SheriffAim = false
-getgenv().GunAccuracy = 100
+getgenv().GunAccuracy = 18
 
 -- Hook to modify gun shooting behavior
 local GunHook
