@@ -840,6 +840,23 @@ Tabs.Misc:AddButton({
 })
 
 Tabs.Misc:AddButton({
+    Title = "Anti-Lag V2 (Delete Weapons/Pets) Visually",
+    Description = "",
+    Callback = function()
+        local Workspace = game:GetService("Workspace")
+
+for i,v in pairs (Workspace:GetDescendants()) do
+    if v.Name == "Pet" then
+        v:Destroy()
+    elseif v.Name == "KnifeDisplay" then
+        v:Destroy()
+    elseif v.Name == "GunDisplay" then
+        v:Destroy()
+    end
+end
+})
+
+Tabs.Misc:AddButton({
     Title = "Anti Fake Lag 2(Delete LugerChroma)",
     Description = "",
     Callback = function()
