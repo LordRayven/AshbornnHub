@@ -351,6 +351,16 @@ local Window = Fluent:CreateWindow({
 })
 
 -- Fluent provides Lucide Icons https://lucide.dev/icons/ for the tabs, icons are optional
+
+
+
+
+
+
+
+
+
+
 local Tabs = {
     Main = Window:AddTab({ Title = "Main", Icon = "box" }),
     Visual = Window:AddTab({ Title = "Visual", Icon = "eye" }),
@@ -837,23 +847,6 @@ Tabs.Misc:AddButton({
             end
         end
     end
-})
-
-Tabs.Misc:AddButton({
-    Title = "Anti-Lag V2 (Delete Weapons/Pets) Visually",
-    Description = "",
-    Callback = function()
-        local Workspace = game:GetService("Workspace")
-
-for i,v in pairs (Workspace:GetDescendants()) do
-    if v.Name == "Pet" then
-        v:Destroy()
-    elseif v.Name == "KnifeDisplay" then
-        v:Destroy()
-    elseif v.Name == "GunDisplay" then
-        v:Destroy()
-    end
-end
 })
 
 Tabs.Misc:AddButton({
