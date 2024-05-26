@@ -124,81 +124,33 @@ Tabs.Main:AddButton({
     Title = "Update ESP",
     Description = "Click this when a new round starts",
     Callback = function()
-        if _G.ExitsESP then
-            for _, obj in ipairs(game.Workspace:GetDescendants()) do
-                if obj.Name == "ExitDoor" and not obj:FindFirstChild("ExitsHighlight") then
-                    local hili = Instance.new("Highlight", obj)
-                    hili.Name = "ExitsHighlight"
-                    hili.OutlineTransparency = 1
-                    hili.FillColor = Color3.fromRGB(255, 255, 0)
-                end
+        local waitTime = 0.5
+        
+        -- Store ESP options and their current values
+        local espOptions = {
+            {Option = Options.ExitsHighlight, Value = _G.ExitsESP},
+            {Option = Options.PCHighlight, Value = _G.PCsESP}
+            {Option = Options.PlayersHighlight, Value = _G.PlayersESP},
+            {Option = Options.PodsHighlight, Value = _G.PodsESP},
+            {Option = Options.Fullbright, Value = getgenv().Fullbright}
+        }
+        
+        -- Turn on all ESP options
+        for _, optionData in ipairs(espOptions) do
+            if optionData.Value then
+                optionData.Option:SetValue(true)
             end
         end
 
-        if _G.PCsESP then
-            for _, obj in ipairs(game.Workspace:GetDescendants()) do
-                if obj.Name == "ComputerTable" and not obj:FindFirstChild("PCHighlight") then
-                    local hili = Instance.new("Highlight", obj)
-                    hili.Name = "PCHighlight"
-                    hili.OutlineTransparency = 1
-                    hili.FillColor = obj:FindFirstChild("Screen").Color
-                end
-            end
-        end
+        wait(0.5)  -- Wait
 
-        local function getBeast()
-            local players = game.Players:GetChildren()
-            for _, player in ipairs(players) do
-                local character = player.Character
-                if character and character:FindFirstChild("BeastPowers") then
-                    return player
-                end
+        -- Turn off all ESP options and then turn them on again after a short delay
+        for _, optionData in ipairs(espOptions) do
+            if optionData.Value then
+                optionData.Option:SetValue(false)
+                wait(waitTime)
+                optionData.Option:SetValue(true)
             end
-        end
-
-        if _G.PlayersESP then
-            local players = game.Players:GetChildren()
-            for _, player in ipairs(players) do
-                if player ~= game.Players.LocalPlayer and player.Character then
-                    local character = player.Character
-                    if not character:FindFirstChild("PlayerHighlight") then
-                        local a = Instance.new("Highlight", character)
-                        a.Name = "PlayerHighlight"
-                        a.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-                        task.spawn(function()
-                            repeat
-                                task.wait(0.1)
-                                if player == getBeast() then
-                                    a.FillColor = Color3.fromRGB(255, 0, 0)
-                                else
-                                    a.FillColor = Color3.fromRGB(0, 255, 0)
-                                end
-                            until character == nil or a == nil
-                        end)
-                    end
-                end
-            end
-        end
-
-        if _G.PodsESP then
-            for _, obj in ipairs(game.Workspace:GetDescendants()) do
-                if obj.Name == "FreezePod" and not obj:FindFirstChild("PodsHighlight") then
-                    local hili = Instance.new("Highlight", obj)
-                    hili.Name = "PodsHighlight"
-                    hili.OutlineTransparency = 1
-                    hili.FillColor = Color3.fromRGB(0, 200, 255)
-                end
-            end
-        end
-
-        if getgenv().Fullbright then
-            local lighting = game:GetService("Lighting")
-            lighting.Brightness = 2
-            lighting.ClockTime = 14
-            lighting.FogEnd = 100000
-            lighting.GlobalShadows = false
-            lighting.OutdoorAmbient = Color3.fromRGB(128, 128, 128)
-            lighting.Ambient = Color3.fromRGB(128, 128, 128) -- Set ambient light for fullbright
         end
     end
 })
@@ -253,9 +205,7 @@ local function updateExitsHighlight(exits)
     end
 end
 
-local function updatePcESP(pcesp)
-    _G.PCsESP = pcesp
-end
+local state = false
 
 local function getBeast()
     local players = game.Players:GetChildren()
@@ -268,42 +218,86 @@ local function getBeast()
     return nil
 end
 
-local function updatePlayersHighlight(state)
-    _G.PlayersESP = state
+local function getPlayerDistance(player)
+    local localPlayer = game.Players.LocalPlayer
+    if player and localPlayer.Character then
+        local playerPosition = player.Character.HumanoidRootPart.Position
+        local localPlayerPosition = localPlayer.Character.HumanoidRootPart.Position
+        local distance = (playerPosition - localPlayerPosition).magnitude
+        return distance
+    end
+    return math.huge -- Return a large value if distance cannot be calculated
+end
 
-    if state then
+-- Define the updatePlayersHighlight function
+local function updatePlayersHighlight()
+    if _G.PlayersESP then
         local players = game.Players:GetChildren()
         for _, player in ipairs(players) do
             if player ~= game.Players.LocalPlayer and player.Character then
                 local character = player.Character
-                if not character:FindFirstChild("PlayerHighlight") then
-                    local highlight = Instance.new("Highlight", character)
+                
+                local distanceLabel = character:FindFirstChild("DistanceLabel")
+                if not distanceLabel then
+                    distanceLabel = Instance.new("BillboardGui", character)
+                    distanceLabel.Name = "DistanceLabel"
+                    distanceLabel.Size = UDim2.new(0, 100, 0, 40)
+                    distanceLabel.StudsOffset = Vector3.new(0, 6, 0) -- Adjust the height of the label
+                    distanceLabel.AlwaysOnTop = true
+                    
+                    local textLabel = Instance.new("TextLabel", distanceLabel)
+                    textLabel.Size = UDim2.new(1, 0, 0.5, 0)
+                    textLabel.Position = UDim2.new(0, 0, 0, 0)
+                    textLabel.TextScaled = true
+                    textLabel.BackgroundTransparency = 1
+                    textLabel.TextColor3 = Color3.new(1, 1, 1)
+                    textLabel.Font = Enum.Font.SourceSansBold -- Adjust font for readability
+                    if player == getBeast() then
+                        textLabel.TextColor3 = Color3.new(1, 0, 0)
+                    else
+                        textLabel.TextColor3 = Color3.new(0, 1, 0)
+                    end
+                end
+                
+                local distanceTextLabel = distanceLabel:FindFirstChild("TextLabel")
+                if distanceTextLabel then
+                    local distance = getPlayerDistance(player)
+                    distanceTextLabel.Text = player.Name .. "\n" .. tostring(math.floor(distance)) .. "m"
+                end
+                
+                local highlight = character:FindFirstChild("PlayerHighlight")
+                if not highlight then
+                    highlight = Instance.new("BoxHandleAdornment", character)
                     highlight.Name = "PlayerHighlight"
-                    highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-                    task.spawn(function()
-                        while _G.PlayersESP and character and highlight do
-                            task.wait(0.1)
-                            if player == getBeast() then
-                                highlight.FillColor = Color3.fromRGB(255, 0, 0)
-                            else
-                                highlight.FillColor = Color3.fromRGB(0, 255, 0)
-                            end
-                        end
-                        if highlight then
-                            highlight:Destroy()
-                        end
-                    end)
+                    highlight.Size = Vector3.new(2, 4, 2)
+                    highlight.AlwaysOnTop = true
+                    highlight.ZIndex = 5
+                    highlight.Transparency = 0.5
+                    highlight.Color3 = Color3.fromRGB(0, 255, 0)
+                    highlight.Adornee = character:FindFirstChild("HumanoidRootPart")
+                end
+                
+                if player == getBeast() then
+                    highlight.Color3 = Color3.fromRGB(255, 0, 0)
+                else
+                    highlight.Color3 = Color3.fromRGB(0, 255, 0)
                 end
             end
         end
     else
         for _, obj in ipairs(game.Workspace:GetDescendants()) do
-            if obj:IsA("Highlight") and obj.Name == "PlayerHighlight" then
+            if obj:IsA("BillboardGui") and obj.Name == "DistanceLabel" then
+                obj:Destroy()
+            elseif obj:IsA("BoxHandleAdornment") and obj.Name == "PlayerHighlight" then
                 obj:Destroy()
             end
         end
     end
 end
+
+
+
+
 
 local function updatePCHighlight(pcs)
     local state = pcs
@@ -346,22 +340,6 @@ end)
 
 Options.ExitsHighlight:SetValue(false)
 
-local TogglePCESP = Tabs.Main:AddToggle("PcESP", {Title = "ESP Computer", Default = false })
-
-TogglePCESP:OnChanged(function(pcesp)
-    updatePcESP(pcesp)
-end)
-
-Options.PcESP:SetValue(false)
-
-local TogglePlayers = Tabs.Main:AddToggle("PlayersHighlight", {Title = "Players ESP", Default = false})
-
-TogglePlayers:OnChanged(function(players)
-    updatePlayersHighlight(players)
-end)
-
-Options.PlayersHighlight:SetValue(false)
-
 local TogglePCs = Tabs.Main:AddToggle("PCHighlight", {Title = "PCs ESP", Default = false})
 
 TogglePCs:OnChanged(function(pcs)
@@ -369,6 +347,38 @@ TogglePCs:OnChanged(function(pcs)
 end)
 
 Options.PCHighlight:SetValue(false)
+
+local TogglePlayersESP = Tabs.Main:AddToggle("PlayersHighlight", {Title = "Players ESP", Default = false})
+
+local updateLoop
+
+-- Initialize PlayersESP variable
+_G.PlayersESP = false
+
+-- Toggle function
+TogglePlayersESP:OnChanged(function(newState)
+    _G.PlayersESP = newState
+    local state = _G.PlayersESP
+
+    if state then
+        updateLoop = game:GetService("RunService").Heartbeat:Connect(updatePlayersHighlight)
+    else
+        if updateLoop then
+            updateLoop:Disconnect()
+            updateLoop = nil
+        end
+        for _, obj in ipairs(game.Workspace:GetDescendants()) do
+            if obj:IsA("BillboardGui") and obj.Name == "DistanceLabel" then
+                obj:Destroy()
+            elseif obj:IsA("BoxHandleAdornment") and obj.Name == "PlayerHighlight" then
+                obj:Destroy()
+            end
+        end
+    end
+end)
+
+Options.PlayersHighlight:SetValue(false)
+
 
 local ToggleAntiFail = Tabs.Main:AddToggle("AntiFail", {Title = "Anti Fail Computer", Default = false})
 
@@ -431,9 +441,6 @@ ToggleFullbright:OnChanged(function(fullbright)
         lighting.Ambient = originalAmbient
     end
 end)
-
--- Initialize the toggle state
-ToggleFullbright:SetValue(getgenv().Fullbright)
 
 
 Tabs.ServerH:AddButton({
