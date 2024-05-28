@@ -1,4 +1,3 @@
-getgenv().Ashbutton() = true
 -- Create a ScreenGui object to hold the button
 local gui = Instance.new("ScreenGui")
 gui.Name = "AshbornnHubGui"
