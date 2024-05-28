@@ -16,6 +16,7 @@ local Window = Fluent:CreateWindow({
 local Tabs = {
     Main = Window:AddTab({ Title = "Game", Icon = "box" }),
     LPlayer = Window:AddTab({ Title = "Local Player", Icon = "users" }),
+    Teleport = Window:AddTab({ Title = "Teleport", Icon = "users" }),
     ServerH = Window:AddTab({ Title = "Server", Icon = "server" }), 
     Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
 }
@@ -117,7 +118,61 @@ lp.CharacterAdded:Connect(function(character)
         ghost_parts()
     end
 end)
+
+local function TeleportToPlayer(playerName)
+    local targetPlayer = game.Players:FindFirstChild(playerName)
+    if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        local targetPosition = targetPlayer.Character.HumanoidRootPart.Position
+        game.Players.LocalPlayer.Character:SetPrimaryPartCFrame(CFrame.new(targetPosition))
+    end
+end
     -----THINGS---------
+    local function GetOtherPlayers()
+    local players = {}
+    for _, player in ipairs(game.Players:GetPlayers()) do
+        if player ~= game.Players.LocalPlayer then
+            table.insert(players, player.Name)
+        end
+    end
+    return players
+end
+    local Dropdown
+local isResetting = false
+
+local function CreateDropdown()
+    Dropdown = Tabs.Teleport:AddDropdown("TPtoPlayer", {
+        Title = "Teleport to Player",
+        Values = GetOtherPlayers(),
+        Multi = false,
+        Default = "",
+    })
+
+    Dropdown:OnChanged(function(Value)
+        if not isResetting and Value ~= "" then
+            TeleportToPlayer(Value)
+            isResetting = true
+            Dropdown:SetValue("")  -- Reset selected value to default
+            isResetting = false
+        end
+    end)
+end
+
+-- Initial creation of the dropdown
+CreateDropdown()
+
+local function UpdateDropdownA()
+    local newValues = GetOtherPlayers()
+    isResetting = true
+    Dropdown.Values = newValues  -- Update the dropdown values
+    Dropdown:SetValue("")  -- Reset selected value to default
+    isResetting = false
+end
+
+-- Connect to PlayerAdded and PlayerRemoving events to update the dropdown
+game.Players.PlayerAdded:Connect(UpdateDropdownA)
+game.Players.PlayerRemoving:Connect(UpdateDropdownA)
+    
+    
     
    
 Tabs.Main:AddButton({
@@ -129,7 +184,7 @@ Tabs.Main:AddButton({
         -- Store ESP options and their current values
         local espOptions = {
             {Option = Options.ExitsHighlight, Value = _G.ExitsESP},
-            {Option = Options.PCHighlight, Value = _G.PCsESP}
+            {Option = Options.PCHighlight, Value = _G.PCsESP},
             {Option = Options.PlayersHighlight, Value = _G.PlayersESP},
             {Option = Options.PodsHighlight, Value = _G.PodsESP},
             {Option = Options.Fullbright, Value = getgenv().Fullbright}
