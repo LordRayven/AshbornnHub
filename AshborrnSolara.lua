@@ -34,58 +34,83 @@ local flying
 local p = game.Players.LocalPlayer
 local buttons = {W = false, S = false, A = false, D = false, Moving = false}
 
-function GetMurderer()
-    for i, v in game:GetService("Players"):GetChildren() do
-     if v.Backpack:FindFirstChild"Knife" or v.Character and v.Character:FindFirstChild("Knife") then return v.Character end
+
+
+
+
+
+
+
+local rsrv = game:GetService("RunService")
+local heartbeat = rsrv.Heartbeat
+local renderstepped = rsrv.RenderStepped
+
+local lp = game.Players.LocalPlayer
+local mouse = lp:GetMouse()
+
+local isinvisible = false
+local visible_parts = {}
+local kdown, loop
+
+local function ghost_parts()
+    for _, v in pairs(visible_parts) do
+        v.Transparency = isinvisible and 0.5 or 0
     end
-    return nil
-   end
+end
 
-game.workspace.ChildAdded:Connect(function(child)
-    if child.Name == "GunDrop" and ATG and GetMurderer() ~= LocalPlayer.Character then
-      print("Gun dropped!")
-      while child and task.wait() do
-       if (GetMurderer().Head.Position-child.Position).magnitude < 10 then
-        repeat task.wait() until (GetMurderer().Head.Position-child.Position).magnitude > 10
-       end
-       Grabbing = true
-       LocalPlayer.Character.HumanoidRootPart.CFrame = child.CFrame + Vector3.new(0, .5, 0)
-      end
-      Grabbing = false
-     end
-   end)
-   function GetMurd()
-    return game:GetService("Players"):GetPlayerFromCharacter(GetMurderer())
-   end
-   function MurdererLoop()
-    if ASM and LocalPlayer.Character and GetMurderer() and LocalPlayer.Character:FindFirstChild("Gun") or LocalPlayer.Backpack:FindFirstChild("Gun") then
-     if LocalPlayer.Backpack:FindFirstChild("Gun") then LocalPlayer.Backpack.Gun.Parent = LocalPlayer.Character end
-     local Murd = GetMurderer()
-     LocalPlayer.Character.HumanoidRootPart.CFrame = Murd.HumanoidRootPart.CFrame - Murd.Head.CFrame.LookVector*10
-     LocalPlayer.Character.Gun.KnifeServer.ShootGun:InvokeServer(1, Murd.HumanoidRootPart.Position, "AH")
+local function setup_character(character)
+    local hum = character:WaitForChild("Humanoid")
+    local root = character:WaitForChild("HumanoidRootPart")
+
+    visible_parts = {}
+
+    for _, v in pairs(character:GetDescendants()) do
+        if v:IsA("BasePart") and v.Transparency == 0 then
+            visible_parts[#visible_parts + 1] = v
+        end
     end
-    task.wait(.5)
-   end
-   function SecondLoop()
-    if GetMurderer() == LocalPlayer.Character or GetMurderer() == nil or not AE then ImageLabel.Image = '' return end
-    ImageLabel.Image = game:GetService('Players'):GetUserThumbnailAsync(GetMurd().UserId, Enum.ThumbnailType.AvatarThumbnail, Enum.ThumbnailSize.Size150x150)
-    if (GetMurderer().HumanoidRootPart.Position-LocalPlayer.Character.HumanoidRootPart.Position).magnitude < 15 and not tpedtoPos and not Grabbing then
-     tpedtoPos = LocalPlayer.Character.HumanoidRootPart.CFrame
-     LocalPlayer.Character.HumanoidRootPart.CFrame = Part.CFrame + Vector3.new(0, 3, 0)
-    elseif tpedtoPos and (GetMurderer().HumanoidRootPart.Position-Vector3.new(tpedtoPos.X, tpedtoPos.Y, tpedtoPos.Z)).magnitude > 10 and not Grabbing then 
-     LocalPlayer.Character.HumanoidRootPart.CFrame = tpedtoPos
-     tpedtoPos = nil
+
+    if kdown then
+        kdown:Disconnect()
     end
-   end
 
+    kdown = mouse.KeyDown:Connect(function(key)
+        if key == "g" then
+            isinvisible = not isinvisible
+            ghost_parts()
+        end
+    end)
 
+    if loop then
+        loop:Disconnect()
+    end
 
+    loop = heartbeat:Connect(function()
+        if isinvisible then
+            local oldcf = root.CFrame
+            local oldcamoffset = hum.CameraOffset
 
+            local newcf = oldcf * CFrame.new(-1500, -5000, -1500)
 
+            hum.CameraOffset = newcf:ToObjectSpace(CFrame.new(oldcf.Position)).Position
+            root.CFrame = newcf
 
+            renderstepped:Wait()
 
+            hum.CameraOffset = oldcamoffset
+            root.CFrame = oldcf
+        end
+    end)
 
+    _G.cons = {kdown, loop}
+end
 
+lp.CharacterAdded:Connect(function(character)
+    setup_character(character)
+    if isinvisible then
+        ghost_parts()
+    end
+end)
 
 function EquipTool()
     for _,obj in next, game.Players.LocalPlayer.Backpack:GetChildren() do
@@ -133,7 +158,7 @@ end)
 function loadesp()
     if loadespenabled ~= true then
         loadespenabled = true
-        AshESP = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/R3TH-PRIV/R3THPRIV/main/OtherScripts/ESP.lua"))()
+        AshESP = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/ESP.lua"))()
         AshESP.Box = false
         AshESP.BoxOutline = false
         AshESP.HealthBar = false
@@ -297,6 +322,8 @@ button.MouseButton1Click:Connect(function()
     Window:Minimize()
     
 end)
+
+
 --------------------------EXTRAS--------------------------
 
 
@@ -326,6 +353,106 @@ do
             end
         end
     })
+
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local roles = {}
+
+local function roleupdaterfix()
+    while true do
+        roles = ReplicatedStorage:FindFirstChild("GetPlayerData", true):InvokeServer()
+        for i, v in pairs(roles) do
+            if v.Role == "Murderer" then
+                Murder = v
+            elseif v.Role == "Sheriff" then
+                Sheriff = v
+            elseif v.Role == "Hero" then
+                Hero = v
+            end
+        end
+        wait(1)  -- Update every second
+    end
+end
+
+-- Start the role updater
+spawn(roleupdaterfix)
+
+Tabs.Main:AddButton({
+    Title = "Shoot Murderer",
+    Description = "Tp to Murderer and Shoot",
+    Callback = function()
+        local player = game.Players.LocalPlayer
+        local humanoidRootPart = player.Character.HumanoidRootPart
+        local currentX = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame.X
+            local currentY = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame.Y
+            local currentZ = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame.Z	
+        
+        if Murder then
+            local murdererCharacter = game.Players[Murder].Character
+            if murdererCharacter and murdererCharacter:FindFirstChild("HumanoidRootPart") then
+                local murdererPosition = murdererCharacter.HumanoidRootPart.CFrame
+                
+                -- Equip the gun if not already equipped
+                local backpack = player.Backpack
+                if backpack:FindFirstChild("Gun") then
+                    backpack.Gun.Parent = player.Character
+                    humanoidRootPart.CFrame = murdererPosition
+                end
+                
+                -- Shoot the gun at the murderer's position
+                
+                if player.Character:FindFirstChild("Gun") then
+                wait(0.2)
+                player.Character:MoveTo(Vector3.new(currentX, currentY, currentZ))
+                    player.Character.Gun.KnifeServer.ShootGun:InvokeServer(1, murdererCharacter.HumanoidRootPart.Position, "AH")
+                    --Force teleport to original position replace the code below
+                    
+                end
+               
+                
+                
+            else
+                Fluent:Notify({
+                    Title = "Murderer not Found",
+                    Content = "Murderer's character not found.",
+                    Duration = 3
+                })
+            end
+        else
+            Fluent:Notify({
+                Title = "Murderer not Found",
+                Content = "Murderer role not assigned yet.",
+                Duration = 3
+            })
+        end
+    end
+})
+
+
+    
+
+
+local Toggle = Tabs.Misc:AddToggle("FEInvisible", {Title = "FE Invisible", Default = false })
+
+Toggle:OnChanged(function(value)
+    isinvisible = value
+    if lp.Character then
+        if not isinvisible then
+            -- Restore visibility
+            for _, v in pairs(visible_parts) do
+                v.Transparency = 0
+            end
+        else
+            ghost_parts()
+        end
+    end
+end)
+
+if lp.Character then
+    setup_character(lp.Character)
+    if isinvisible then
+        ghost_parts()
+    end
+end
 
     
 
@@ -543,11 +670,69 @@ Options.Noclip:SetValue(false)
 
 local Toggle = Tabs.Misc:AddToggle("AutoShoot", { Title = "Auto Shoot Murderer", Default = false })
 
+local function ShootMurderer()
+    local player = game.Players.LocalPlayer
+
+    if Murder then
+        local murdererCharacter = game.Players[Murder].Character
+        if murdererCharacter and murdererCharacter:FindFirstChild("HumanoidRootPart") then
+            local humanoidRootPart = player.Character.HumanoidRootPart
+            local currentPos = humanoidRootPart.Position
+            
+            -- Check if the player has a gun
+            local backpack = player.Backpack
+            if not backpack:FindFirstChild("Gun") then
+                Fluent:Notify({
+                    Title = "Missing Gun",
+                    Content = "Grab the gun or wait for sheriff death.",
+                    Duration = 3
+                })
+                return
+            end
+
+            -- Equip the gun if not already equipped
+            if not player.Character:FindFirstChild("Gun") then
+                backpack.Gun.Parent = player.Character
+            end
+
+            -- Teleport to murderer's position
+            humanoidRootPart.CFrame = CFrame.new(murdererCharacter.HumanoidRootPart.Position)
+
+            -- Shoot the gun at the murderer's position
+            if player.Character:FindFirstChild("Gun") then
+                wait(0.2)
+                player.Character:MoveTo(currentPos)
+                player.Character.Gun.KnifeServer.ShootGun:InvokeServer(1, murdererCharacter.HumanoidRootPart.Position, "AH")
+            end
+        else
+            Fluent:Notify({
+                Title = "Murderer not Found",
+                Content = "Murderer's character not found.",
+                Duration = 3
+            })
+        end
+    else
+        Fluent:Notify({
+            Title = "Murderer not Found",
+            Content = "Murderer role not assigned yet.",
+            Duration = 3
+        })
+    end
+end
+
 Toggle:OnChanged(function(state)
-    ASM = state
+    if state then
+        while Toggle.Value do
+            ShootMurderer()
+            wait(3.5)
+        end
+    end
 end)
 
 Options.AutoShoot:SetValue(false)
+
+
+
 
 
 
@@ -638,6 +823,77 @@ end)
 
 Options.Fling:SetValue(false)
 
+local function CreateDropdownC()
+    local Dropdown = Tabs.Misc:AddDropdown("SelectPlayer", {
+        Title = "Select Player",
+        Values = GetOtherPlayers(),
+        Multi = false,
+        Default = "",
+    })
+
+    Dropdown:OnChanged(function(tradingName)
+        tradingUsername = tradingName
+    end)
+
+    return Dropdown
+end
+
+-- Initial creation of the dropdown
+local Dropdown = CreateDropdownC()
+
+local function UpdateDropdownC()
+    local newValues = GetOtherPlayers()
+    isResetting = true
+    Dropdown.Values = newValues  -- Update the dropdown values
+    Dropdown:SetValue("")  -- Reset selected value to default
+    isResetting = false
+end
+
+-- Connect to PlayerAdded and PlayerRemoving events to update the dropdown
+game.Players.PlayerAdded:Connect(UpdateDropdownC)
+game.Players.PlayerRemoving:Connect(UpdateDropdownC)
+
+local Toggle = Tabs.Misc:AddToggle("ForceTradePlayer", {Title = "Force Trade Player", Default = false })
+
+Toggle:OnChanged(function(forcetrade)
+    forcetradeloop = forcetrade
+    if forcetradeloop then
+        game:GetService("ReplicatedStorage"):WaitForChild("Trade"):WaitForChild("SendRequest"):InvokeServer(game:GetService("Players")[tradingUsername])
+        wait()
+        game:GetService("ReplicatedStorage"):WaitForChild("Trade"):WaitForChild("AcceptRequest"):FireServer()
+        wait()
+    end
+end)
+
+Options.ForceTradePlayer:SetValue(false)
+
+
+
+local Trading = Tabs.Misc:AddToggle("ForceTradeAll", {Title = "Force Trade All", Default = false })
+
+Trading:OnChanged(function(forcetradeall)
+    forcetradeallloop = forcetradeall
+    if forcetradeall then
+        while forcetradeallloop do
+            function forcetradeallloopfix()
+                local tradeallplayer = game.Players:GetPlayers()
+                local randomIndex = math.random(1,#game.Players:GetPlayers())
+                if tradeallplayer[randomIndex].Name ~= LocalPlayer.Name then
+                    game:GetService("ReplicatedStorage").Trade.SendRequest:InvokeServer(game:GetService("Players")[tradeallplayer[randomIndex].Name])
+                    task.wait()
+                    game:GetService("ReplicatedStorage").Trade.AcceptRequest:FireServer()
+                    task.wait()
+                end
+            end
+            wait()
+            pcall(forcetradeallloopfix)
+        end
+    end
+end)
+
+Options.ForceTradeAll:SetValue(false)
+
+
 local Toggle = Tabs.Misc:AddToggle("Fling", {Title = "Fling Sheriff", Default = false })
 
 Toggle:OnChanged(function(flingplayer)
@@ -695,6 +951,56 @@ Tabs.Misc:AddButton({
         workspace.Camera.CameraSubject = game.Players.LocalPlayer.Character:WaitForChild("Humanoid")
     end
 })
+
+Tabs.Combat:AddButton({
+    Title = "Silent Aim",
+    Description = "Silent AIM Button (Works in Solara/ Incognito)",
+    Callback = function()
+        -- Function to call when button is clicked
+        local function onButtonClicked()
+            -- Define the murderer character
+            
+            if Murder then
+                local player = game.Players.LocalPlayer
+                local murdererCharacter = game.Players[Murder].Character
+                
+                if murdererCharacter and murdererCharacter:FindFirstChild("HumanoidRootPart") then
+                    if player.Character:FindFirstChild("Gun") then
+                        player.Character.Gun.KnifeServer.ShootGun:InvokeServer(1, murdererCharacter.HumanoidRootPart.Position, "AH")
+                    else
+                        -- Player doesn't have a gun, show notification
+                        Fluent:Notify({
+                            Title = "You don't have a gun",
+                            Content = "Wait for the sheriff death or grab the gun",
+                            Duration = 3
+                        })
+                    end
+                else
+                    warn("Murderer character or HumanoidRootPart not found!")
+                end
+            else
+                warn("Murderer not defined!")
+            end
+        end
+        
+        -- Create the ScreenGui
+        local screenGui = Instance.new("ScreenGui")
+        screenGui.Name = "ShootButtonGui"
+        screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+        
+        -- Create the button instance
+        local button = Instance.new("TextButton")
+        button.Size = UDim2.new(0, 100, 0, 50)  -- Example size, you can adjust as needed
+        button.Text = "Shoot"
+        button.Position = UDim2.new(1, -110, 0, 250)  -- Position it at the top-right corner with a vertical offset of 50 pixels
+        button.Parent = screenGui  -- Parent the button to ScreenGui
+        
+        -- Connect the button click event to the function
+        button.MouseButton1Click:Connect(onButtonClicked)
+    end
+})
+
+
 
 
 
@@ -991,7 +1297,7 @@ SaveManager:SetIgnoreIndexes({})
 -- use case for doing it this way:
 -- a script hub could have themes in a global folder
 -- and game configs in a separate folder per game
-InterfaceManager:SetFolder("AshborrnHub")
+InterfaceManager:SetFolder("AshbornnHub")
 SaveManager:SetFolder("AshbornnHub/MurderMystery2")
 
 InterfaceManager:BuildInterfaceSection(Tabs.Settings)
