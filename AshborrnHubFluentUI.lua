@@ -365,10 +365,10 @@ local Tabs = {
     Visual = Window:AddTab({ Title = "Visual", Icon = "eye" }),
     Combat = Window:AddTab({ Title = "Combat", Icon = "swords" }),
     LPlayer = Window:AddTab({ Title = "Player", Icon = "user" }),
-    
     Misc = Window:AddTab({ Title = "Misc", Icon = "aperture" }),
-    Troll = Window:AddTab({ Title = "Trolling", Icon = "aperture" }),
+    Troll = Window:AddTab({ Title = "Trolling", Icon = "user-x" }),
     Teleport = Window:AddTab({ Title = "Teleport", Icon = "wand" }),
+    Server = Window:AddTab({ Title = "Server", Icon = "server" }),
     Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
 }
 
@@ -870,139 +870,19 @@ Tabs.Misc:AddButton({
 
 ----------------------------------------------------MISC---------------------------------------------------
 
-    
 
-local Toggle = Tabs.Misc:AddToggle("Noclip", {Title = "Noclip", Default = false })
 
-Toggle:OnChanged(function(noclip)
-    loopnoclip = noclip
-    while loopnoclip do
-        local function loopnoclipfix()
-            for _, b in pairs(Workspace:GetChildren()) do
-                if b.Name == LocalPlayer.Name then
-                    for _, v in pairs(Workspace[LocalPlayer.Name]:GetChildren()) do
-                        if v:IsA("BasePart") then
-                            v.CanCollide = false
-                        end
-                    end
-                end
-            end
-            wait()
-        end
-        wait()
-        pcall(loopnoclipfix)
-    end
-end)
-
-Options.Noclip:SetValue(false)
-
-local Toggle = Tabs.Misc:AddToggle("GetEmotes", {Title = "Get All Emotes", Default = false})
-
-Toggle:OnChanged(function(getallemotes)
-    emotesondeath = getallemotes
-    if emotesondeath == true then
+Tabs.Misc:AddButton({
+    Title = "Get Emotes",
+    Description = "Get all emotes including Gems one",
+    Callback = function()
         SpawnEmotes()
         wait()
     end
-end)
-
-Options.GetEmotes:SetValue(false)
-
-
-Tabs.Misc:AddButton({
-        Title = "Rejoin",
-        Description = "Rejoining on this current server",
-        Callback = function()
-            Window:Dialog({
-                Title = "Rejoin this server?",
-                Content = "Do you want to rejoin this server? ",
-                Buttons = {
-                    {
-                        Title = "Confirm",
-                        Callback = function()
-                            game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, game.JobId, game:GetService("Players").LocalPlayer)
-        wait()
-                        end
-                    },
-                    {
-                        Title = "Cancel",
-                        Callback = function()
-                            print("Rejoin cancelled.")
-                        end
-                    }
-                }
-            })
-        end
-    })
-
-Tabs.Misc:AddButton({
-        Title = "Serverhop",
-        Description = "Join to another server",
-        Callback = function()
-            Window:Dialog({
-                Title = "Join to another server?",
-                Content = "Do you want to join to another server?",
-                Buttons = {
-                    {
-                        Title = "Confirm",
-                        Callback = function()
-                            loadstring(game:HttpGet("https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/ServerHop.lua", true))()
-        wait()
-                        end
-                    },
-                    {
-                        Title = "Cancel",
-                        Callback = function()
-                            print("Serverhop cancelled.")
-                        end
-                    }
-                }
-            })
-        end
-    })
-    
-local function CreateDropdownB()
-    local Dropdown = Tabs.Misc:AddDropdown("ViewPlayerd", {
-        Title = "View Player / Spectate Player",
-        Values = GetOtherPlayers(),
-        Multi = false,
-        Default = "",
-    })
-
-    Dropdown:OnChanged(function(Value)
-        if not isResetting and Value ~= "" then
-            workspace.Camera.CameraSubject = game:GetService("Players")[Value].Character:WaitForChild("Humanoid")
-            isResetting = true
-            Dropdown:SetValue("")  -- Reset selected value to default
-            isResetting = false
-        end
-    end)
-
-    return Dropdown
-end
-
--- Initial creation of the dropdown
-local Dropdown = CreateDropdownB()
-
-local function UpdateDropdownB()
-    local newValues = GetOtherPlayers()
-    isResetting = true
-    Dropdown.Values = newValues  -- Update the dropdown values
-    Dropdown:SetValue("")  -- Reset selected value to default
-    isResetting = false
-end
-
--- Connect to PlayerAdded and PlayerRemoving events to update the dropdown
-game.Players.PlayerAdded:Connect(UpdateDropdownB)
-game.Players.PlayerRemoving:Connect(UpdateDropdownB)
-
-Tabs.Misc:AddButton({
-    Title = "Stop Viewing",
-    Description = "Stop viewing the selected player",
-    Callback = function()
-        workspace.Camera.CameraSubject = game.Players.LocalPlayer.Character:WaitForChild("Humanoid")
-    end
 })
+
+
+    
 
 Tabs.Misc:AddParagraph({
         Title = "This is for Scrolling",
@@ -1037,6 +917,10 @@ Tabs.Misc:AddParagraph({
 --------------------------------------------------------MISC ENDS--------------------------------------------------
     
 -------------------------------------------------------TELEPORTS---------------------------------------------------
+
+
+
+
 
     Tabs.Teleport:AddButton({
         Title = "TP to Lobby",
@@ -1403,7 +1287,7 @@ end
 
 
 
--- LOCAL PLAYER
+-------------------------------- LOCAL PLAYER
 
 local Toggle = Tabs.LPlayer:AddToggle("Invisible", {Title = "Invisible (Need Ghost Perk)", Default = false})
 
@@ -1445,10 +1329,53 @@ end)
 
 Options.Noclip:SetValue(false)
 
+local function CreateDropdownB()
+    local Dropdown = Tabs.LPlayer:AddDropdown("ViewPlayerd", {
+        Title = "View Player / Spectate Player",
+        Values = GetOtherPlayers(),
+        Multi = false,
+        Default = "",
+    })
+
+    Dropdown:OnChanged(function(Value)
+        if not isResetting and Value ~= "" then
+            workspace.Camera.CameraSubject = game:GetService("Players")[Value].Character:WaitForChild("Humanoid")
+            isResetting = true
+            Dropdown:SetValue("")  -- Reset selected value to default
+            isResetting = false
+        end
+    end)
+
+    return Dropdown
+end
+
+-- Initial creation of the dropdown
+local Dropdown = CreateDropdownB()
+
+local function UpdateDropdownB()
+    local newValues = GetOtherPlayers()
+    isResetting = true
+    Dropdown.Values = newValues  -- Update the dropdown values
+    Dropdown:SetValue("")  -- Reset selected value to default
+    isResetting = false
+end 
+
+-- Connect to PlayerAdded and PlayerRemoving events to update the dropdown
+game.Players.PlayerAdded:Connect(UpdateDropdownB)
+game.Players.PlayerRemoving:Connect(UpdateDropdownB)
+
+Tabs.LPlayer:AddButton({
+    Title = "Stop Viewing",
+    Description = "Stop viewing the selected player",
+    Callback = function()
+        workspace.Camera.CameraSubject = game.Players.LocalPlayer.Character:WaitForChild("Humanoid")
+    end
+})
 
 
 
---LOCAL PLAYER
+
+-----------------------------------------------LOCAL PLAYER
 
 
 
@@ -1686,7 +1613,62 @@ Options.Fling:SetValue(false)
     
     
     
-    
+    ----------------------------------------------------SERVER--------------------------------------------------------
+
+    Tabs.Misc:AddButton({
+        Title = "Rejoin",
+        Description = "Rejoining on this current server",
+        Callback = function()
+            Window:Dialog({
+                Title = "Rejoin this server?",
+                Content = "Do you want to rejoin this server? ",
+                Buttons = {
+                    {
+                        Title = "Confirm",
+                        Callback = function()
+                            game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, game.JobId, game:GetService("Players").LocalPlayer)
+        wait()
+                        end
+                    },
+                    {
+                        Title = "Cancel",
+                        Callback = function()
+                            print("Rejoin cancelled.")
+                        end
+                    }
+                }
+            })
+        end
+    })
+
+Tabs.Misc:AddButton({
+        Title = "Serverhop",
+        Description = "Join to another server",
+        Callback = function()
+            Window:Dialog({
+                Title = "Join to another server?",
+                Content = "Do you want to join to another server?",
+                Buttons = {
+                    {
+                        Title = "Confirm",
+                        Callback = function()
+                            loadstring(game:HttpGet("https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/ServerHop.lua", true))()
+        wait()
+                        end
+                    },
+                    {
+                        Title = "Cancel",
+                        Callback = function()
+                            print("Serverhop cancelled.")
+                        end
+                    }
+                }
+            })
+        end
+    })
+
+
+    ----------------------------------------------------SERVER--------------------------------------------------------
     
     
     
