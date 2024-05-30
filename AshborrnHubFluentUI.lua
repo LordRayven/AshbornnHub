@@ -12,6 +12,8 @@ local HttpService = game:GetService("HttpService")
 local players = game:GetService("Players")
 local ReplicatedStorage = game:GetService('ReplicatedStorage')
 local N=game:GetService("VirtualInputManager")
+local DefaultChatSystemChatEvents = ReplicatedStorage.DefaultChatSystemChatEvents
+local SayMessageRequest = DefaultChatSystemChatEvents.SayMessageRequest
 
 local mt = getrawmetatable(game);
 local old = {};
@@ -423,26 +425,7 @@ getgenv().GunHook = GunHook
 
 
 
--- Create a ScreenGui object to hold the button
-local gui = Instance.new("ScreenGui")
-gui.Name = "AshbornnHubGui"
-gui.Parent = game.CoreGui
 
--- Create the button
-local button = Instance.new("TextButton")
-button.Name = "ToggleButton"
-button.Text = "Open/Close"
-button.Size = UDim2.new(0, 70, 0, 30) -- Adjust the size as needed
-button.Position = UDim2.new(0, 10, 0, 10) -- Position at top left with 10px offset
-button.BackgroundColor3 = Color3.new(0, 0, 0) -- Black background
-button.TextColor3 = Color3.new(1, 1, 1) -- White text
-button.Parent = gui
-
--- Functionality for the button
-button.MouseButton1Click:Connect(function()
-    Window:Minimize()
-    
-end)
 --------------------------EXTRAS--------------------------
 
 
@@ -452,11 +435,7 @@ do
 
 -------------------------------------------COMBAT---------------------------------------
 
-Tabs.Combat:AddParagraph({
-        Title = "Sheriff Hacks",
-        Content = ""
-    })
-    
+local SheriffHacks = Tabs.Combat:AddSection("Sheriff Hacks")
     
     Tabs.Combat:AddButton({
         Title = "Grab gun",
@@ -539,17 +518,9 @@ Tabs.Combat:AddButton({
     end
 })
     
-    Tabs.Combat:AddParagraph({
-        Title = "",
-        Content = ""
-    })
-
-Tabs.Combat:AddParagraph({
-        Title = "Murderer Hacks",
-        Content = ""
-    })
+    local MurderHacks = Tabs.Combat:AddSection("Murderer Hacks")
     
-    local Toggle = Tabs.Visual:AddToggle("Invisible", {Title = "Invisible", Default = false})
+    local Toggle = Tabs.Visual:AddToggle("Invisible", {Title = "Invisible (Need Ghost Perk)", Default = false})
 
 Toggle:OnChanged(function(invis)
     if invis then
@@ -685,20 +656,6 @@ Tabs.Combat:AddParagraph({
         Title = "This is for Scrolling",
         Content = "For scrolling only"
     })
-Tabs.Combat:AddParagraph({
-        Title = "This is for Scrolling",
-        Content = "For scrolling only"
-    })
-    
-Tabs.Combat:AddParagraph({
-        Title = "This is for Scrolling",
-        Content = "For scrolling only"
-    })
-    
-Tabs.Combat:AddParagraph({
-        Title = "This is for Scrolling",
-        Content = "For scrolling only"
-    })
 
 
 
@@ -708,6 +665,15 @@ Tabs.Combat:AddParagraph({
 
     
 ----------------------------------------------MISC---------------------------------------------------
+
+Tabs.Misc:AddButton({
+    Title = "Expose Roles",
+    Description = "",
+    Callback = function()
+        SayMessageRequest:FireServer("Murderer Is: " .. Murder, "normalchat")
+        SayMessageRequest:FireServer("Sheriff Is: " .. Sheriff, "normalchat")
+    end
+})
     
     local Toggle = Tabs.Misc:AddToggle("AlwaysAliveChat", {Title = "Always Alive Chat", Default = false})
 
@@ -732,7 +698,7 @@ local function handleFadeEvent()
     game:GetService("ReplicatedStorage").Remotes.Gameplay.Fade.OnClientEvent:Connect(function()
         if seedeadchat then
             task.wait(0.5)
-            game:GetService("ReplicatedStorage").DefaultChatSystemChatEvents.SayMessageRequest:FireServer("/join dead", "normalchat")
+            game:GetService("ReplicatedStorage").DefaultChatSystemChatEvents.SayMessageRequest:FireServer("/join Dead", "normalchat")
         end
     end)
 end
@@ -1223,13 +1189,38 @@ end
 game.Players.PlayerAdded:Connect(UpdateDropdownA)
 game.Players.PlayerRemoving:Connect(UpdateDropdownA)
 
+local lp = game.Players.LocalPlayer
+
+local lp = game.Players.LocalPlayer
+
 Tabs.Teleport:AddButton({
-        Title = "TP to Secret Room",
-        Description = "Teleport to Lobby's Secret Room",
-        Callback = function()
-            game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-152, 153, 113)
+    Title = "Void (Safe)",
+    Description = "",
+    Callback = function()
+        -- Check if the "Safe Void Path" part already exists in the workspace
+        if not workspace:FindFirstChild("Safe Void Path") then
+            -- Create and configure the part
+            local safePart = Instance.new("Part")
+            safePart.Name = "Safe Void Path"
+            safePart.CFrame = CFrame.new(99999, 99995, 99999)
+            safePart.Anchored = true
+            safePart.Size = Vector3.new(300, 0.1, 300)
+            safePart.Transparency = 0.5
+
+            -- Parent the part to the workspace
+            safePart.Parent = workspace
+        else
+            warn("Safe Void Path already exists in the workspace")
         end
-    })
+
+        -- Teleport the local player to the specified coordinates
+        if lp.Character and lp.Character:FindFirstChild("HumanoidRootPart") then
+            lp.Character.HumanoidRootPart.CFrame = CFrame.new(99999, 100000, 99999)
+        else
+            warn("Local player character or HumanoidRootPart not found")
+        end
+    end
+})
     
     Tabs.Teleport:AddButton({
         Title = "TP to Secret Room",
@@ -1665,6 +1656,111 @@ end
     
     end
     ------------------------------------------MAIN ENDS------------------------------------
+    
+-- Create a ScreenGui object to hold the button
+local gui = Instance.new("ScreenGui")
+gui.Name = "AshbornnHubGui"
+gui.Parent = game.CoreGui
+
+-- Create the button as a TextButton
+local button = Instance.new("TextButton")
+button.Name = "ToggleButton"
+button.Text = "Close" -- Initial text set to "Close"
+button.Size = UDim2.new(0, 70, 0, 30) -- Adjust the size as needed
+button.Position = UDim2.new(0, 10, 0, 10) -- Position at top left with 10px offset
+button.BackgroundTransparency = 0.3 -- Set transparency to 50%
+button.BackgroundColor3 = Color3.fromRGB(97, 62, 167) -- Purple background color
+button.BorderSizePixel = 2 -- Add black stroke
+button.BorderColor3 = Color3.new(0, 0, 0) -- Black stroke color
+button.TextColor3 = Color3.new(1, 1, 1) -- White text color
+button.FontSize = Enum.FontSize.Size12 -- Adjust text size
+button.TextScaled = false -- Allow text to scale with button size
+button.TextWrapped = true -- Wrap text if it's too long
+button.TextStrokeTransparency = 0 -- Make text fully visible
+button.TextStrokeColor3 = Color3.new(0, 0, 0) -- Black text stroke color
+button.Parent = gui
+
+-- Apply blur effect
+local blur = Instance.new("BlurEffect")
+blur.Parent = button
+blur.Size = 5 -- Adjust blur size as needed
+
+-- Variable to keep track of button state
+local isOpen = false
+local isDraggable = false
+local dragConnection
+
+-- Functionality for the button
+button.MouseButton1Click:Connect(function()
+    isOpen = not isOpen -- Toggle button state
+    
+    if isOpen then
+        button.Text = "Open"
+    else
+        button.Text = "Close"
+    end
+    
+    Window:Minimize()
+end)
+
+-- Function to make the button draggable
+local function setDraggable(draggable)
+    if draggable then
+        -- Connect events for dragging
+        dragConnection = button.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.Touch then
+                local dragStart = input.Position
+                local startPos = button.Position
+                local dragInput = input
+
+                local function onInputChanged(input)
+                    if input == dragInput then
+                        local delta = input.Position - dragStart
+                        button.Position = UDim2.new(0, startPos.X.Offset + delta.X, 0, startPos.Y.Offset + delta.Y)
+                    end
+                end
+
+                local function onInputEnded(input)
+                    if input == dragInput then
+                        dragInput = nil
+                        game:GetService("UserInputService").InputChanged:Disconnect(onInputChanged)
+                        input.Changed:Disconnect(onInputEnded)
+                    end
+                end
+
+                game:GetService("UserInputService").InputChanged:Connect(onInputChanged)
+                input.Changed:Connect(onInputEnded)
+            end
+        end)
+    else
+        -- Disconnect events if not draggable
+        if dragConnection then
+            dragConnection:Disconnect()
+            dragConnection = nil -- Reset dragConnection
+        end
+    end
+end
+
+-- Function to toggle button visibility
+local function toggleButtonVisibility(visible)
+    button.Visible = visible
+end
+
+-- Create the toggle for draggable button
+local DraggableToggle = Tabs.Settings:AddToggle("Draggable Button", {Title = "Draggable Button", Default = false})
+
+DraggableToggle:OnChanged(function(value)
+    isDraggable = value
+    setDraggable(isDraggable)
+end)
+
+-- Create another toggle for button visibility
+local VisibilityToggle = Tabs.Settings:AddToggle("Button Visibility", {Title = "Toggle Window Visibility", Default = true})
+
+VisibilityToggle:OnChanged(function(value)
+    toggleButtonVisibility(value)
+end)
+    
 
 -- Addons:
 -- SaveManager (Allows you to have a configuration system)
