@@ -260,10 +260,7 @@ function UpdateHighlights()
             elseif v.Name == Murder and IsAlive(v) then
                 Highlight.FillColor = Color3.fromRGB(225, 0, 0) -- Red color
                 Highlight.FillTransparency = applyesptrans
-            elseif v.Name == Hero and IsAlive(v) and v.Backpack:FindFirstChild("Gun") then
-                Highlight.FillColor = Color3.fromRGB(255, 255, 0) -- Yellow color
-                Highlight.FillTransparency = applyesptrans
-            elseif v.Name == Hero and IsAlive(v) and v.Character:FindFirstChild("Gun") then
+            elseif v.Name == Hero and IsAlive(v) and (v.Backpack:FindFirstChild("Gun") or v.Character:FindFirstChild("Gun")) then
                 Highlight.FillColor = Color3.fromRGB(255, 255, 0) -- Yellow color
                 Highlight.FillTransparency = applyesptrans
             elseif not IsAlive(v) then
@@ -276,17 +273,17 @@ function UpdateHighlights()
         end
     end
 end
- 
+
 function IsAlive(Player)
-	for i, v in pairs(roles) do
-		if Player.Name == i then
-			if not v.Killed and not v.Dead then
-				return true
-			else
-				return false
-			end
-		end
-	end
+    for i, v in pairs(roles) do
+        if Player.Name == i then
+            if not v.Killed and not v.Dead then
+                return true
+            else
+                return false
+            end
+        end
+    end
 end
  
 function HideHighlights()
@@ -367,7 +364,10 @@ local Tabs = {
     Main = Window:AddTab({ Title = "Main", Icon = "box" }),
     Visual = Window:AddTab({ Title = "Visual", Icon = "eye" }),
     Combat = Window:AddTab({ Title = "Combat", Icon = "swords" }),
+    LPlayer = Window:AddTab({ Title = "Player", Icon = "user" }),
+    
     Misc = Window:AddTab({ Title = "Misc", Icon = "aperture" }),
+    Troll = Window:AddTab({ Title = "Trolling", Icon = "aperture" }),
     Teleport = Window:AddTab({ Title = "Teleport", Icon = "wand" }),
     Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
 }
@@ -520,21 +520,72 @@ Tabs.Combat:AddButton({
     
     local MurderHacks = Tabs.Combat:AddSection("Murderer Hacks")
     
-    local Toggle = Tabs.Visual:AddToggle("Invisible", {Title = "Invisible (Need Ghost Perk)", Default = false})
-
-Toggle:OnChanged(function(invis)
-    if invis then
-        if game.Players.LocalPlayer.Character ~= nil then
-            game:GetService("ReplicatedStorage").Remotes.Gameplay.Stealth:FireServer(true)
-        end
-    else
-        if game.Players.LocalPlayer.Character ~= nil then
-            game:GetService("ReplicatedStorage").Remotes.Gameplay.Stealth:FireServer(false)
+    
+Tabs.Combat:AddButton({
+    Title = "Kill Sheriff or Hero (Stab)",
+    Description = "Tp to Sheriff or Hero and Stab",
+    Callback = function()
+        local player = game.Players.LocalPlayer
+        local humanoidRootPart = player.Character.HumanoidRootPart
+        local currentX = humanoidRootPart.Position.X
+        local currentY = humanoidRootPart.Position.Y
+        local currentZ = humanoidRootPart.Position.Z
+    
+        if Sheriff or Hero then
+            local targetCharacter
+            if Sheriff and Hero then
+                local rand = math.random(1, 2)
+                if rand == 1 then
+                    targetCharacter = game.Players[Sheriff].Character
+                else
+                    targetCharacter = game.Players[Hero].Character
+                end
+            elseif Sheriff then
+                targetCharacter = game.Players[Sheriff].Character
+            else
+                targetCharacter = game.Players[Hero].Character
+            end
+            
+            if targetCharacter and targetCharacter:FindFirstChild("HumanoidRootPart") then
+                local targetPosition = targetCharacter.HumanoidRootPart.Position
+                
+                -- Equip the knife if not already equipped
+                local backpack = player.Backpack
+                if backpack:FindFirstChild("Knife") then
+                    backpack.Knife.Parent = player.Character
+                    humanoidRootPart.CFrame = CFrame.new(targetPosition)
+                end
+                
+                -- Stab the target
+                if player.Character:FindFirstChild("Knife") then
+                    wait(0.2)
+                    player.Character:MoveTo(Vector3.new(currentX, currentY, currentZ))
+                    Stab() -- Assuming Stab() is defined somewhere
+                    -- Fire touch interest to stab
+                    firetouchinterest(humanoidRootPart, targetCharacter:FindFirstChild("HumanoidRootPart"), 1)
+                    firetouchinterest(humanoidRootPart, targetCharacter:FindFirstChild("HumanoidRootPart"), 0)
+                    -- Add code here for any additional actions after stabbing
+                    
+                    -- Force teleport to original position
+                    humanoidRootPart.CFrame = CFrame.new(Vector3.new(currentX, currentY, currentZ))
+                end
+               
+            else
+                Fluent:Notify({
+                    Title = "Target not Found",
+                    Content = "Target character not found.",
+                    Duration = 3
+                })
+            end
+        else
+            Fluent:Notify({
+                Title = "Character not Found",
+                Content = "Sheriff and Hero roles not assigned yet.",
+                Duration = 3
+            })
         end
     end
-end)
-
-Options.Invisible:SetValue(false)
+})
 
 local kniferangenum = 20
 
@@ -715,29 +766,6 @@ end)
 
 Options.SeeDeadChat:SetValue(false)
 
-local Toggle = Tabs.Main:AddToggle("AntiFling", {Title = "Anti Fling (You can't fling me)", Default = false })
-
-Toggle:OnChanged(function(enabled)
-    AntiFlingEnabled = enabled
-    if enabled then
-        playerAddedConnection = Services.Players.PlayerAdded:Connect(OnPlayerAdded)
-        for _, Player in ipairs(Services.Players:GetPlayers()) do
-            if Player ~= LocalPlayer then
-                CharacterAdded(Player)
-            end
-        end
-        localHeartbeatConnection = NeutralizeLocalPlayer()
-    else
-        if playerAddedConnection then
-            playerAddedConnection:Disconnect()
-            playerAddedConnection = nil
-        end
-        if localHeartbeatConnection then
-            localHeartbeatConnection:Disconnect()
-            localHeartbeatConnection = nil
-        end
-    end
-end)
     
 Tabs.Misc:AddButton({
     Title = "Get fake knife",
@@ -842,105 +870,7 @@ Tabs.Misc:AddButton({
 
 ----------------------------------------------------MISC---------------------------------------------------
 
-    local FLINGTARGET = "" -- Initialize FLINGTARGET variable
-
-local function GetOtherPlayers()
-    local players = {}
-    for _, player in ipairs(game.Players:GetPlayers()) do
-        if player ~= game.Players.LocalPlayer then
-            table.insert(players, player.Name)
-        end
-    end
-    return players
-end
-
-local selectedPlayer = ""  -- Variable to store the selected player's name
-local FLINGTARGET = ""  -- Variable to store the fling target
-local Dropdown
-
-local function CreateDropdown()
-    Dropdown = Tabs.Misc:AddDropdown("Select Player", {
-        Title = "Select Player",
-        Values = GetOtherPlayers(),
-        Multi = false,
-        Default = "",
-    })
-
-    Dropdown:OnChanged(function(Value)
-        selectedPlayer = Value  -- Update selectedPlayer when selection changes
-        FLINGTARGET = Value  -- Update FLINGTARGET when selection changes
-    end)
-end
-
--- Initial creation of the dropdown
-CreateDropdown()
-
-local function UpdateDropdown()
-    local newValues = GetOtherPlayers()
-    Dropdown.Values = newValues  -- Update the dropdown values
-    Dropdown:SetValue("")  -- Reset selected value to default
-end
-
--- Connect to PlayerAdded and PlayerRemoving events to update the dropdown
-game.Players.PlayerAdded:Connect(UpdateDropdown)
-game.Players.PlayerRemoving:Connect(UpdateDropdown)
-
-local Toggle = Tabs.Misc:AddToggle("Fling", {
-    Title = "Fling",
-    Default = false
-})
-
-Toggle:OnChanged(function(flingplayer)
-    if flingplayer == true then
-        -- Ensure a player is selected before executing the script
-        if selectedPlayer ~= "" then
-            -- You can pass the selectedPlayer to the loaded script if needed
-            getgenv().FLINGTARGET = selectedPlayer
-            loadstring(game:HttpGet('https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/FlingScript.lua'))()
-            wait()
-        else
-            -- Handle case when no player is selected
-            print("No player selected for flinging.")
-        end
-    end
     
-    if flingplayer == false then
-        getgenv().flingloop = false
-        wait()
-    end
-end)
-
-    
-    
-    local Toggle = Tabs.Misc:AddToggle("Fling", {Title = "Fling Murderer", Default = false })
-
-Toggle:OnChanged(function(flingplayer)
-getgenv().FLINGTARGET = Murder
-    if flingplayer then
-        loadstring(game:HttpGet('https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/FlingScript.lua'))()
-        wait()
-    else
-        getgenv().flingloop = false
-        wait()
-    end
-end)
-
-Options.Fling:SetValue(false)
-
-local Toggle = Tabs.Misc:AddToggle("Fling", {Title = "Fling Sheriff", Default = false })
-
-Toggle:OnChanged(function(flingplayer)
-getgenv().FLINGTARGET = Sheriff
-    if flingplayer then
-        loadstring(game:HttpGet('https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/FlingScript.lua'))()
-        wait()
-    else
-        getgenv().flingloop = false
-        wait()
-    end
-end)
-
-Options.Fling:SetValue(false)
 
 local Toggle = Tabs.Misc:AddToggle("Noclip", {Title = "Noclip", Default = false })
 
@@ -1470,65 +1400,89 @@ end
 })
     
     
-Tabs.Main:AddButton({
-    Title = "Shoot Murderer",
-    Description = "Tp to Murderer and Shoot",
-    Callback = function()
-        local player = game.Players.LocalPlayer
-        local humanoidRootPart = player.Character.HumanoidRootPart
-        local currentX = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame.X
-            local currentY = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame.Y
-            local currentZ = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame.Z	
-        
-        if Murder then
-            local murdererCharacter = game.Players[Murder].Character
-            if murdererCharacter and murdererCharacter:FindFirstChild("HumanoidRootPart") then
-                local murdererPosition = murdererCharacter.HumanoidRootPart.CFrame
-                
-                -- Equip the gun if not already equipped
-                local backpack = player.Backpack
-                if backpack:FindFirstChild("Gun") then
-                    backpack.Gun.Parent = player.Character
-                    humanoidRootPart.CFrame = murdererPosition
-                end
-                
-                -- Shoot the gun at the murderer's position
-                
-                if player.Character:FindFirstChild("Gun") then
-                wait(0.2)
-                player.Character:MoveTo(Vector3.new(currentX, currentY, currentZ))
-                    player.Character.Gun.KnifeServer.ShootGun:InvokeServer(1, murdererCharacter.HumanoidRootPart.Position, "AH")
-                    --Force teleport to original position replace the code below
-                    
-                end
-               
-                
-                
-            else
-                Fluent:Notify({
-                    Title = "Murderer not Found",
-                    Content = "Murderer's character not found.",
-                    Duration = 3
-                })
-            end
-        else
-            Fluent:Notify({
-                Title = "Murderer not Found",
-                Content = "Murderer role not assigned yet.",
-                Duration = 3
-            })
+
+
+
+-- LOCAL PLAYER
+
+local Toggle = Tabs.LPlayer:AddToggle("Invisible", {Title = "Invisible (Need Ghost Perk)", Default = false})
+
+Toggle:OnChanged(function(invis)
+    if invis then
+        if game.Players.LocalPlayer.Character ~= nil then
+            game:GetService("ReplicatedStorage").Remotes.Gameplay.Stealth:FireServer(true)
+        end
+    else
+        if game.Players.LocalPlayer.Character ~= nil then
+            game:GetService("ReplicatedStorage").Remotes.Gameplay.Stealth:FireServer(false)
         end
     end
-})
+end)
+
+Options.Invisible:SetValue(false)
+
+local Toggle = Tabs.LPlayer:AddToggle("Noclip", {Title = "Noclip", Default = false })
+
+Toggle:OnChanged(function(noclip)
+    loopnoclip = noclip
+    while loopnoclip do
+        local function loopnoclipfix()
+            for _, b in pairs(Workspace:GetChildren()) do
+                if b.Name == LocalPlayer.Name then
+                    for _, v in pairs(Workspace[LocalPlayer.Name]:GetChildren()) do
+                        if v:IsA("BasePart") then
+                            v.CanCollide = false
+                        end
+                    end
+                end
+            end
+            wait()
+        end
+        wait()
+        pcall(loopnoclipfix)
+    end
+end)
+
+Options.Noclip:SetValue(false)
 
 
--- Toggle
+
+
+--LOCAL PLAYER
 
 
 
 
 
-if _G.cons then
+
+
+-----------------------TROLLING-----------------------------
+
+local Toggle = Tabs.Troll:AddToggle("AntiFling", {Title = "Anti Fling (You can't fling me)", Default = false })
+
+Toggle:OnChanged(function(enabled)
+    AntiFlingEnabled = enabled
+    if enabled then
+        playerAddedConnection = Services.Players.PlayerAdded:Connect(OnPlayerAdded)
+        for _, Player in ipairs(Services.Players:GetPlayers()) do
+            if Player ~= LocalPlayer then
+                CharacterAdded(Player)
+            end
+        end
+        localHeartbeatConnection = NeutralizeLocalPlayer()
+    else
+        if playerAddedConnection then
+            playerAddedConnection:Disconnect()
+            playerAddedConnection = nil
+        end
+        if localHeartbeatConnection then
+            localHeartbeatConnection:Disconnect()
+            localHeartbeatConnection = nil
+        end
+    end
+end)
+    
+    if _G.cons then
     for _, v in pairs(_G.cons) do
         v:Disconnect()
     end
@@ -1607,7 +1561,7 @@ lp.CharacterAdded:Connect(function(character)
     end
 end)
 
-local Toggle = Tabs.Visual:AddToggle("FEInvisible", {Title = "FE Invisible", Default = false })
+local Toggle = Tabs.Troll:AddToggle("FEInvisible", {Title = "FE Invisible", Default = false })
 
 Toggle:OnChanged(function(value)
     isinvisible = value
@@ -1630,7 +1584,105 @@ if lp.Character then
     end
 end
     
+    local FLINGTARGET = "" -- Initialize FLINGTARGET variable
+
+local function GetOtherPlayers()
+    local players = {}
+    for _, player in ipairs(game.Players:GetPlayers()) do
+        if player ~= game.Players.LocalPlayer then
+            table.insert(players, player.Name)
+        end
+    end
+    return players
+end
+
+local selectedPlayer = ""  -- Variable to store the selected player's name
+local FLINGTARGET = ""  -- Variable to store the fling target
+local Dropdown
+
+local function CreateDropdown()
+    Dropdown = Tabs.Troll:AddDropdown("Select Player", {
+        Title = "Select Player",
+        Values = GetOtherPlayers(),
+        Multi = false,
+        Default = "",
+    })
+
+    Dropdown:OnChanged(function(Value)
+        selectedPlayer = Value  -- Update selectedPlayer when selection changes
+        FLINGTARGET = Value  -- Update FLINGTARGET when selection changes
+    end)
+end
+
+-- Initial creation of the dropdown
+CreateDropdown()
+
+local function UpdateDropdown()
+    local newValues = GetOtherPlayers()
+    Dropdown.Values = newValues  -- Update the dropdown values
+    Dropdown:SetValue("")  -- Reset selected value to default
+end
+
+-- Connect to PlayerAdded and PlayerRemoving events to update the dropdown
+game.Players.PlayerAdded:Connect(UpdateDropdown)
+game.Players.PlayerRemoving:Connect(UpdateDropdown)
+
+local Toggle = Tabs.Troll:AddToggle("Fling", {
+    Title = "Fling",
+    Default = false
+})
+
+Toggle:OnChanged(function(flingplayer)
+    if flingplayer == true then
+        -- Ensure a player is selected before executing the script
+        if selectedPlayer ~= "" then
+            -- You can pass the selectedPlayer to the loaded script if needed
+            getgenv().FLINGTARGET = selectedPlayer
+            loadstring(game:HttpGet('https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/FlingScript.lua'))()
+            wait()
+        else
+            -- Handle case when no player is selected
+            print("No player selected for flinging.")
+        end
+    end
     
+    if flingplayer == false then
+        getgenv().flingloop = false
+        wait()
+    end
+end)
+
+    
+    
+    local Toggle = Tabs.Troll:AddToggle("Fling", {Title = "Fling Murderer", Default = false })
+
+Toggle:OnChanged(function(flingplayer)
+getgenv().FLINGTARGET = Murder
+    if flingplayer then
+        loadstring(game:HttpGet('https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/FlingScript.lua'))()
+        wait()
+    else
+        getgenv().flingloop = false
+        wait()
+    end
+end)
+
+Options.Fling:SetValue(false)
+
+local Toggle = Tabs.Troll:AddToggle("Fling", {Title = "Fling Sheriff", Default = false })
+
+Toggle:OnChanged(function(flingplayer)
+getgenv().FLINGTARGET = Sheriff
+    if flingplayer then
+        loadstring(game:HttpGet('https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/FlingScript.lua'))()
+        wait()
+    else
+        getgenv().flingloop = false
+        wait()
+    end
+end)
+
+Options.Fling:SetValue(false)
     
     
     
