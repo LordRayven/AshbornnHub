@@ -294,16 +294,35 @@ function HideHighlights()
 	end
 end
 
-function SpawnEmotes()
-    local Remote = game.ReplicatedStorage.Remotes.Extras.GetPlayerData:InvokeServer("GetData")
-    local Client = Players.LocalPlayer
-    local ReplicatedStorage = game:GetService('ReplicatedStorage')
-    local Modules = ReplicatedStorage.Modules
-    local EmoteModule = Modules.EmoteModule
-    local Emotes = Client.PlayerGui.MainGUI.Game:FindFirstChild("Emotes")
-    local EmoteList = {"headless","zombie","zen","ninja","floss","dab","sit"}
-    require(EmoteModule).GeneratePage(EmoteList,Emotes,'Your Emotes')
+function PlayZen()
+    game.ReplicatedStorage.Remotes.Misc.PlayEmote:Fire("zen")
 end
+
+function PlayHeadless()
+    game.ReplicatedStorage.Remotes.Misc.PlayEmote:Fire("headless")
+end
+
+function PlayDab()
+    game.ReplicatedStorage.Remotes.Misc.PlayEmote:Fire("dab")
+end
+
+function PlayFloss()
+    game.ReplicatedStorage.Remotes.Misc.PlayEmote:Fire("floss")
+end
+
+function PlayZombie()
+    game.ReplicatedStorage.Remotes.Misc.PlayEmote:Fire("zombie")
+end
+
+function PlayNinja()
+    game.ReplicatedStorage.Remotes.PlayEmote:Fire("ninja")
+end
+
+function PlaySit()
+    game.ReplicatedStorage.Remotes.PlayEmote:Fire("sit")
+end
+
+
 
 function clearbackpackguns()
     for i,v in pairs(game.Players.LocalPlayer.Backpack:GetChildren()) do
@@ -365,6 +384,7 @@ local Tabs = {
     Visual = Window:AddTab({ Title = "Visual", Icon = "eye" }),
     Combat = Window:AddTab({ Title = "Combat", Icon = "swords" }),
     LPlayer = Window:AddTab({ Title = "Player", Icon = "user" }),
+    LEmotes = Window:AddTab({ Title = "Emotes", Icon = "laugh" }),
     Misc = Window:AddTab({ Title = "Misc", Icon = "aperture" }),
     Troll = Window:AddTab({ Title = "Trolling", Icon = "user-x" }),
     Teleport = Window:AddTab({ Title = "Teleport", Icon = "wand" }),
@@ -870,20 +890,6 @@ Tabs.Misc:AddButton({
 
 ----------------------------------------------------MISC---------------------------------------------------
 
-
-
-Tabs.Misc:AddButton({
-    Title = "Get Emotes",
-    Description = "Get all emotes including Gems one",
-    Callback = function()
-        SpawnEmotes()
-        wait()
-    end
-})
-
-
-    
-
 Tabs.Misc:AddParagraph({
         Title = "This is for Scrolling",
         Content = "For scrolling only"
@@ -1183,6 +1189,59 @@ Options.Xray:SetValue(false)
     
     
     --------------------------------------------MAIN---------------------------------------------
+
+    Tabs.LEmotes:AddButton({
+
+        Title = "Play Zen",
+        Description = "",
+        Callback = function()
+            PlayZen()
+        end
+    })
+
+    Tabs.LEmotes:AddButton({
+
+        Title = "Play Dab",
+        Description = "",
+        Callback = function()
+            PlayDab()
+        end
+    })
+    Tabs.LEmotes:AddButton({
+
+        Title = "Play Zombie",
+        Description = "",
+        Callback = function()
+            PlayZombie()
+        end
+    })
+    Tabs.LEmotes:AddButton({
+
+        Title = "Play Floss",
+        Description = "",
+        Callback = function()
+            PlayFloss()
+        end
+    })
+    Tabs.LEmotes:AddButton({
+
+        Title = "Play Sit",
+        Description = "",
+        Callback = function()
+            PlaySit()
+        end
+    })
+    Tabs.LEmotes:AddButton({
+
+        Title = "Play Headless",
+        Description = "",
+        Callback = function()
+            PlayHeadless()
+        end
+    })
+
+
+
   Tabs.Main:AddButton({
         Title = "Infinite Yield",
         Description = "Best script for all games",
@@ -1615,7 +1674,7 @@ Options.Fling:SetValue(false)
     
     ----------------------------------------------------SERVER--------------------------------------------------------
 
-    Tabs.Misc:AddButton({
+    Tabs.Server:AddButton({
         Title = "Rejoin",
         Description = "Rejoining on this current server",
         Callback = function()
@@ -1641,7 +1700,7 @@ Options.Fling:SetValue(false)
         end
     })
 
-Tabs.Misc:AddButton({
+Tabs.Server:AddButton({
         Title = "Serverhop",
         Description = "Join to another server",
         Callback = function()
