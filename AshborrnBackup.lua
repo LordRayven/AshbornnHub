@@ -12,6 +12,8 @@ local HttpService = game:GetService("HttpService")
 local players = game:GetService("Players")
 local ReplicatedStorage = game:GetService('ReplicatedStorage')
 local N=game:GetService("VirtualInputManager")
+local DefaultChatSystemChatEvents = ReplicatedStorage.DefaultChatSystemChatEvents
+local SayMessageRequest = DefaultChatSystemChatEvents.SayMessageRequest
 
 local mt = getrawmetatable(game);
 local old = {};
@@ -258,10 +260,7 @@ function UpdateHighlights()
             elseif v.Name == Murder and IsAlive(v) then
                 Highlight.FillColor = Color3.fromRGB(225, 0, 0) -- Red color
                 Highlight.FillTransparency = applyesptrans
-            elseif v.Name == Hero and IsAlive(v) and v.Backpack:FindFirstChild("Gun") then
-                Highlight.FillColor = Color3.fromRGB(255, 255, 0) -- Yellow color
-                Highlight.FillTransparency = applyesptrans
-            elseif v.Name == Hero and IsAlive(v) and v.Character:FindFirstChild("Gun") then
+            elseif v.Name == Hero and IsAlive(v) and (v.Backpack:FindFirstChild("Gun") or v.Character:FindFirstChild("Gun")) then
                 Highlight.FillColor = Color3.fromRGB(255, 255, 0) -- Yellow color
                 Highlight.FillTransparency = applyesptrans
             elseif not IsAlive(v) then
@@ -274,17 +273,17 @@ function UpdateHighlights()
         end
     end
 end
- 
+
 function IsAlive(Player)
-	for i, v in pairs(roles) do
-		if Player.Name == i then
-			if not v.Killed and not v.Dead then
-				return true
-			else
-				return false
-			end
-		end
-	end
+    for i, v in pairs(roles) do
+        if Player.Name == i then
+            if not v.Killed and not v.Dead then
+                return true
+            else
+                return false
+            end
+        end
+    end
 end
  
 function HideHighlights()
@@ -295,16 +294,35 @@ function HideHighlights()
 	end
 end
 
-function SpawnEmotes()
-    local Remote = game.ReplicatedStorage.Remotes.Extras.GetPlayerData:InvokeServer("GetData")
-    local Client = Players.LocalPlayer
-    local ReplicatedStorage = game:GetService('ReplicatedStorage')
-    local Modules = ReplicatedStorage.Modules
-    local EmoteModule = Modules.EmoteModule
-    local Emotes = Client.PlayerGui.MainGUI.Game:FindFirstChild("Emotes")
-    local EmoteList = {"headless","zombie","zen","ninja","floss","dab","sit"}
-    require(EmoteModule).GeneratePage(EmoteList,Emotes,'Your Emotes')
+function PlayZen()
+    game.ReplicatedStorage.Remotes.Misc.PlayEmote:Fire("zen")
 end
+
+function PlayHeadless()
+    game.ReplicatedStorage.Remotes.Misc.PlayEmote:Fire("headless")
+end
+
+function PlayDab()
+    game.ReplicatedStorage.Remotes.Misc.PlayEmote:Fire("dab")
+end
+
+function PlayFloss()
+    game.ReplicatedStorage.Remotes.Misc.PlayEmote:Fire("floss")
+end
+
+function PlayZombie()
+    game.ReplicatedStorage.Remotes.Misc.PlayEmote:Fire("zombie")
+end
+
+function PlayNinja()
+    game.ReplicatedStorage.Remotes.PlayEmote:Fire("ninja")
+end
+
+function PlaySit()
+    game.ReplicatedStorage.Remotes.PlayEmote:Fire("sit")
+end
+
+
 
 function clearbackpackguns()
     for i,v in pairs(game.Players.LocalPlayer.Backpack:GetChildren()) do
@@ -351,12 +369,26 @@ local Window = Fluent:CreateWindow({
 })
 
 -- Fluent provides Lucide Icons https://lucide.dev/icons/ for the tabs, icons are optional
+
+
+
+
+
+
+
+
+
+
 local Tabs = {
     Main = Window:AddTab({ Title = "Main", Icon = "box" }),
     Visual = Window:AddTab({ Title = "Visual", Icon = "eye" }),
     Combat = Window:AddTab({ Title = "Combat", Icon = "swords" }),
+    LPlayer = Window:AddTab({ Title = "Player", Icon = "user" }),
+    LEmotes = Window:AddTab({ Title = "Emotes", Icon = "laugh" }),
     Misc = Window:AddTab({ Title = "Misc", Icon = "aperture" }),
+    Troll = Window:AddTab({ Title = "Trolling", Icon = "user-x" }),
     Teleport = Window:AddTab({ Title = "Teleport", Icon = "wand" }),
+    Server = Window:AddTab({ Title = "Server", Icon = "server" }),
     Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
 }
 
@@ -413,26 +445,7 @@ getgenv().GunHook = GunHook
 
 
 
--- Create a ScreenGui object to hold the button
-local gui = Instance.new("ScreenGui")
-gui.Name = "AshbornnHubGui"
-gui.Parent = game.CoreGui
 
--- Create the button
-local button = Instance.new("TextButton")
-button.Name = "ToggleButton"
-button.Text = "Open/Close"
-button.Size = UDim2.new(0, 70, 0, 30) -- Adjust the size as needed
-button.Position = UDim2.new(0, 10, 0, 10) -- Position at top left with 10px offset
-button.BackgroundColor3 = Color3.new(0, 0, 0) -- Black background
-button.TextColor3 = Color3.new(1, 1, 1) -- White text
-button.Parent = gui
-
--- Functionality for the button
-button.MouseButton1Click:Connect(function()
-    Window:Minimize()
-    
-end)
 --------------------------EXTRAS--------------------------
 
 
@@ -442,11 +455,7 @@ do
 
 -------------------------------------------COMBAT---------------------------------------
 
-Tabs.Combat:AddParagraph({
-        Title = "Sheriff Hacks",
-        Content = ""
-    })
-    
+local SheriffHacks = Tabs.Combat:AddSection("Sheriff Hacks")
     
     Tabs.Combat:AddButton({
         Title = "Grab gun",
@@ -529,31 +538,74 @@ Tabs.Combat:AddButton({
     end
 })
     
-    Tabs.Combat:AddParagraph({
-        Title = "",
-        Content = ""
-    })
-
-Tabs.Combat:AddParagraph({
-        Title = "Murderer Hacks",
-        Content = ""
-    })
+    local MurderHacks = Tabs.Combat:AddSection("Murderer Hacks")
     
-    local Toggle = Tabs.Visual:AddToggle("Invisible", {Title = "Invisible", Default = false})
-
-Toggle:OnChanged(function(invis)
-    if invis then
-        if game.Players.LocalPlayer.Character ~= nil then
-            game:GetService("ReplicatedStorage").Remotes.Gameplay.Stealth:FireServer(true)
-        end
-    else
-        if game.Players.LocalPlayer.Character ~= nil then
-            game:GetService("ReplicatedStorage").Remotes.Gameplay.Stealth:FireServer(false)
+    
+Tabs.Combat:AddButton({
+    Title = "Kill Sheriff or Hero (Stab)",
+    Description = "Tp to Sheriff or Hero and Stab",
+    Callback = function()
+        local player = game.Players.LocalPlayer
+        local humanoidRootPart = player.Character.HumanoidRootPart
+        local currentX = humanoidRootPart.Position.X
+        local currentY = humanoidRootPart.Position.Y
+        local currentZ = humanoidRootPart.Position.Z
+    
+        if Sheriff or Hero then
+            local targetCharacter
+            if Sheriff and Hero then
+                local rand = math.random(1, 2)
+                if rand == 1 then
+                    targetCharacter = game.Players[Sheriff].Character
+                else
+                    targetCharacter = game.Players[Hero].Character
+                end
+            elseif Sheriff then
+                targetCharacter = game.Players[Sheriff].Character
+            else
+                targetCharacter = game.Players[Hero].Character
+            end
+            
+            if targetCharacter and targetCharacter:FindFirstChild("HumanoidRootPart") then
+                local targetPosition = targetCharacter.HumanoidRootPart.Position
+                
+                -- Equip the knife if not already equipped
+                local backpack = player.Backpack
+                if backpack:FindFirstChild("Knife") then
+                    backpack.Knife.Parent = player.Character
+                    humanoidRootPart.CFrame = CFrame.new(targetPosition)
+                end
+                
+                -- Stab the target
+                if player.Character:FindFirstChild("Knife") then
+                    wait(0.2)
+                    player.Character:MoveTo(Vector3.new(currentX, currentY, currentZ))
+                    Stab() -- Assuming Stab() is defined somewhere
+                    -- Fire touch interest to stab
+                    firetouchinterest(humanoidRootPart, targetCharacter:FindFirstChild("HumanoidRootPart"), 1)
+                    firetouchinterest(humanoidRootPart, targetCharacter:FindFirstChild("HumanoidRootPart"), 0)
+                    -- Add code here for any additional actions after stabbing
+                    
+                    -- Force teleport to original position
+                    humanoidRootPart.CFrame = CFrame.new(Vector3.new(currentX, currentY, currentZ))
+                end
+               
+            else
+                Fluent:Notify({
+                    Title = "Target not Found",
+                    Content = "Target character not found.",
+                    Duration = 3
+                })
+            end
+        else
+            Fluent:Notify({
+                Title = "Character not Found",
+                Content = "Sheriff and Hero roles not assigned yet.",
+                Duration = 3
+            })
         end
     end
-end)
-
-Options.Invisible:SetValue(false)
+})
 
 local kniferangenum = 20
 
@@ -675,20 +727,6 @@ Tabs.Combat:AddParagraph({
         Title = "This is for Scrolling",
         Content = "For scrolling only"
     })
-Tabs.Combat:AddParagraph({
-        Title = "This is for Scrolling",
-        Content = "For scrolling only"
-    })
-    
-Tabs.Combat:AddParagraph({
-        Title = "This is for Scrolling",
-        Content = "For scrolling only"
-    })
-    
-Tabs.Combat:AddParagraph({
-        Title = "This is for Scrolling",
-        Content = "For scrolling only"
-    })
 
 
 
@@ -698,6 +736,15 @@ Tabs.Combat:AddParagraph({
 
     
 ----------------------------------------------MISC---------------------------------------------------
+
+Tabs.Misc:AddButton({
+    Title = "Expose Roles",
+    Description = "",
+    Callback = function()
+        SayMessageRequest:FireServer("Murderer Is: " .. Murder, "normalchat")
+        SayMessageRequest:FireServer("Sheriff Is: " .. Sheriff, "normalchat")
+    end
+})
     
     local Toggle = Tabs.Misc:AddToggle("AlwaysAliveChat", {Title = "Always Alive Chat", Default = false})
 
@@ -722,7 +769,7 @@ local function handleFadeEvent()
     game:GetService("ReplicatedStorage").Remotes.Gameplay.Fade.OnClientEvent:Connect(function()
         if seedeadchat then
             task.wait(0.5)
-            game:GetService("ReplicatedStorage").DefaultChatSystemChatEvents.SayMessageRequest:FireServer("/join dead", "normalchat")
+            game:GetService("ReplicatedStorage").DefaultChatSystemChatEvents.SayMessageRequest:FireServer("/join Dead", "normalchat")
         end
     end)
 end
@@ -739,29 +786,6 @@ end)
 
 Options.SeeDeadChat:SetValue(false)
 
-local Toggle = Tabs.Main:AddToggle("AntiFling", {Title = "Anti Fling (You can't fling me)", Default = false })
-
-Toggle:OnChanged(function(enabled)
-    AntiFlingEnabled = enabled
-    if enabled then
-        playerAddedConnection = Services.Players.PlayerAdded:Connect(OnPlayerAdded)
-        for _, Player in ipairs(Services.Players:GetPlayers()) do
-            if Player ~= LocalPlayer then
-                CharacterAdded(Player)
-            end
-        end
-        localHeartbeatConnection = NeutralizeLocalPlayer()
-    else
-        if playerAddedConnection then
-            playerAddedConnection:Disconnect()
-            playerAddedConnection = nil
-        end
-        if localHeartbeatConnection then
-            localHeartbeatConnection:Disconnect()
-            localHeartbeatConnection = nil
-        end
-    end
-end)
     
 Tabs.Misc:AddButton({
     Title = "Get fake knife",
@@ -840,23 +864,6 @@ Tabs.Misc:AddButton({
 })
 
 Tabs.Misc:AddButton({
-    Title = "Anti-Lag V2 (Delete Weapons/Pets) Visually",
-    Description = "",
-    Callback = function()
-        local Workspace = game:GetService("Workspace")
-
-for i,v in pairs (Workspace:GetDescendants()) do
-    if v.Name == "Pet" then
-        v:Destroy()
-    elseif v.Name == "KnifeDisplay" then
-        v:Destroy()
-    elseif v.Name == "GunDisplay" then
-        v:Destroy()
-    end
-end
-})
-
-Tabs.Misc:AddButton({
     Title = "Anti Fake Lag 2(Delete LugerChroma)",
     Description = "",
     Callback = function()
@@ -882,238 +889,6 @@ Tabs.Misc:AddButton({
 })
 
 ----------------------------------------------------MISC---------------------------------------------------
-
-    local FLINGTARGET = "" -- Initialize FLINGTARGET variable
-
-local function GetOtherPlayers()
-    local players = {}
-    for _, player in ipairs(game.Players:GetPlayers()) do
-        if player ~= game.Players.LocalPlayer then
-            table.insert(players, player.Name)
-        end
-    end
-    return players
-end
-
-local selectedPlayer = ""  -- Variable to store the selected player's name
-local FLINGTARGET = ""  -- Variable to store the fling target
-local Dropdown
-
-local function CreateDropdown()
-    Dropdown = Tabs.Misc:AddDropdown("Select Player", {
-        Title = "Select Player",
-        Values = GetOtherPlayers(),
-        Multi = false,
-        Default = "",
-    })
-
-    Dropdown:OnChanged(function(Value)
-        selectedPlayer = Value  -- Update selectedPlayer when selection changes
-        FLINGTARGET = Value  -- Update FLINGTARGET when selection changes
-    end)
-end
-
--- Initial creation of the dropdown
-CreateDropdown()
-
-local function UpdateDropdown()
-    local newValues = GetOtherPlayers()
-    Dropdown.Values = newValues  -- Update the dropdown values
-    Dropdown:SetValue("")  -- Reset selected value to default
-end
-
--- Connect to PlayerAdded and PlayerRemoving events to update the dropdown
-game.Players.PlayerAdded:Connect(UpdateDropdown)
-game.Players.PlayerRemoving:Connect(UpdateDropdown)
-
-local Toggle = Tabs.Misc:AddToggle("Fling", {
-    Title = "Fling",
-    Default = false
-})
-
-Toggle:OnChanged(function(flingplayer)
-    if flingplayer == true then
-        -- Ensure a player is selected before executing the script
-        if selectedPlayer ~= "" then
-            -- You can pass the selectedPlayer to the loaded script if needed
-            getgenv().FLINGTARGET = selectedPlayer
-            loadstring(game:HttpGet('https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/FlingScript.lua'))()
-            wait()
-        else
-            -- Handle case when no player is selected
-            print("No player selected for flinging.")
-        end
-    end
-    
-    if flingplayer == false then
-        getgenv().flingloop = false
-        wait()
-    end
-end)
-
-    
-    
-    local Toggle = Tabs.Misc:AddToggle("Fling", {Title = "Fling Murderer", Default = false })
-
-Toggle:OnChanged(function(flingplayer)
-getgenv().FLINGTARGET = Murder
-    if flingplayer then
-        loadstring(game:HttpGet('https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/FlingScript.lua'))()
-        wait()
-    else
-        getgenv().flingloop = false
-        wait()
-    end
-end)
-
-Options.Fling:SetValue(false)
-
-local Toggle = Tabs.Misc:AddToggle("Fling", {Title = "Fling Sheriff", Default = false })
-
-Toggle:OnChanged(function(flingplayer)
-getgenv().FLINGTARGET = Sheriff
-    if flingplayer then
-        loadstring(game:HttpGet('https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/FlingScript.lua'))()
-        wait()
-    else
-        getgenv().flingloop = false
-        wait()
-    end
-end)
-
-Options.Fling:SetValue(false)
-
-local Toggle = Tabs.Misc:AddToggle("Noclip", {Title = "Noclip", Default = false })
-
-Toggle:OnChanged(function(noclip)
-    loopnoclip = noclip
-    while loopnoclip do
-        local function loopnoclipfix()
-            for _, b in pairs(Workspace:GetChildren()) do
-                if b.Name == LocalPlayer.Name then
-                    for _, v in pairs(Workspace[LocalPlayer.Name]:GetChildren()) do
-                        if v:IsA("BasePart") then
-                            v.CanCollide = false
-                        end
-                    end
-                end
-            end
-            wait()
-        end
-        wait()
-        pcall(loopnoclipfix)
-    end
-end)
-
-Options.Noclip:SetValue(false)
-
-local Toggle = Tabs.Misc:AddToggle("GetEmotes", {Title = "Get All Emotes", Default = false})
-
-Toggle:OnChanged(function(getallemotes)
-    emotesondeath = getallemotes
-    if emotesondeath == true then
-        SpawnEmotes()
-        wait()
-    end
-end)
-
-Options.GetEmotes:SetValue(false)
-
-
-Tabs.Misc:AddButton({
-        Title = "Rejoin",
-        Description = "Rejoining on this current server",
-        Callback = function()
-            Window:Dialog({
-                Title = "Rejoin this server?",
-                Content = "Do you want to rejoin this server? ",
-                Buttons = {
-                    {
-                        Title = "Confirm",
-                        Callback = function()
-                            game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, game.JobId, game:GetService("Players").LocalPlayer)
-        wait()
-                        end
-                    },
-                    {
-                        Title = "Cancel",
-                        Callback = function()
-                            print("Rejoin cancelled.")
-                        end
-                    }
-                }
-            })
-        end
-    })
-
-Tabs.Misc:AddButton({
-        Title = "Serverhop",
-        Description = "Join to another server",
-        Callback = function()
-            Window:Dialog({
-                Title = "Join to another server?",
-                Content = "Do you want to join to another server?",
-                Buttons = {
-                    {
-                        Title = "Confirm",
-                        Callback = function()
-                            loadstring(game:HttpGet("https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/ServerHop.lua", true))()
-        wait()
-                        end
-                    },
-                    {
-                        Title = "Cancel",
-                        Callback = function()
-                            print("Serverhop cancelled.")
-                        end
-                    }
-                }
-            })
-        end
-    })
-    
-local function CreateDropdownB()
-    local Dropdown = Tabs.Misc:AddDropdown("ViewPlayerd", {
-        Title = "View Player / Spectate Player",
-        Values = GetOtherPlayers(),
-        Multi = false,
-        Default = "",
-    })
-
-    Dropdown:OnChanged(function(Value)
-        if not isResetting and Value ~= "" then
-            workspace.Camera.CameraSubject = game:GetService("Players")[Value].Character:WaitForChild("Humanoid")
-            isResetting = true
-            Dropdown:SetValue("")  -- Reset selected value to default
-            isResetting = false
-        end
-    end)
-
-    return Dropdown
-end
-
--- Initial creation of the dropdown
-local Dropdown = CreateDropdownB()
-
-local function UpdateDropdownB()
-    local newValues = GetOtherPlayers()
-    isResetting = true
-    Dropdown.Values = newValues  -- Update the dropdown values
-    Dropdown:SetValue("")  -- Reset selected value to default
-    isResetting = false
-end
-
--- Connect to PlayerAdded and PlayerRemoving events to update the dropdown
-game.Players.PlayerAdded:Connect(UpdateDropdownB)
-game.Players.PlayerRemoving:Connect(UpdateDropdownB)
-
-Tabs.Misc:AddButton({
-    Title = "Stop Viewing",
-    Description = "Stop viewing the selected player",
-    Callback = function()
-        workspace.Camera.CameraSubject = game.Players.LocalPlayer.Character:WaitForChild("Humanoid")
-    end
-})
 
 Tabs.Misc:AddParagraph({
         Title = "This is for Scrolling",
@@ -1148,6 +923,10 @@ Tabs.Misc:AddParagraph({
 --------------------------------------------------------MISC ENDS--------------------------------------------------
     
 -------------------------------------------------------TELEPORTS---------------------------------------------------
+
+
+
+
 
     Tabs.Teleport:AddButton({
         Title = "TP to Lobby",
@@ -1230,13 +1009,38 @@ end
 game.Players.PlayerAdded:Connect(UpdateDropdownA)
 game.Players.PlayerRemoving:Connect(UpdateDropdownA)
 
+local lp = game.Players.LocalPlayer
+
+local lp = game.Players.LocalPlayer
+
 Tabs.Teleport:AddButton({
-        Title = "TP to Secret Room",
-        Description = "Teleport to Lobby's Secret Room",
-        Callback = function()
-            game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-152, 153, 113)
+    Title = "Void (Safe)",
+    Description = "",
+    Callback = function()
+        -- Check if the "Safe Void Path" part already exists in the workspace
+        if not workspace:FindFirstChild("Safe Void Path") then
+            -- Create and configure the part
+            local safePart = Instance.new("Part")
+            safePart.Name = "Safe Void Path"
+            safePart.CFrame = CFrame.new(99999, 99995, 99999)
+            safePart.Anchored = true
+            safePart.Size = Vector3.new(300, 0.1, 300)
+            safePart.Transparency = 0.5
+
+            -- Parent the part to the workspace
+            safePart.Parent = workspace
+        else
+            warn("Safe Void Path already exists in the workspace")
         end
-    })
+
+        -- Teleport the local player to the specified coordinates
+        if lp.Character and lp.Character:FindFirstChild("HumanoidRootPart") then
+            lp.Character.HumanoidRootPart.CFrame = CFrame.new(99999, 100000, 99999)
+        else
+            warn("Local player character or HumanoidRootPart not found")
+        end
+    end
+})
     
     Tabs.Teleport:AddButton({
         Title = "TP to Secret Room",
@@ -1385,6 +1189,59 @@ Options.Xray:SetValue(false)
     
     
     --------------------------------------------MAIN---------------------------------------------
+
+    Tabs.LEmotes:AddButton({
+
+        Title = "Play Zen",
+        Description = "",
+        Callback = function()
+            PlayZen()
+        end
+    })
+
+    Tabs.LEmotes:AddButton({
+
+        Title = "Play Dab",
+        Description = "",
+        Callback = function()
+            PlayDab()
+        end
+    })
+    Tabs.LEmotes:AddButton({
+
+        Title = "Play Zombie",
+        Description = "",
+        Callback = function()
+            PlayZombie()
+        end
+    })
+    Tabs.LEmotes:AddButton({
+
+        Title = "Play Floss",
+        Description = "",
+        Callback = function()
+            PlayFloss()
+        end
+    })
+    Tabs.LEmotes:AddButton({
+
+        Title = "Play Sit",
+        Description = "",
+        Callback = function()
+            PlaySit()
+        end
+    })
+    Tabs.LEmotes:AddButton({
+
+        Title = "Play Headless",
+        Description = "",
+        Callback = function()
+            PlayHeadless()
+        end
+    })
+
+
+
   Tabs.Main:AddButton({
         Title = "Infinite Yield",
         Description = "Best script for all games",
@@ -1486,65 +1343,132 @@ end
 })
     
     
-Tabs.Main:AddButton({
-    Title = "Shoot Murderer",
-    Description = "Tp to Murderer and Shoot",
-    Callback = function()
-        local player = game.Players.LocalPlayer
-        local humanoidRootPart = player.Character.HumanoidRootPart
-        local currentX = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame.X
-            local currentY = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame.Y
-            local currentZ = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame.Z	
-        
-        if Murder then
-            local murdererCharacter = game.Players[Murder].Character
-            if murdererCharacter and murdererCharacter:FindFirstChild("HumanoidRootPart") then
-                local murdererPosition = murdererCharacter.HumanoidRootPart.CFrame
-                
-                -- Equip the gun if not already equipped
-                local backpack = player.Backpack
-                if backpack:FindFirstChild("Gun") then
-                    backpack.Gun.Parent = player.Character
-                    humanoidRootPart.CFrame = murdererPosition
-                end
-                
-                -- Shoot the gun at the murderer's position
-                
-                if player.Character:FindFirstChild("Gun") then
-                wait(0.2)
-                player.Character:MoveTo(Vector3.new(currentX, currentY, currentZ))
-                    player.Character.Gun.KnifeServer.ShootGun:InvokeServer(1, murdererCharacter.HumanoidRootPart.Position, "AH")
-                    --Force teleport to original position replace the code below
-                    
-                end
-               
-                
-                
-            else
-                Fluent:Notify({
-                    Title = "Murderer not Found",
-                    Content = "Murderer's character not found.",
-                    Duration = 3
-                })
-            end
-        else
-            Fluent:Notify({
-                Title = "Murderer not Found",
-                Content = "Murderer role not assigned yet.",
-                Duration = 3
-            })
+
+
+
+-------------------------------- LOCAL PLAYER
+
+local Toggle = Tabs.LPlayer:AddToggle("Invisible", {Title = "Invisible (Need Ghost Perk)", Default = false})
+
+Toggle:OnChanged(function(invis)
+    if invis then
+        if game.Players.LocalPlayer.Character ~= nil then
+            game:GetService("ReplicatedStorage").Remotes.Gameplay.Stealth:FireServer(true)
         end
+    else
+        if game.Players.LocalPlayer.Character ~= nil then
+            game:GetService("ReplicatedStorage").Remotes.Gameplay.Stealth:FireServer(false)
+        end
+    end
+end)
+
+Options.Invisible:SetValue(false)
+
+local Toggle = Tabs.LPlayer:AddToggle("Noclip", {Title = "Noclip", Default = false })
+
+Toggle:OnChanged(function(noclip)
+    loopnoclip = noclip
+    while loopnoclip do
+        local function loopnoclipfix()
+            for _, b in pairs(Workspace:GetChildren()) do
+                if b.Name == LocalPlayer.Name then
+                    for _, v in pairs(Workspace[LocalPlayer.Name]:GetChildren()) do
+                        if v:IsA("BasePart") then
+                            v.CanCollide = false
+                        end
+                    end
+                end
+            end
+            wait()
+        end
+        wait()
+        pcall(loopnoclipfix)
+    end
+end)
+
+Options.Noclip:SetValue(false)
+
+local function CreateDropdownB()
+    local Dropdown = Tabs.LPlayer:AddDropdown("ViewPlayerd", {
+        Title = "View Player / Spectate Player",
+        Values = GetOtherPlayers(),
+        Multi = false,
+        Default = "",
+    })
+
+    Dropdown:OnChanged(function(Value)
+        if not isResetting and Value ~= "" then
+            workspace.Camera.CameraSubject = game:GetService("Players")[Value].Character:WaitForChild("Humanoid")
+            isResetting = true
+            Dropdown:SetValue("")  -- Reset selected value to default
+            isResetting = false
+        end
+    end)
+
+    return Dropdown
+end
+
+-- Initial creation of the dropdown
+local Dropdown = CreateDropdownB()
+
+local function UpdateDropdownB()
+    local newValues = GetOtherPlayers()
+    isResetting = true
+    Dropdown.Values = newValues  -- Update the dropdown values
+    Dropdown:SetValue("")  -- Reset selected value to default
+    isResetting = false
+end 
+
+-- Connect to PlayerAdded and PlayerRemoving events to update the dropdown
+game.Players.PlayerAdded:Connect(UpdateDropdownB)
+game.Players.PlayerRemoving:Connect(UpdateDropdownB)
+
+Tabs.LPlayer:AddButton({
+    Title = "Stop Viewing",
+    Description = "Stop viewing the selected player",
+    Callback = function()
+        workspace.Camera.CameraSubject = game.Players.LocalPlayer.Character:WaitForChild("Humanoid")
     end
 })
 
 
--- Toggle
+
+
+-----------------------------------------------LOCAL PLAYER
 
 
 
 
 
-if _G.cons then
+
+
+-----------------------TROLLING-----------------------------
+
+local Toggle = Tabs.Troll:AddToggle("AntiFling", {Title = "Anti Fling (You can't fling me)", Default = false })
+
+Toggle:OnChanged(function(enabled)
+    AntiFlingEnabled = enabled
+    if enabled then
+        playerAddedConnection = Services.Players.PlayerAdded:Connect(OnPlayerAdded)
+        for _, Player in ipairs(Services.Players:GetPlayers()) do
+            if Player ~= LocalPlayer then
+                CharacterAdded(Player)
+            end
+        end
+        localHeartbeatConnection = NeutralizeLocalPlayer()
+    else
+        if playerAddedConnection then
+            playerAddedConnection:Disconnect()
+            playerAddedConnection = nil
+        end
+        if localHeartbeatConnection then
+            localHeartbeatConnection:Disconnect()
+            localHeartbeatConnection = nil
+        end
+    end
+end)
+    
+    if _G.cons then
     for _, v in pairs(_G.cons) do
         v:Disconnect()
     end
@@ -1623,7 +1547,7 @@ lp.CharacterAdded:Connect(function(character)
     end
 end)
 
-local Toggle = Tabs.Visual:AddToggle("FEInvisible", {Title = "FE Invisible", Default = false })
+local Toggle = Tabs.Troll:AddToggle("FEInvisible", {Title = "FE Invisible", Default = false })
 
 Toggle:OnChanged(function(value)
     isinvisible = value
@@ -1646,11 +1570,164 @@ if lp.Character then
     end
 end
     
+    local FLINGTARGET = "" -- Initialize FLINGTARGET variable
+
+local function GetOtherPlayers()
+    local players = {}
+    for _, player in ipairs(game.Players:GetPlayers()) do
+        if player ~= game.Players.LocalPlayer then
+            table.insert(players, player.Name)
+        end
+    end
+    return players
+end
+
+local selectedPlayer = ""  -- Variable to store the selected player's name
+local FLINGTARGET = ""  -- Variable to store the fling target
+local Dropdown
+
+local function CreateDropdown()
+    Dropdown = Tabs.Troll:AddDropdown("Select Player", {
+        Title = "Select Player",
+        Values = GetOtherPlayers(),
+        Multi = false,
+        Default = "",
+    })
+
+    Dropdown:OnChanged(function(Value)
+        selectedPlayer = Value  -- Update selectedPlayer when selection changes
+        FLINGTARGET = Value  -- Update FLINGTARGET when selection changes
+    end)
+end
+
+-- Initial creation of the dropdown
+CreateDropdown()
+
+local function UpdateDropdown()
+    local newValues = GetOtherPlayers()
+    Dropdown.Values = newValues  -- Update the dropdown values
+    Dropdown:SetValue("")  -- Reset selected value to default
+end
+
+-- Connect to PlayerAdded and PlayerRemoving events to update the dropdown
+game.Players.PlayerAdded:Connect(UpdateDropdown)
+game.Players.PlayerRemoving:Connect(UpdateDropdown)
+
+local Toggle = Tabs.Troll:AddToggle("Fling", {
+    Title = "Fling",
+    Default = false
+})
+
+Toggle:OnChanged(function(flingplayer)
+    if flingplayer == true then
+        -- Ensure a player is selected before executing the script
+        if selectedPlayer ~= "" then
+            -- You can pass the selectedPlayer to the loaded script if needed
+            getgenv().FLINGTARGET = selectedPlayer
+            loadstring(game:HttpGet('https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/FlingScript.lua'))()
+            wait()
+        else
+            -- Handle case when no player is selected
+            print("No player selected for flinging.")
+        end
+    end
+    
+    if flingplayer == false then
+        getgenv().flingloop = false
+        wait()
+    end
+end)
+
+    
+    
+    local Toggle = Tabs.Troll:AddToggle("Fling", {Title = "Fling Murderer", Default = false })
+
+Toggle:OnChanged(function(flingplayer)
+getgenv().FLINGTARGET = Murder
+    if flingplayer then
+        loadstring(game:HttpGet('https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/FlingScript.lua'))()
+        wait()
+    else
+        getgenv().flingloop = false
+        wait()
+    end
+end)
+
+Options.Fling:SetValue(false)
+
+local Toggle = Tabs.Troll:AddToggle("Fling", {Title = "Fling Sheriff", Default = false })
+
+Toggle:OnChanged(function(flingplayer)
+getgenv().FLINGTARGET = Sheriff
+    if flingplayer then
+        loadstring(game:HttpGet('https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/FlingScript.lua'))()
+        wait()
+    else
+        getgenv().flingloop = false
+        wait()
+    end
+end)
+
+Options.Fling:SetValue(false)
     
     
     
-    
-    
+    ----------------------------------------------------SERVER--------------------------------------------------------
+
+    Tabs.Server:AddButton({
+        Title = "Rejoin",
+        Description = "Rejoining on this current server",
+        Callback = function()
+            Window:Dialog({
+                Title = "Rejoin this server?",
+                Content = "Do you want to rejoin this server? ",
+                Buttons = {
+                    {
+                        Title = "Confirm",
+                        Callback = function()
+                            game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, game.JobId, game:GetService("Players").LocalPlayer)
+        wait()
+                        end
+                    },
+                    {
+                        Title = "Cancel",
+                        Callback = function()
+                            print("Rejoin cancelled.")
+                        end
+                    }
+                }
+            })
+        end
+    })
+
+Tabs.Server:AddButton({
+        Title = "Serverhop",
+        Description = "Join to another server",
+        Callback = function()
+            Window:Dialog({
+                Title = "Join to another server?",
+                Content = "Do you want to join to another server?",
+                Buttons = {
+                    {
+                        Title = "Confirm",
+                        Callback = function()
+                            loadstring(game:HttpGet("https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/ServerHop.lua", true))()
+        wait()
+                        end
+                    },
+                    {
+                        Title = "Cancel",
+                        Callback = function()
+                            print("Serverhop cancelled.")
+                        end
+                    }
+                }
+            })
+        end
+    })
+
+
+    ----------------------------------------------------SERVER--------------------------------------------------------
     
     
     
@@ -1672,6 +1749,111 @@ end
     
     end
     ------------------------------------------MAIN ENDS------------------------------------
+    
+-- Create a ScreenGui object to hold the button
+local gui = Instance.new("ScreenGui")
+gui.Name = "AshbornnHubGui"
+gui.Parent = game.CoreGui
+
+-- Create the button as a TextButton
+local button = Instance.new("TextButton")
+button.Name = "ToggleButton"
+button.Text = "Close" -- Initial text set to "Close"
+button.Size = UDim2.new(0, 70, 0, 30) -- Adjust the size as needed
+button.Position = UDim2.new(0, 10, 0, 10) -- Position at top left with 10px offset
+button.BackgroundTransparency = 0.3 -- Set transparency to 50%
+button.BackgroundColor3 = Color3.fromRGB(97, 62, 167) -- Purple background color
+button.BorderSizePixel = 2 -- Add black stroke
+button.BorderColor3 = Color3.new(0, 0, 0) -- Black stroke color
+button.TextColor3 = Color3.new(1, 1, 1) -- White text color
+button.FontSize = Enum.FontSize.Size12 -- Adjust text size
+button.TextScaled = false -- Allow text to scale with button size
+button.TextWrapped = true -- Wrap text if it's too long
+button.TextStrokeTransparency = 0 -- Make text fully visible
+button.TextStrokeColor3 = Color3.new(0, 0, 0) -- Black text stroke color
+button.Parent = gui
+
+-- Apply blur effect
+local blur = Instance.new("BlurEffect")
+blur.Parent = button
+blur.Size = 5 -- Adjust blur size as needed
+
+-- Variable to keep track of button state
+local isOpen = false
+local isDraggable = false
+local dragConnection
+
+-- Functionality for the button
+button.MouseButton1Click:Connect(function()
+    isOpen = not isOpen -- Toggle button state
+    
+    if isOpen then
+        button.Text = "Open"
+    else
+        button.Text = "Close"
+    end
+    
+    Window:Minimize()
+end)
+
+-- Function to make the button draggable
+local function setDraggable(draggable)
+    if draggable then
+        -- Connect events for dragging
+        dragConnection = button.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.Touch then
+                local dragStart = input.Position
+                local startPos = button.Position
+                local dragInput = input
+
+                local function onInputChanged(input)
+                    if input == dragInput then
+                        local delta = input.Position - dragStart
+                        button.Position = UDim2.new(0, startPos.X.Offset + delta.X, 0, startPos.Y.Offset + delta.Y)
+                    end
+                end
+
+                local function onInputEnded(input)
+                    if input == dragInput then
+                        dragInput = nil
+                        game:GetService("UserInputService").InputChanged:Disconnect(onInputChanged)
+                        input.Changed:Disconnect(onInputEnded)
+                    end
+                end
+
+                game:GetService("UserInputService").InputChanged:Connect(onInputChanged)
+                input.Changed:Connect(onInputEnded)
+            end
+        end)
+    else
+        -- Disconnect events if not draggable
+        if dragConnection then
+            dragConnection:Disconnect()
+            dragConnection = nil -- Reset dragConnection
+        end
+    end
+end
+
+-- Function to toggle button visibility
+local function toggleButtonVisibility(visible)
+    button.Visible = visible
+end
+
+-- Create the toggle for draggable button
+local DraggableToggle = Tabs.Settings:AddToggle("Draggable Button", {Title = "Draggable Button", Default = false})
+
+DraggableToggle:OnChanged(function(value)
+    isDraggable = value
+    setDraggable(isDraggable)
+end)
+
+-- Create another toggle for button visibility
+local VisibilityToggle = Tabs.Settings:AddToggle("Button Visibility", {Title = "Toggle Window Visibility", Default = true})
+
+VisibilityToggle:OnChanged(function(value)
+    toggleButtonVisibility(value)
+end)
+    
 
 -- Addons:
 -- SaveManager (Allows you to have a configuration system)
