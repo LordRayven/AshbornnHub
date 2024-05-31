@@ -387,6 +387,7 @@
         Troll = Window:AddTab({ Title = "Trolling", Icon = "user-x" }),
         Teleport = Window:AddTab({ Title = "Teleport", Icon = "wand" }),
         Server = Window:AddTab({ Title = "Server", Icon = "server" }),
+        Buttons = Window:AddTab({ Title = "Buttons", Icon = "command" }),
         Settings = Window:AddTab({ Title = "Settings", Icon = "settings" }),
         Test = Window:AddTab({ Title = "Scroll", Icon = "settings" }),
         Test2 = Window:AddTab({ Title = "Scroll", Icon = "settings" })
@@ -507,6 +508,8 @@
             end
         })
         
+
+        
         local Toggle = Tabs.Combat:AddToggle("SilentAIM1", {Title = "Silent Aim to Murderer", Default = false })
 
     Toggle:OnChanged(function(gunsilentaim)
@@ -565,6 +568,8 @@
             end
         end
     })
+    
+
         
         local MurderHacks = Tabs.Combat:AddSection("Murderer Hacks")
         
@@ -1556,6 +1561,8 @@
             ghost_parts()
         end
     end
+    
+
         
         local FLINGTARGET = "" -- Initialize FLINGTARGET variable
 
@@ -1574,7 +1581,7 @@
     local Dropdown
 
     local function CreateDropdown()
-        Dropdown = Tabs.Troll:AddDropdown("Select Player", {
+        Dropdown = Tabs.Troll:AddDropdown("Select Player to Fling", {
             Title = "Select Player",
             Values = GetOtherPlayers(),
             Multi = false,
@@ -1769,6 +1776,422 @@ Tabs.LEmotes:AddButton({
 
 
 ----------------------------------------------------------------------EMOTES-------------------------------------------------------------------------------------------------
+
+--------------------------------------------------------------------BUTTONS------------------------------------------------------------------------------------------------
+
+Tabs.Buttons:AddParagraph({
+            Title = "READ ME",
+            Content = "To adjust the position of Buttons you can drag it at the side of UI"
+        })
+
+-- Assuming you have a UI library providing Toggle functionality
+local Toggle = Tabs.Buttons:AddToggle("FEinviButton", {Title = "FE invisible Button", Default = false})
+
+-- Variable to hold the ScreenGui and its position
+local screenGui
+local savedPosition = UDim2.new(0.5, -75, 0.5, -37.5)  -- Default position
+
+local function createGui()
+    -- Create a ScreenGui
+    screenGui = Instance.new("ScreenGui")
+    screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+    -- Create a Frame
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(0, 100, 0, 75) -- Smaller size
+    frame.Position = savedPosition  -- Use saved position
+    frame.AnchorPoint = Vector2.new(0.5, 0.5)
+    frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- Black background
+    frame.Parent = screenGui
+
+    -- Add UICorner to Frame
+    local uiCornerFrame = Instance.new("UICorner")
+    uiCornerFrame.CornerRadius = UDim.new(0, 15)
+    uiCornerFrame.Parent = frame
+
+    -- Create a Button
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(0, 80, 0, 40) -- Smaller size
+    button.Position = UDim2.new(0.5, 0, 0.5, 0) -- Centered in the frame
+    button.AnchorPoint = Vector2.new(0.5, 0.5)
+    button.BackgroundTransparency = 1 -- Remove background color
+    button.Text = "Invisible [ON]"
+    button.TextColor3 = Color3.fromRGB(255, 255, 255) -- White text color
+    button.Parent = frame
+
+    -- Function to toggle button text based on Options.FEInvisible value
+    local function toggleButtonText()
+        if Options.FEInvisible.Value then
+            button.Text = " FE Invisible [ON]"
+        else
+            button.Text = "FE Invisible [OFF]"
+        end
+    end
+
+    -- Connect the button click event to the toggle function
+    button.MouseButton1Click:Connect(function()
+        Options.FEInvisible:SetValue(not Options.FEInvisible.Value)
+        toggleButtonText()
+    end)
+
+    -- Make the Frame draggable
+    local UserInputService = game:GetService("UserInputService")
+
+    local dragging
+    local dragInput
+    local dragStart
+    local startPos
+
+    local function update(input)
+        local delta = input.Position - dragStart
+        frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        savedPosition = frame.Position  -- Save the updated position
+    end
+
+    frame.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = frame.Position
+
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+
+    frame.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            dragInput = input
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            update(input)
+        end
+    end)
+
+    -- Update button text based on Options.FEInvisible initial value
+    toggleButtonText()
+end
+
+-- Function to handle GUI creation and destruction
+local function handleToggle(value)
+    if value then
+        -- Create and show the GUI
+        createGui()
+    else
+        -- Destroy the GUI
+        if screenGui then
+            screenGui:Destroy()
+            screenGui = nil
+        end
+    end
+end
+
+-- Handle the toggle state change
+Toggle:OnChanged(handleToggle)
+
+-- Set the initial state of the toggle
+Options.FEInvisible:SetValue(false)
+
+-- Ensure the GUI persists across respawns
+local player = game.Players.LocalPlayer
+player.CharacterAdded:Connect(function()
+    if Toggle.Value then
+        createGui()
+    end
+end)
+
+-- Assuming you have a UI library providing Toggle functionality
+local Toggle = Tabs.Buttons:AddToggle("Togglename", {Title = "Silent Aim Button", Default = false})
+
+-- Function to call when button is clicked
+local function onButtonClicked()
+    -- Define the murderer character
+    if Murder then
+        local player = game.Players.LocalPlayer
+        local murdererCharacter = game.Players[Murder].Character
+        
+        if murdererCharacter and murdererCharacter:FindFirstChild("HumanoidRootPart") then
+            if player.Character:FindFirstChild("Gun") then
+                player.Character.Gun.KnifeServer.ShootGun:InvokeServer(1, murdererCharacter.HumanoidRootPart.Position, "AH")
+            else
+                -- Player doesn't have a gun, show notification
+                Fluent:Notify({
+                    Title = "You don't have a gun",
+                    Content = "Wait for the sheriff death or grab the gun",
+                    Duration = 3
+                })
+            end
+        else
+            warn("Murderer character or HumanoidRootPart not found!")
+        end
+    else
+        warn("Murderer not defined!")
+    end
+end
+
+-- Variable to hold the ScreenGui and its position
+local screenGui
+local savedPosition = UDim2.new(0.5, -75, 0.5, -37.5)  -- Default position
+
+local function createGui()
+    -- Create a ScreenGui
+    screenGui = Instance.new("ScreenGui")
+    screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+    -- Create a Frame
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(0, 100, 0, 75) -- Smaller size
+    frame.Position = savedPosition  -- Use saved position
+    frame.AnchorPoint = Vector2.new(0.5, 0.5)
+    frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- Black background
+    frame.Parent = screenGui
+
+    -- Add UICorner to Frame
+    local uiCornerFrame = Instance.new("UICorner")
+    uiCornerFrame.CornerRadius = UDim.new(0, 15)
+    uiCornerFrame.Parent = frame
+
+    -- Create a Button
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(0, 80, 0, 40) -- Smaller size
+    button.Position = UDim2.new(0.5, 0, 0.5, 0) -- Centered in the frame
+    button.AnchorPoint = Vector2.new(0.5, 0.5)
+    button.BackgroundTransparency = 1 -- Remove background color
+    button.Text = "Shoot"
+    button.TextColor3 = Color3.fromRGB(255, 255, 255) -- White text color
+    button.Parent = frame
+
+    -- Connect the button click event to the function
+    button.MouseButton1Click:Connect(onButtonClicked)
+
+    -- Make the Frame draggable
+    local UserInputService = game:GetService("UserInputService")
+
+    local dragging
+    local dragInput
+    local dragStart
+    local startPos
+
+    local function update(input)
+        local delta = input.Position - dragStart
+        frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        savedPosition = frame.Position  -- Save the updated position
+    end
+
+    frame.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = frame.Position
+
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+
+    frame.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            dragInput = input
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            update(input)
+        end
+    end)
+end
+
+-- Function to handle GUI creation and destruction
+local function handleToggle(value)
+    if value then
+        -- Create and show the GUI
+        createGui()
+    else
+        -- Destroy the GUI
+        if screenGui then
+            screenGui:Destroy()
+            screenGui = nil
+        end
+    end
+end
+
+-- Handle the toggle state change
+Toggle:OnChanged(handleToggle)
+
+-- Set the initial state of the toggle
+Options.Togglename:SetValue(false)
+
+-- Ensure the GUI persists across respawns
+local player = game.Players.LocalPlayer
+player.CharacterAdded:Connect(function()
+    if Toggle.Value then
+        createGui()
+    end
+end)
+
+-- Create the toggle
+local Toggle = Tabs.Buttons:AddToggle("GrabButton", {Title = "Grab Gun Button", Default = false })
+
+-- Create a ScreenGui
+local screenGui
+local savedPosition = UDim2.new(0.5, -75, 0.5, -37.5)  -- Default position
+
+-- Function to create or destroy the GUI based on toggle state
+local function toggleGui(value)
+    if value then
+        -- Create the GUI
+        screenGui = Instance.new("ScreenGui")
+        screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+        -- Create the Frame
+        local frame = Instance.new("Frame")
+        frame.Size = UDim2.new(0, 100, 0, 75) -- Smaller size
+        frame.Position = savedPosition  -- Use saved position
+        frame.AnchorPoint = Vector2.new(0.5, 0.5)
+        frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- Black background
+        frame.Parent = screenGui
+
+        -- Add UICorner to Frame
+        local uiCornerFrame = Instance.new("UICorner")
+        uiCornerFrame.CornerRadius = UDim.new(0, 15)
+        uiCornerFrame.Parent = frame
+
+        -- Create the Button
+        local button = Instance.new("TextButton")
+        button.Size = UDim2.new(0, 80, 0, 40) -- Smaller size
+        button.Position = UDim2.new(0.5, 0, 0.5, 0) -- Centered in the frame
+        button.AnchorPoint = Vector2.new(0.5, 0.5)
+        button.BackgroundTransparency = 1 -- Remove background color
+        button.Text = "Grab Gun"
+        button.TextColor3 = Color3.fromRGB(255, 255, 255) -- White text color
+        button.Parent = frame
+             local function updateButtonText()
+    local gunReady = workspace:FindFirstChild("GunDrop")
+    if gunReady then
+        button.Text = "Grab Gun (Ready)"
+    else
+        button.Text = "Grab Gun"
+    end
+end
+
+-- Connect the function to update the button text
+workspace.ChildAdded:Connect(updateButtonText)
+workspace.ChildRemoved:Connect(updateButtonText)
+        -- Function to handle the button click event
+        button.MouseButton1Click:Connect(function()
+            if game.Players.LocalPlayer.Character then
+                local gundr = workspace:FindFirstChild("GunDrop")
+                if gundr then
+                    local oldpos = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame
+                    repeat
+                        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(90), math.rad(0), math.rad(0))
+                        task.wait()
+                        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(-90), math.rad(0), math.rad(0))
+                        task.wait()
+                    until not gundr:IsDescendantOf(workspace)
+                    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = oldpos
+                    oldpos = false
+                    game.Players.LocalPlayer.Character.Humanoid:ChangeState(1)
+                    button.Text = "Grab Gun (Gotcha)"
+                else
+                    Fluent:Notify({
+                        Title = "Gun not Found",
+                        Content = "Wait for the Sheriff's death to grab the gun.",
+                        Duration = 3
+                    })
+                end
+            end
+        end)
+
+        -- Function to handle GUI drag on mobile
+        local UserInputService = game:GetService("UserInputService")
+
+        local dragging
+        local dragInput
+        local dragStart
+        local startPos
+
+        local function update(input)
+            local delta = input.Position - dragStart
+            frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+            savedPosition = frame.Position  -- Save the updated position
+        end
+
+        frame.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                dragging = true
+                dragStart = input.Position
+                startPos = frame.Position
+
+                input.Changed:Connect(function()
+                    if input.UserInputState == Enum.UserInputState.End then
+                        dragging = false
+                    end
+                end)
+            end
+        end)
+
+        frame.InputChanged:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+                dragInput = input
+            end
+        end)
+
+        UserInputService.InputChanged:Connect(function(input)
+            if input == dragInput and dragging then
+                update(input)
+            end
+        end)
+
+    else
+        -- Destroy the GUI if it exists
+        if screenGui then
+            screenGui:Destroy()
+            screenGui = nil
+        end
+    end
+end
+
+-- Connect the toggle's OnChanged event to the function
+Toggle:OnChanged(toggleGui)
+
+-- Set the initial state of the toggle
+Options.GrabButton:SetValue(false)
+
+-- Ensure the GUI persists across respawns and retains its position
+local player = game.Players.LocalPlayer
+player.CharacterAdded:Connect(function()
+    if Toggle.Value then
+        toggleGui(true)
+    end
+end)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--------------------------------------------------------------------BUTTONS------------------------------------------------------------------------------------------------
+
         
         
         
