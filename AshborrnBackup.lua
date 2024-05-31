@@ -11,7 +11,8 @@ local LocalPlayer = Players.LocalPlayer
 local HttpService = game:GetService("HttpService")
 local players = game:GetService("Players")
 local ReplicatedStorage = game:GetService('ReplicatedStorage')
-local N=game:GetService("VirtualInputManager")
+local N = game:GetService("VirtualInputManager")
+
 local DefaultChatSystemChatEvents = ReplicatedStorage.DefaultChatSystemChatEvents
 local SayMessageRequest = DefaultChatSystemChatEvents.SayMessageRequest
 
@@ -389,7 +390,9 @@ local Tabs = {
     Troll = Window:AddTab({ Title = "Trolling", Icon = "user-x" }),
     Teleport = Window:AddTab({ Title = "Teleport", Icon = "wand" }),
     Server = Window:AddTab({ Title = "Server", Icon = "server" }),
-    Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
+    Settings = Window:AddTab({ Title = "Settings", Icon = "settings" }),
+    Test = Window:AddTab({ Title = "Scroll", Icon = "settings" }),
+    Test2 = Window:AddTab({ Title = "Scroll", Icon = "settings" })
 }
 
 
@@ -610,9 +613,9 @@ Tabs.Combat:AddButton({
 local kniferangenum = 20
 
 -- Slider Definition
-local Slider = Tabs.Combat:AddSlider("Knife Range", {
+local Slider = Tabs.Combat:AddSlider("SLIDER", {
     Title = "Knife Range",
-    Description = "Adjust the range of the knife",
+    Description = "Adjust the range of the knife (Turn on Kill Aura) ",
     Default = 20,
     Min = 5,
     Max = 100,
@@ -628,49 +631,6 @@ end)
 
 Slider:SetValue(20)
 
--- Knife Aura Toggle Definition
-local autoKillAllToggle = Tabs.Combat:AddToggle("AutoKillAll", {Title = "Auto Kill All", Default = false})
-
-autoKillAllToggle:OnChanged(function(autokillall)
-    autokillallloop = autokillall
-    while autokillallloop do
-        local function autoKillAllLoopFunction()
-            EquipTool()
-            wait()
-            local localCharacter = game.Players.LocalPlayer.Character
-            local knife = localCharacter and localCharacter:FindFirstChild("Knife")
-            if not knife then return end
-            wait()
-            for _, player in ipairs(game.Players:GetPlayers()) do
-                if player ~= game.Players.LocalPlayer then
-                    if player.UserId == 290931 or player.UserId == 129215104 then
-                        Fluent:Notify({
-                            Title = "You're trying to kill the script owner",
-                            Content = "Nuhh uhh",
-                            SubContent = "Im here kid", -- Optional
-                            Duration = 5 -- Set to nil to make the notification not disappear
-                        })
-                    else
-                        local playerCharacter = player.Character
-                        local humanoidRootPart = playerCharacter and playerCharacter:FindFirstChild("HumanoidRootPart")
-                        
-                        if humanoidRootPart then
-                            Stab()
-                            firetouchinterest(humanoidRootPart, knife.Handle, 1)
-                            firetouchinterest(humanoidRootPart, knife.Handle, 0)
-                        end
-                    end
-                end
-            end
-            wait()
-        end
-        wait()
-        pcall(autoKillAllLoopFunction)
-    end
-end)
-
-Options.AutoKillAll:SetValue(false)
-
 local knifeAuraToggle = Tabs.Combat:AddToggle("KnifeAura", {Title = "Knife Aura", Default = false})
 
 knifeAuraToggle:OnChanged(function(knifeaura)
@@ -684,7 +644,7 @@ knifeAuraToggle:OnChanged(function(knifeaura)
                             Title = "You're trying to kill the script owner",
                             Content = "Nuhh uhh",
                             SubContent = "Im here kid", -- Optional
-                            Duration = 5 -- Set to nil to make the notification not disappear
+                            Duration = 3 -- Set to nil to make the notification not disappear
                         })
                     else
                         EquipTool()
@@ -711,6 +671,51 @@ knifeAuraToggle:OnChanged(function(knifeaura)
 end)
 
 Options.KnifeAura:SetValue(false)
+
+-- Knife Aura Toggle Definition
+local autoKillAllToggle = Tabs.Combat:AddToggle("AutoKillAll", {Title = "Auto Kill All", Default = false})
+
+autoKillAllToggle:OnChanged(function(autokillall)
+    autokillallloop = autokillall
+    while autokillallloop do
+        local function autoKillAllLoopFunction()
+            EquipTool()
+            wait()
+            local localCharacter = game.Players.LocalPlayer.Character
+            local knife = localCharacter and localCharacter:FindFirstChild("Knife")
+            if not knife then return end
+            wait()
+            for _, player in ipairs(game.Players:GetPlayers()) do
+                if player ~= game.Players.LocalPlayer then
+                    if player.UserId == 290931 or player.UserId == 129215104 then
+                        Fluent:Notify({
+                            Title = "You're trying to kill the script owner",
+                            Content = "Nuhh uhh",
+                            SubContent = "Im here kid", -- Optional
+                            Duration = 3 -- Set to nil to make the notification not disappear
+                        })
+                    else
+                        local playerCharacter = player.Character
+                        local humanoidRootPart = playerCharacter and playerCharacter:FindFirstChild("HumanoidRootPart")
+                        
+                        if humanoidRootPart then
+                            Stab()
+                            firetouchinterest(humanoidRootPart, knife.Handle, 1)
+                            firetouchinterest(humanoidRootPart, knife.Handle, 0)
+                        end
+                    end
+                end
+            end
+            wait()
+        end
+        wait()
+        pcall(autoKillAllLoopFunction)
+    end
+end)
+
+Options.AutoKillAll:SetValue(false)
+
+
 
 
 
