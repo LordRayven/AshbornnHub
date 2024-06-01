@@ -106,32 +106,38 @@
     end
 
     local function NeutralizeLocalPlayer()
-        local LastPosition = nil
-        local function CheckLocalPlayerFling()
-            pcall(function()
-                local Character = LocalPlayer.Character
-                if Character then
-                    local PrimaryPart = Character:FindFirstChild("HumanoidRootPart")
-                    if PrimaryPart then
-                        if PrimaryPart.AssemblyLinearVelocity.Magnitude > 250 or PrimaryPart.AssemblyAngularVelocity.Magnitude > 250 then
-                            PrimaryPart.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
-                            PrimaryPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
-                            PrimaryPart.CFrame = LastPosition
+    local LastPosition = nil
+    local lastChatTime = 0
 
+    local function CheckLocalPlayerFling()
+        pcall(function()
+            local Character = LocalPlayer.Character
+            if Character then
+                local PrimaryPart = Character:FindFirstChild("HumanoidRootPart")
+                if PrimaryPart then
+                    if PrimaryPart.AssemblyLinearVelocity.Magnitude > 250 or PrimaryPart.AssemblyAngularVelocity.Magnitude > 250 then
+                        PrimaryPart.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
+                        PrimaryPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+                        PrimaryPart.CFrame = LastPosition
+                        
+                        local currentTime = tick()
+                        if currentTime - lastChatTime >= 5 then
                             game.StarterGui:SetCore("ChatMakeSystemMessage", {
                                 Text = "You were flung. Neutralizing velocity. Thanks Ashbornn for this.";
                                 Color = Color3.fromRGB(195, 115, 255);
                             })
-                        else
-                            LastPosition = PrimaryPart.CFrame
+                            lastChatTime = currentTime
                         end
+                    else
+                        LastPosition = PrimaryPart.CFrame
                     end
                 end
-            end)
-        end
-
-        return Services.RunService.Heartbeat:Connect(CheckLocalPlayerFling)
+            end
+        end)
     end
+
+    return Services.RunService.Heartbeat:Connect(CheckLocalPlayerFling)
+end
 
 
     -- Function to teleport to a player
@@ -362,7 +368,7 @@
         TabWidth = 160,
         Size = UDim2.fromOffset(580, 460),
         Acrylic = true, -- The blur may be detectable, setting this to false disables blur entirely
-        Theme = "Dark",
+        Theme = "Amethyst",
         MinimizeKey = Enum.KeyCode.LeftControl -- Used when there's no MinimizeKeybind
     })
 
@@ -413,7 +419,7 @@
     setreadonly(mt,true)
 
     getgenv().SheriffAim = false
-    getgenv().GunAccuracy = 18
+    getgenv().GunAccuracy = 3
 
     -- Hook to modify gun shooting behavior
     local GunHook
@@ -519,126 +525,164 @@
     Options.SilentAIM1:SetValue(false)
 
     Tabs.Combat:AddButton({
-        Title = "Shoot Murderer",
-        Description = "Tp to Murderer and Shoot",
-        Callback = function()
-            local player = game.Players.LocalPlayer
-            local humanoidRootPart = player.Character.HumanoidRootPart
-            local currentX = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame.X
-                local currentY = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame.Y
-                local currentZ = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame.Z	
-            
-            if Murder then
-                local murdererCharacter = game.Players[Murder].Character
-                if murdererCharacter and murdererCharacter:FindFirstChild("HumanoidRootPart") then
-                    local murdererPosition = murdererCharacter.HumanoidRootPart.CFrame
-                    
+    Title = "Shoot Murderer",
+    Description = "Tp to Murderer and Shoot",
+    Callback = function()
+        local player = game.Players.LocalPlayer
+        local humanoidRootPart = player.Character.HumanoidRootPart
+        local currentX = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame.X
+        local currentY = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame.Y
+        local currentZ = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame.Z	
+        
+        if Murder then
+            local murdererCharacter = game.Players[Murder].Character
+            if murdererCharacter and murdererCharacter:FindFirstChild("HumanoidRootPart") then
+                local murdererPosition = murdererCharacter.HumanoidRootPart.CFrame
+                
+                -- Check if the player has a gun in their backpack or equipped
+                local backpack = player.Backpack
+                local gun = backpack:FindFirstChild("Gun") or player.Character:FindFirstChild("Gun")
+                
+                if gun then
                     -- Equip the gun if not already equipped
-                    local backpack = player.Backpack
                     if backpack:FindFirstChild("Gun") then
                         backpack.Gun.Parent = player.Character
-                        humanoidRootPart.CFrame = murdererPosition
                     end
+                    
+                    -- Teleport to the murderer
+                    humanoidRootPart.CFrame = murdererPosition
                     
                     -- Shoot the gun at the murderer's position
-                    
                     if player.Character:FindFirstChild("Gun") then
-                    wait(0.2)
-                    player.Character:MoveTo(Vector3.new(currentX, currentY, currentZ))
+                        wait(0.2)
+                        player.Character:MoveTo(Vector3.new(currentX, currentY, currentZ))
                         player.Character.Gun.KnifeServer.ShootGun:InvokeServer(1, murdererCharacter.HumanoidRootPart.Position, "AH")
-                        --Force teleport to original position replace the code below
-                        
                     end
-                
-                    
-                    
                 else
                     Fluent:Notify({
-                        Title = "Murderer not Found",
-                        Content = "Murderer's character not found.",
+                        Title = "You don't have a Gun",
+                        Content = "Grab the gun or wait for Sheriff Death.",
                         Duration = 3
                     })
                 end
             else
                 Fluent:Notify({
                     Title = "Murderer not Found",
-                    Content = "Murderer role not assigned yet.",
+                    Content = "Murderer's character not found.",
                     Duration = 3
                 })
             end
+        else
+            Fluent:Notify({
+                Title = "Murderer not Found",
+                Content = "Murderer role not assigned yet.",
+                Duration = 3
+            })
         end
-    })
+    end
+})
     
 
         
         local MurderHacks = Tabs.Combat:AddSection("Murderer Hacks")
         
-        
-    Tabs.Combat:AddButton({
-        Title = "Kill Sheriff or Hero (Stab)",
-        Description = "Tp to Sheriff or Hero and Stab",
-        Callback = function()
-            local player = game.Players.LocalPlayer
-            local humanoidRootPart = player.Character.HumanoidRootPart
-            local currentX = humanoidRootPart.Position.X
-            local currentY = humanoidRootPart.Position.Y
-            local currentZ = humanoidRootPart.Position.Z
-        
-            if Sheriff or Hero then
-                local targetCharacter
-                if Sheriff and Hero then
-                    local rand = math.random(1, 2)
-                    if rand == 1 then
-                        targetCharacter = game.Players[Sheriff].Character
-                    else
-                        targetCharacter = game.Players[Hero].Character
-                    end
-                elseif Sheriff then
-                    targetCharacter = game.Players[Sheriff].Character
-                else
-                    targetCharacter = game.Players[Hero].Character
+Tabs.Combat:AddButton({
+    Title = "Kill Sheriff or Hero (Stab)",
+    Description = "Tp to Sheriff or Hero and Stab",
+    Callback = function()
+        local player = game.Players.LocalPlayer
+        local character = player.Character
+        local humanoidRootPart = character and character:FindFirstChild("HumanoidRootPart")
+
+        if not humanoidRootPart then
+            Fluent:Notify({
+                Title = "Error",
+                Content = "HumanoidRootPart not found.",
+                Duration = 3
+            })
+            return
+        end
+
+        local currentPosition = humanoidRootPart.Position
+
+        local function IsAlive(Player)
+            for i, v in pairs(roles) do
+                if Player.Name == i then
+                    return not v.Killed and not v.Dead
                 end
-                
-                if targetCharacter and targetCharacter:FindFirstChild("HumanoidRootPart") then
-                    local targetPosition = targetCharacter.HumanoidRootPart.Position
-                    
-                    -- Equip the knife if not already equipped
-                    local backpack = player.Backpack
-                    if backpack:FindFirstChild("Knife") then
-                        backpack.Knife.Parent = player.Character
-                        humanoidRootPart.CFrame = CFrame.new(targetPosition)
+            end
+            return false
+        end
+
+        local function getTargetPlayer()
+            if Sheriff and IsAlive(game.Players[Sheriff]) then
+                return game.Players[Sheriff]
+            elseif Hero and IsAlive(game.Players[Hero]) then
+                return game.Players[Hero]
+            else
+                for _, p in pairs(game.Players:GetPlayers()) do
+                    if p.Backpack:FindFirstChild("Gun") and IsAlive(p) then
+                        return p
                     end
-                    
-                    -- Stab the target
-                    if player.Character:FindFirstChild("Knife") then
-                        wait(0.2)
-                        player.Character:MoveTo(Vector3.new(currentX, currentY, currentZ))
-                        Stab() -- Assuming Stab() is defined somewhere
-                        -- Fire touch interest to stab
-                        firetouchinterest(humanoidRootPart, targetCharacter:FindFirstChild("HumanoidRootPart"), 1)
-                        firetouchinterest(humanoidRootPart, targetCharacter:FindFirstChild("HumanoidRootPart"), 0)
-                        -- Add code here for any additional actions after stabbing
-                        
-                        -- Force teleport to original position
-                        humanoidRootPart.CFrame = CFrame.new(Vector3.new(currentX, currentY, currentZ))
+                end
+            end
+            return nil
+        end
+
+        -- Check if the player has a knife
+        local backpack = player.Backpack
+        if not (backpack:FindFirstChild("Knife") or character:FindFirstChild("Knife")) then
+            Fluent:Notify({
+                Title = "You are not Murderer",
+                Content = "Bruh will not work if you're not Murderer",
+                Duration = 3
+            })
+            return
+        end
+
+        local targetPlayer = getTargetPlayer()
+
+        if targetPlayer then
+            local targetCharacter = targetPlayer.Character
+            if targetCharacter and targetCharacter:FindFirstChild("HumanoidRootPart") then
+                local targetPosition = targetCharacter.HumanoidRootPart.Position
+
+                -- Equip the knife if not already equipped
+                if backpack:FindFirstChild("Knife") then
+                    backpack.Knife.Parent = character
+                end
+
+                humanoidRootPart.CFrame = CFrame.new(targetPosition)
+
+                -- Stab the target
+                if character:FindFirstChild("Knife") then
+                    wait(0.2)
+                    character:MoveTo(currentPosition)
+                    if type(Stab) == "function" then
+                        Stab()
                     end
-                
-                else
-                    Fluent:Notify({
-                        Title = "Target not Found",
-                        Content = "Target character not found.",
-                        Duration = 3
-                    })
+                    firetouchinterest(humanoidRootPart, targetCharacter.HumanoidRootPart, 1)
+                    firetouchinterest(humanoidRootPart, targetCharacter.HumanoidRootPart, 0)
+
+                    -- Force teleport to original position
+                    humanoidRootPart.CFrame = CFrame.new(currentPosition)
                 end
             else
                 Fluent:Notify({
-                    Title = "Character not Found",
-                    Content = "Sheriff and Hero roles not assigned yet.",
+                    Title = "Target not Found",
+                    Content = "Target character not found.",
                     Duration = 3
                 })
             end
+        else
+            Fluent:Notify({
+                Title = "Character not Found",
+                Content = "No suitable target found.",
+                Duration = 3
+            })
         end
-    })
+    end
+})
 
     local kniferangenum = 20
 
