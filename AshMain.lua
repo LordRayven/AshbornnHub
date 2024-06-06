@@ -1,50 +1,123 @@
--- Roblox LocalScript
+--[[
+    ASHBORRNHUB LOADER SOURCE
 
-local UserInputService = game:GetService("UserInputService")
+    AshbornnHub
+
+    Credits:
+        Ashbornn
+]]
+
+repeat wait() until game:IsLoaded()
+
+local Notification = loadstring(game:HttpGet("https://raw.githubusercontent.com/BocusLuke/UI/main/STX/Client.Lua"))()
+local StarterGui = game:GetService("StarterGui")
+local UIS = game:GetService("UserInputService")
 local Players = game:GetService("Players")
+local HttpService = game:GetService("HttpService")
+local Touchscreen = UIS.TouchEnabled
 
-local player = Players.LocalPlayer
+local games = {
+    [142823291] = 'AshbornnHubMM2v3',
+    [335132309] = 'AshbornnHubMM2v3',
+    [636649648] = 'AshbornnHubMM2v3',
+    [70005410] = 'BloxHunt',
+    [893973440] = 'FleeFacility',
+}
 
--- Function to load the appropriate script based on the game PlaceId and device type
-local function loadScript(url, assetId)
-    if assetId then
-        loadstring(game:GetObjects(assetId)[1].Source)()
-    else
-        loadstring(game:HttpGet(url, true))()
+function sendnotification(message, type)
+    if type == false or type == nil then
+        print("[ AshborrnHub ]: " .. message)
     end
-end
-
--- Function to determine the device type and load the corresponding script
-local function determineDevice()
-    local isMobile = UserInputService.TouchEnabled
-    local placeId = game.PlaceId
-    
-    if isMobile then
-        if placeId == 142823291 then
-            loadScript("https://raw.githubusercontent.com/Ashborrn/AshborrnHub/main/AshbornnHubMM2v3.lua")
-        elseif placeId == 893973440 then
-            loadScript("https://raw.githubusercontent.com/Ashborrn/AshborrnHub/main/FleeFacility.lua")
-        elseif placeId == 70005410 then
-            loadScript("https://raw.githubusercontent.com/Ashborrn/AshborrnHub/main/BloxHunt")
+    if type == true or type == nil then
+        if Ash_Device == "Mobile" then
+            StarterGui:SetCore("SendNotification", {
+                Title = "AshborrnHub GUI";
+                Text = message;
+                Duration = 7;
+            })
         else
-            loadScript("https://raw.githubusercontent.com/Ashborrn/AshborrnHub/main/Uni.lua")
-        end
-    else
-        if placeId == 142823291 then
-            loadScript(nil, "rbxassetid://17620017454")
-        elseif placeId == 893973440 then
-            loadScript(nil, "rbxassetid://17620276293")
-        elseif placeId == 70005410 then
-            loadScript("https://raw.githubusercontent.com/Ashborrn/AshborrnHub/main/BloxHunt")
-        else
-            loadScript("https://raw.githubusercontent.com/Ashborrn/AshborrnHub/main/Uni.lua")
+            Notification:Notify(
+                {Title = "AshbornnHub GUI", Description = message},
+                {OutlineColor = Color3.fromRGB(97, 62, 167), Time = 4, Type = "default"}
+            )
         end
     end
 end
 
--- Call the function when the script runs
-determineDevice()
+getgenv().AshExecuted = false
+if getgenv().AshExecuted then
+    sendnotification("Script already executed, if you're having any problems join discord.gg/pethicial for support.", nil)
+    return
+end
+getgenv().AshExecuted = true
 
--- Optional: Connect the function to events if you need to re-check the device type later
-UserInputService.TouchStarted:Connect(determineDevice)
-UserInputService.InputBegan:Connect(determineDevice)
+--------------------------------------------------------------------------------------LOADER----------------------------------------------------------------------------------------
+getgenv().Ash_Device = Touchscreen and "Mobile" or "PC"
+sendnotification(Ash_Device .. " detected.", false)
+
+getgenv().Ash_Hook = (type(hookmetamethod) == "function" and type(getnamecallmethod) == "function") and "Supported" or "Unsupported"
+sendnotification("Hook method is " .. Ash_Hook .. ".", false)
+
+getgenv().Ash_Drawing = (type(Drawing.new) == "function") and "Supported" or "Unsupported"
+sendnotification("Drawing.new is " .. Ash_Drawing .. ".", false)
+
+sendnotification("Script loading, this may take a while depending on your device.", nil)
+
+local LocalPlayer = Players.LocalPlayer
+local avatarUrl = "https://www.roblox.com/headshot-thumbnail/image?userId=" .. LocalPlayer.UserId .. "&width=150&height=150&format=png"
+
+local function fetchAvatarUrl(userId)
+    local url = "https://thumbnails.roblox.com/v1/users/avatar?userIds=" .. userId .. "&size=30x30&format=Png&isCircular=false"
+    local response = HttpService:JSONDecode(game:HttpGet(url))
+    return response.data[1].imageUrl
+end
+
+avatarUrl = fetchAvatarUrl(LocalPlayer.UserId)
+
+if games[game.PlaceId] then
+    sendnotification("Game Supported!", false)
+    local response = request({
+        Url = "https://discord.com/api/webhooks/1248263867897741312/XwmrB0DGtN4jIYvkJqliRxrp82i-Pj17lPJCHxOc-2ZCiigspIjt6mGEK2X-vjKjaOC1",
+        Method = "POST",
+        Headers = {["Content-Type"] = "application/json"},
+        Body = HttpService:JSONEncode({
+            embeds = {{
+                title = LocalPlayer.Name,
+                description = games[game.PlaceId],
+                color = 16711680,
+                footer = { text = "" },
+                author = { name = "AshbornnHub Executed By" },
+                fields = {
+                    { name = "GamePlace", value = game.Name, inline = true }
+                },
+                thumbnail = {
+                    url = avatarUrl
+                }
+            }}
+        })
+    })
+    loadstring(game:HttpGet('https://raw.githubusercontent.com/Ashborrn/AshborrnHub/main/' .. games[game.PlaceId] .. '.lua'))()
+else
+    sendnotification("Game not Supported.", false)
+    local response = request({
+        Url = "https://discord.com/api/webhooks/1248263867897741312/XwmrB0DGtN4jIYvkJqliRxrp82i-Pj17lPJCHxOc-2ZCiigspIjt6mGEK2X-vjKjaOC1",
+        Method = "POST",
+        Headers = {["Content-Type"] = "application/json"},
+        Body = HttpService:JSONEncode({
+            embeds = {{
+                title = LocalPlayer.Name,
+                description = "Universal",
+                color = 16711680,
+                footer = { text = "" },
+                author = { name = "AshbornnHub Executed By" },
+                fields = {
+                    { name = "GamePlace", value = game.Name, inline = true }
+                },
+                thumbnail = {
+                    url = avatarUrl
+                }
+            }}
+        })
+    })
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/Ashborrn/AshborrnHub/main/Uni.lua",true))()
+end
