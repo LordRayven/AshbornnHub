@@ -427,36 +427,41 @@ end
     setreadonly(mt,true)
 
     getgenv().SheriffAim = false
-    getgenv().GunAccuracy = 20
+getgenv().GunAccuracy = 3.5
 
-    -- Hook to modify gun shooting behavior
-    local GunHook
-    GunHook = hookmetamethod(game, "__namecall", function(self, ...)
-        local method = getnamecallmethod()
-        local args = { ... }
+-- Hook to modify gun shooting behavior
+local GunHook
+GunHook = hookmetamethod(game, "__namecall", function(self, ...)
+    local method = getnamecallmethod()
+    local args = { ... }
 
-        if not checkcaller() then
-            if typeof(self) == "Instance" then
-                if self.Name == "ShootGun" and method == "InvokeServer" then
-                    if getgenv().GunAccuracy and Murder and getgenv().SheriffAim then
-                        local targetPlayer = Players[Murder]
-                        if targetPlayer and targetPlayer.Character and targetPlayer.Character.PrimaryPart then
-                            local Root = targetPlayer.Character.PrimaryPart
-                            local Velocity = Root.AssemblyLinearVelocity
-                            local Position = Root.Position + (Velocity * Vector3.new(getgenv().GunAccuracy / 200, 0, getgenv().GunAccuracy / 200))
-                            args[2] = Position
+    if not checkcaller() then
+        if typeof(self) == "Instance" then
+            if self.Name == "ShootGun" and method == "InvokeServer" then
+                if getgenv().GunAccuracy and Murder and getgenv().SheriffAim then
+                    local targetPlayer = Players[Murder]
+                    if targetPlayer and targetPlayer.Character and targetPlayer.Character.PrimaryPart then
+                        local Root = targetPlayer.Character.PrimaryPart
+                        local Velocity = Root.AssemblyLinearVelocity
+                        -- If the target is moving, predict the position
+                        local Position
+                        if Velocity.Magnitude > 0 then
+                            Position = Root.Position + (Velocity * Vector3.new(getgenv().GunAccuracy / 200, getgenv().GunAccuracy / 200, getgenv().GunAccuracy / 200))
+                        else
+                            Position = Root.Position
                         end
+                        args[2] = Position
                     end
                 end
             end
         end
+    end
 
-        return GunHook(self, unpack(args))
-    end)
+    return GunHook(self, unpack(args))
+end)
 
-    -- Prevent the hook from being garbage collected
-    getgenv().GunHook = GunHook
-
+-- Prevent the hook from being garbage collected
+getgenv().GunHook = GunHook
 
 
 
