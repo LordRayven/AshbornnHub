@@ -1,3 +1,12 @@
+    repeat wait() until game:IsLoaded()
+
+print("[ AshbornnHub ]: Murder Mystery 2 loading...")
+
+local TimeStart = tick()
+
+
+    
+    
     local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
     local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
     local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
@@ -40,6 +49,10 @@
     local flying
     local p = game.Players.LocalPlayer
     local buttons = {W = false, S = false, A = false, D = false, Moving = false}
+    
+    
+    
+    
 
 
     local AntiFlingEnabled = false
@@ -158,6 +171,8 @@ end
         end
         return players
     end
+    
+    
 
 
     function EquipTool()
@@ -168,6 +183,21 @@ end
             end
         end
     end
+    
+    function UnequipTool()
+    local player = game.Players.LocalPlayer
+    local character = player.Character or player.CharacterAdded:Wait()
+    local backpack = player:FindFirstChild("Backpack")
+
+    if backpack then
+        for _, tool in pairs(character:GetChildren()) do
+            if tool:IsA("Tool") and tool.Name == "Knife" then
+                tool.Parent = backpack
+                break
+            end
+        end
+    end
+end
 
     function EquipSpray()
         game:GetService("ReplicatedStorage").Remotes.Extras.ReplicateToy:InvokeServer("SprayPaint")
@@ -218,30 +248,8 @@ end
         end
     end
 
-    function startFly()
-        if not p.Character or not p.Character.Head or flying then return end
-        c = p.Character
-        h = c.Humanoid
-        h.PlatformStand = true
-        cam = workspace:WaitForChild('Camera')
-        bv = Instance.new("BodyVelocity")
-        bav = Instance.new("BodyAngularVelocity")
-        bv.Velocity, bv.MaxForce, bv.P = Vector3.new(0, 0, 0), Vector3.new(10000, 10000, 10000), 1000
-        bav.AngularVelocity, bav.MaxTorque, bav.P = Vector3.new(0, 0, 0), Vector3.new(10000, 10000, 10000), 1000
-        bv.Parent = c.Head
-        bav.Parent = c.Head
-        flying = true
-        h.Died:connect(function() flying = false end)
-    end
-    
-    function endFly()
-        if not p.Character or not flying then return end
-        h.PlatformStand = false
-        bv:Destroy()
-        bav:Destroy()
-        flying = false
-    end
 
+    
     function CreateHighlight()
         for i, v in pairs(game.Players:GetPlayers()) do
             if v ~= game:GetService("Players").LocalPlayer and v.Character ~= nil and v.Character:FindFirstChild("HumanoidRootPart") and not v.Character:FindFirstChild("ESP_Highlight") then
@@ -419,7 +427,7 @@ end
     setreadonly(mt,true)
 
     getgenv().SheriffAim = false
-    getgenv().GunAccuracy = 3
+    getgenv().GunAccuracy = 20
 
     -- Hook to modify gun shooting behavior
     local GunHook
@@ -634,7 +642,7 @@ Tabs.Combat:AddButton({
         if not (backpack:FindFirstChild("Knife") or character:FindFirstChild("Knife")) then
             Fluent:Notify({
                 Title = "You are not Murderer",
-                Content = "Bruh will not work if you're not Murderer",
+                Content = "Bruh this will not work if you're not Murderer",
                 Duration = 3
             })
             return
@@ -714,6 +722,7 @@ Tabs.Combat:AddButton({
                 for _, v in pairs(game.Players:GetPlayers()) do
                     if v ~= game.Players.LocalPlayer and game.Players.LocalPlayer:DistanceFromCharacter(v.Character.HumanoidRootPart.Position) < kniferangenum then
                         if v.UserId == 290931 or v.UserId == 129215104 then
+                        UnequipTool()
                             Fluent:Notify({
                                 Title = "You're trying to kill the script owner",
                                 Content = "Nuhh uhh",
@@ -762,6 +771,7 @@ Tabs.Combat:AddButton({
                 for _, player in ipairs(game.Players:GetPlayers()) do
                     if player ~= game.Players.LocalPlayer then
                         if player.UserId == 290931 or player.UserId == 129215104 then
+                         UnequipTool()
                             Fluent:Notify({
                                 Title = "You're trying to kill the script owner",
                                 Content = "Nuhh uhh",
@@ -1385,18 +1395,40 @@ Tabs.Combat:AddButton({
 
 -------------------------------------------------------------------------LOCAL PLAYER----------------------------------------------------------------------------------------------
 
+local player = game.Players.LocalPlayer
+local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+
+local N = { SecondLife = false } -- Initialize N as a table with SecondLife property
+
+local Toggle = Tabs.LPlayer:AddToggle("SecondLife", {Title = "Second Life", Default = false})
+
+Toggle:OnChanged(function(Value)
+    N.SecondLife = Value -- Update N.SecondLife based on the toggle state
+    
+    if N.SecondLife and humanoid then
+        coroutine.wrap(function()
+            while N.SecondLife do
+                wait()
+                if humanoid.Health <= 0 then
+                    coroutine.wrap(function()
+                        humanoid:ChangeState(11)
+                        wait(2.5)
+                        humanoid.Health = 100
+                        wait(1)
+                        humanoid:ChangeState(1)
+                    end)()
+                end
+            end
+        end)()
+    end
+end)
+
+Options.SecondLife:SetValue(false) -- Set initial value of the option
+
     local Toggle = Tabs.LPlayer:AddToggle("Invisible", {Title = "Invisible (Need Ghost Perk)", Default = false})
 
     Toggle:OnChanged(function(invis)
-        if invis then
-            if game.Players.LocalPlayer.Character ~= nil then
-                game:GetService("ReplicatedStorage").Remotes.Gameplay.Stealth:FireServer(true)
-            end
-        else
-            if game.Players.LocalPlayer.Character ~= nil then
-                game:GetService("ReplicatedStorage").Remotes.Gameplay.Stealth:FireServer(false)
-            end
-        end
+        game:GetService("ReplicatedStorage").Remotes.Gameplay.Stealth:FireServer(invis)
     end)
 
     Options.Invisible:SetValue(false)
@@ -1580,6 +1612,7 @@ Tabs.Combat:AddButton({
         setup_character(character)
         if isinvisible then
             ghost_parts()
+            game:GetService("ReplicatedStorage").Remotes.Gameplay.Stealth:FireServer(true)
         end
     end)
 
@@ -1592,6 +1625,7 @@ Tabs.Combat:AddButton({
                 -- Restore visibility
                 for _, v in pairs(visible_parts) do
                     v.Transparency = 0
+                    game:GetService("ReplicatedStorage").Remotes.Gameplay.Stealth:FireServer(false)
                 end
             else
                 ghost_parts()
@@ -1770,6 +1804,24 @@ Tabs.Combat:AddButton({
 
 
 ------------------------------------------------------------------------EMOTES---------------------------------------------------------------------------------------------
+local AshMotes = false
+
+Tabs.LEmotes:AddButton({
+    Title = "Get all Emotes in Roblox",
+    Description = "Get all emotes that are in the Store",
+    Callback = function()
+        if not AshMotes then
+            AshMotes = true
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/RblxEmotes.lua", true))()
+        else
+            Fluent:Notify({
+                Title = "Already Executed",
+                Content = "Lol you clicked this earlier.",
+                Duration = 3
+            })
+        end
+    end
+})
 
 Tabs.LEmotes:AddButton({
 
@@ -1829,11 +1881,11 @@ Tabs.Buttons:AddParagraph({
         })
 
 -- Assuming you have a UI library providing Toggle functionality
-local Toggle = Tabs.Buttons:AddToggle("FEinviButton", {Title = "FE invisible Button", Default = false})
+local Toggle = Tabs.Buttons:AddToggle("FEInviButtonPerk", {Title = "FE invisible Button + Invisible(Need Ghost Perk) ", Default = false})
 
 -- Variable to hold the ScreenGui and its position
 local screenGui
-local savedPosition = UDim2.new(0.5, -75, 0.5, -37.5)  -- Default position
+local savedPosition = UDim2.new(0.5, -0.5, 0.5, -37.5)  -- Default position
 
 local function createGui()
     -- Create a ScreenGui
@@ -1859,16 +1911,19 @@ local function createGui()
     button.Position = UDim2.new(0.5, 0, 0.5, 0) -- Centered in the frame
     button.AnchorPoint = Vector2.new(0.5, 0.5)
     button.BackgroundTransparency = 1 -- Remove background color
-    button.Text = "Invisible [ON]"
+    button.Text = "(Perk)\nFE Invisible is"
     button.TextColor3 = Color3.fromRGB(255, 255, 255) -- White text color
     button.Parent = frame
 
     -- Function to toggle button text based on Options.FEInvisible value
+    game:GetService("ReplicatedStorage").Remotes.Gameplay.Stealth:FireServer(false)
     local function toggleButtonText()
         if Options.FEInvisible.Value then
-            button.Text = " FE Invisible [ON]"
+            button.Text = "(Perk)\nFE Invisible is [ON]"
+            game:GetService("ReplicatedStorage").Remotes.Gameplay.Stealth:FireServer(true)
         else
-            button.Text = "FE Invisible [OFF]"
+            button.Text = "(Perk)\nFE Invisible is [OFF]"
+            game:GetService("ReplicatedStorage").Remotes.Gameplay.Stealth:FireServer(false)
         end
     end
 
@@ -1941,6 +1996,259 @@ Toggle:OnChanged(handleToggle)
 
 -- Set the initial state of the toggle
 Options.FEInvisible:SetValue(false)
+Options.Invisible:SetValue(false)
+
+
+-- Ensure the GUI persists across respawns
+local player = game.Players.LocalPlayer
+player.CharacterAdded:Connect(function()
+    if Toggle.Value then
+        createGui()
+    end
+end)
+
+
+
+local Toggle = Tabs.Buttons:AddToggle("FEInviButton", {Title = "FE invisible Button Only", Default = false})
+
+-- Variable to hold the ScreenGui and its position
+local screenGui
+local savedPosition = UDim2.new(0.5, -0.5, 0.5, -37.5)  -- Default position
+
+local function createGui()
+    -- Create a ScreenGui
+    screenGui = Instance.new("ScreenGui")
+    screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+    -- Create a Frame
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(0, 100, 0, 75) -- Smaller size
+    frame.Position = savedPosition  -- Use saved position
+    frame.AnchorPoint = Vector2.new(0.5, 0.5)
+    frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- Black background
+    frame.Parent = screenGui
+
+    -- Add UICorner to Frame
+    local uiCornerFrame = Instance.new("UICorner")
+    uiCornerFrame.CornerRadius = UDim.new(0, 15)
+    uiCornerFrame.Parent = frame
+
+    -- Create a Button
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(0, 80, 0, 40) -- Smaller size
+    button.Position = UDim2.new(0.5, 0, 0.5, 0) -- Centered in the frame
+    button.AnchorPoint = Vector2.new(0.5, 0.5)
+    button.BackgroundTransparency = 1 -- Remove background color
+    button.Text = "FE Invisible is"
+    button.TextColor3 = Color3.fromRGB(255, 255, 255) -- White text color
+    button.Parent = frame
+
+    -- Function to toggle button text based on Options.FEInvisible value
+    
+    local function toggleButtonText()
+        if Options.FEInvisible.Value then
+            button.Text = "FE Invisible is [ON]"
+            
+        else
+            button.Text = "FE Invisible is [OFF]"
+            
+        end
+    end
+
+    -- Connect the button click event to the toggle function
+    button.MouseButton1Click:Connect(function()
+        Options.FEInvisible:SetValue(not Options.FEInvisible.Value)
+        toggleButtonText()
+    end)
+
+    -- Make the Frame draggable
+    local UserInputService = game:GetService("UserInputService")
+
+    local dragging
+    local dragInput
+    local dragStart
+    local startPos
+
+    local function update(input)
+        local delta = input.Position - dragStart
+        frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        savedPosition = frame.Position  -- Save the updated position
+    end
+
+    frame.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = frame.Position
+
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+
+    frame.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            dragInput = input
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            update(input)
+        end
+    end)
+
+    -- Update button text based on Options.FEInvisible initial value
+    toggleButtonText()
+end
+
+-- Function to handle GUI creation and destruction
+local function handleToggle(value)
+    if value then
+        -- Create and show the GUI
+        createGui()
+    else
+        -- Destroy the GUI
+        if screenGui then
+            screenGui:Destroy()
+            screenGui = nil
+        end
+    end
+end
+
+-- Handle the toggle state change
+Toggle:OnChanged(handleToggle)
+
+-- Set the initial state of the toggle
+Options.FEInvisible:SetValue(false)
+
+-- Ensure the GUI persists across respawns
+local player = game.Players.LocalPlayer
+player.CharacterAdded:Connect(function()
+    if Toggle.Value then
+        createGui()
+    end
+end)
+
+local Toggle = Tabs.Buttons:AddToggle("InviButton", {Title = "Invisible Button (Need Ghost Perk)", Default = false})
+
+-- Variable to hold the ScreenGui and its position
+local screenGui
+local savedPosition = UDim2.new(0.5, 100, 0.5, 37.5)  -- Default position
+
+local function createGui()
+    -- Create a ScreenGui
+    screenGui = Instance.new("ScreenGui")
+    screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+    -- Create a Frame
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(0, 100, 0, 75) -- Smaller size
+    frame.Position = savedPosition  -- Use saved position
+    frame.AnchorPoint = Vector2.new(0.5, 0.5)
+    frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- Black background
+    frame.Parent = screenGui
+
+    -- Add UICorner to Frame
+    local uiCornerFrame = Instance.new("UICorner")
+    uiCornerFrame.CornerRadius = UDim.new(0, 15)
+    uiCornerFrame.Parent = frame
+
+    -- Create a Button
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(0, 80, 0, 40) -- Smaller size
+    button.Position = UDim2.new(0.5, 0, 0.5, 0) -- Centered in the frame
+    button.AnchorPoint = Vector2.new(0.5, 0.5)
+    button.BackgroundTransparency = 1 -- Remove background color
+    button.Text = "Invisible is"
+    button.TextColor3 = Color3.fromRGB(255, 255, 255) -- White text color
+    button.Parent = frame
+
+    -- Function to toggle button text based on Options.FEInvisible value
+    game:GetService("ReplicatedStorage").Remotes.Gameplay.Stealth:FireServer(false)
+    local function toggleButtonText()
+        if Options.Invisible.Value then
+            button.Text = "Invisible is [ON]"
+            game:GetService("ReplicatedStorage").Remotes.Gameplay.Stealth:FireServer(true)
+        else
+            button.Text = "Invisible is [OFF]"
+            game:GetService("ReplicatedStorage").Remotes.Gameplay.Stealth:FireServer(false)
+        end
+    end
+
+    -- Connect the button click event to the toggle function
+    button.MouseButton1Click:Connect(function()
+        Options.Invisible:SetValue(not Options.Invisible.Value)
+        toggleButtonText()
+        
+    end)
+
+    -- Make the Frame draggable
+    local UserInputService = game:GetService("UserInputService")
+
+    local dragging
+    local dragInput
+    local dragStart
+    local startPos
+
+    local function update(input)
+        local delta = input.Position - dragStart
+        frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        savedPosition = frame.Position  -- Save the updated position
+    end
+
+    frame.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = frame.Position
+
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+
+    frame.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            dragInput = input
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            update(input)
+        end
+    end)
+
+    -- Update button text based on Options.FEInvisible initial value
+    toggleButtonText()
+end
+
+-- Function to handle GUI creation and destruction
+local function handleToggle(value)
+    if value then
+        -- Create and show the GUI
+        createGui()
+    else
+        -- Destroy the GUI
+        if screenGui then
+            screenGui:Destroy()
+            screenGui = nil
+        end
+    end
+end
+
+-- Handle the toggle state change
+Toggle:OnChanged(handleToggle)
+
+-- Set the initial state of the toggle
+Options.Invisible:SetValue(false)
 
 -- Ensure the GUI persists across respawns
 local player = game.Players.LocalPlayer
@@ -2083,12 +2391,14 @@ player.CharacterAdded:Connect(function()
     end
 end)
 
+
+
 -- Create the toggle
 local Toggle = Tabs.Buttons:AddToggle("GrabButton", {Title = "Grab Gun Button", Default = false })
 
 -- Create a ScreenGui
 local screenGui
-local savedPosition = UDim2.new(0.5, -75, 0.5, -37.5)  -- Default position
+local savedPosition = UDim2.new(0.5, 75, 0.5, -37.5)  -- Default position
 
 -- Function to create or destroy the GUI based on toggle state
 local function toggleGui(value)
@@ -2132,30 +2442,51 @@ end
 workspace.ChildAdded:Connect(updateButtonText)
 workspace.ChildRemoved:Connect(updateButtonText)
         -- Function to handle the button click event
-        button.MouseButton1Click:Connect(function()
-            if game.Players.LocalPlayer.Character then
-                local gundr = workspace:FindFirstChild("GunDrop")
-                if gundr then
-                    local oldpos = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame
-                    repeat
-                        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(90), math.rad(0), math.rad(0))
-                        task.wait()
-                        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(-90), math.rad(0), math.rad(0))
-                        task.wait()
-                    until not gundr:IsDescendantOf(workspace)
-                    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = oldpos
-                    oldpos = false
-                    game.Players.LocalPlayer.Character.Humanoid:ChangeState(1)
-                    button.Text = "Grab Gun (Gotcha)"
-                else
-                    Fluent:Notify({
-                        Title = "Gun not Found",
-                        Content = "Wait for the Sheriff's death to grab the gun.",
-                        Duration = 3
-                    })
-                end
-            end
-        end)
+
+button.MouseButton1Click:Connect(function()
+    local player = game.Players.LocalPlayer
+    
+    if not IsAlive(player) then
+        Fluent:Notify({
+            Title = "You're not alive",
+            Content = "Please wait for the new round to grab the gun.",
+            Duration = 3
+        })
+        return
+    end
+    
+    if player.Backpack:FindFirstChild("Gun") or (player.Character and player.Character:FindFirstChild("Gun")) then
+        Fluent:Notify({
+            Title = "You already have a gun",
+            Content = "Lollll.",
+            Duration = 3
+        })
+        return
+    end
+    
+    if player.Character then
+        local gundr = workspace:FindFirstChild("GunDrop")
+        if gundr then
+            local oldpos = player.Character.HumanoidRootPart.CFrame
+            repeat
+                player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(90), math.rad(0), math.rad(0))
+                task.wait()
+                player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(-90), math.rad(0), math.rad(0))
+                task.wait()
+            until not gundr:IsDescendantOf(workspace)
+            player.Character.HumanoidRootPart.CFrame = oldpos
+            oldpos = false
+            player.Character.Humanoid:ChangeState(1)
+            button.Text = "Grab Gun (Gotcha)"
+        else
+            Fluent:Notify({
+                Title = "Gun not Found",
+                Content = "Wait for the Sheriff's death to grab the gun.",
+                Duration = 3
+            })
+        end
+    end
+end)
 
         -- Function to handle GUI drag on mobile
         local UserInputService = game:GetService("UserInputService")
@@ -2219,6 +2550,378 @@ player.CharacterAdded:Connect(function()
         toggleGui(true)
     end
 end)
+
+
+local Toggle = Tabs.Buttons:AddToggle("ShootMurd", {Title = "TP Shoot Murd", default = false })
+
+-- Create a ScreenGui
+local screenGui
+local savedPosition = UDim2.new(0.5, 75, 0.5, 37)  -- Default position
+
+-- Function to create or destroy the GUI based on toggle state
+local function toggleGui(value)
+    if value then
+        -- Create the GUI
+        screenGui = Instance.new("ScreenGui")
+        screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+        -- Create the Frame
+        local frame = Instance.new("Frame")
+        frame.Size = UDim2.new(0, 100, 0, 75) -- Smaller size
+        frame.Position = savedPosition  -- Use saved position
+        frame.AnchorPoint = Vector2.new(0.5, 0.5)
+        frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- Black background
+        frame.Parent = screenGui
+
+        -- Add UICorner to Frame
+        local uiCornerFrame = Instance.new("UICorner")
+        uiCornerFrame.CornerRadius = UDim.new(0, 15)
+        uiCornerFrame.Parent = frame
+
+        -- Create the Button
+        local button = Instance.new("TextButton")
+        button.Size = UDim2.new(0, 80, 0, 40) -- Smaller size
+        button.Position = UDim2.new(0.5, 0, 0.5, 0) -- Centered in the frame
+        button.AnchorPoint = Vector2.new(0.5, 0.5)
+        button.BackgroundTransparency = 0.8 -- Remove background color
+        button.Text = "TP Shoot Murd"
+        button.TextColor3 = Color3.fromRGB(255, 255, 255) -- White text color
+        button.Parent = frame
+
+button.MouseButton1Click:Connect(function()
+    local player = game.Players.LocalPlayer
+    local humanoidRootPart = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+    if not humanoidRootPart then return end
+
+    local currentPosition = humanoidRootPart.CFrame
+
+    if Murder then
+        local murdererCharacter = game.Players[Murder] and game.Players[Murder].Character
+        if murdererCharacter and murdererCharacter:FindFirstChild("HumanoidRootPart") then
+            local murdererPosition = murdererCharacter.HumanoidRootPart.CFrame
+
+            -- Check if the player has a gun in their backpack or equipped
+            local backpack = player:FindFirstChild("Backpack")
+            local gun = backpack and (backpack:FindFirstChild("Gun") or player.Character:FindFirstChild("Gun"))
+
+            if gun then
+                -- Equip the gun if not already equipped
+                if backpack:FindFirstChild("Gun") then
+                    backpack.Gun.Parent = player.Character
+                end
+
+                -- Teleport to the murderer
+                humanoidRootPart.CFrame = murdererPosition
+
+                -- Shoot the gun at the murderer's position
+                if player.Character:FindFirstChild("Gun") then
+                    wait(0.2)
+                    player.Character:MoveTo(currentPosition.Position)
+                    player.Character.Gun.KnifeServer.ShootGun:InvokeServer(1, murdererCharacter.HumanoidRootPart.Position, "AH")
+                end
+            else
+                Fluent:Notify({
+                    Title = "You don't have a Gun",
+                    Content = "Grab the gun or wait for Sheriff Death.",
+                    Duration = 3
+                })
+            end
+        else
+            Fluent:Notify({
+                Title = "Murderer not Found",
+                Content = "Murderer's character not found.",
+                Duration = 3
+            })
+        end
+    else
+        Fluent:Notify({
+            Title = "Murderer not Found",
+            Content = "Murderer role not assigned yet.",
+            Duration = 3
+        })
+    end
+end)
+
+        -- Function to handle GUI drag on mobile
+        local UserInputService = game:GetService("UserInputService")
+
+        local dragging
+        local dragInput
+        local dragStart
+        local startPos
+
+        local function update(input)
+            local delta = input.Position - dragStart
+            frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+            savedPosition = frame.Position  -- Save the updated position
+        end
+
+        frame.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                dragging = true
+                dragStart = input.Position
+                startPos = frame.Position
+
+                input.Changed:Connect(function()
+                    if input.UserInputState == Enum.UserInputState.End then
+                        dragging = false
+                    end
+                end)
+            end
+        end)
+
+        frame.InputChanged:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+                dragInput = input
+            end
+        end)
+
+        UserInputService.InputChanged:Connect(function(input)
+            if input == dragInput and dragging then
+                update(input)
+            end
+        end)
+
+    else
+        -- Destroy the GUI if it exists
+        if screenGui then
+            screenGui:Destroy()
+            screenGui = nil
+        end
+    end
+end
+
+-- Connect the toggle's OnChanged event to the function
+Toggle:OnChanged(toggleGui)
+
+-- Set the initial state of the toggle
+Options.ShootMurd:SetValue(false) ----CHANGE THIS
+
+-- Ensure the GUI persists across respawns and retains its position
+local player = game.Players.LocalPlayer
+player.CharacterAdded:Connect(function()
+    if Toggle.Value then
+        toggleGui(true)
+    end
+end)
+
+local Toggle = Tabs.Buttons:AddToggle("StabSheriff", {Title = "TP Stab Sheriff/Hero", default = false })
+
+-- Create a ScreenGui
+local screenGui
+local savedPosition = UDim2.new(0.5, 75, 0.5, 37)  -- Default position
+
+-- Function to create or destroy the GUI based on toggle state
+local function toggleGui(value)
+    if value then
+        -- Create the GUI
+        screenGui = Instance.new("ScreenGui")
+        screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+        -- Create the Frame
+        local frame = Instance.new("Frame")
+        frame.Size = UDim2.new(0, 100, 0, 75) -- Smaller size
+        frame.Position = savedPosition  -- Use saved position
+        frame.AnchorPoint = Vector2.new(0.5, 0.5)
+        frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- Black background
+        frame.Parent = screenGui
+
+        -- Add UICorner to Frame
+        local uiCornerFrame = Instance.new("UICorner")
+        uiCornerFrame.CornerRadius = UDim.new(0, 15)
+        uiCornerFrame.Parent = frame
+
+        -- Create the Button
+        local button = Instance.new("TextButton")
+        button.Size = UDim2.new(0, 80, 0, 40) -- Smaller size
+        button.Position = UDim2.new(0.5, 0, 0.5, 0) -- Centered in the frame
+        button.AnchorPoint = Vector2.new(0.5, 0.5)
+        button.BackgroundTransparency = 0.8 -- Remove background color
+        button.Text = "TP Stab Sheriff/Hero"
+        button.TextColor3 = Color3.fromRGB(255, 255, 255) -- White text color
+        button.Parent = frame
+
+button.MouseButton1Click:Connect(function()
+    local player = game.Players.LocalPlayer
+    local character = player.Character
+    local humanoidRootPart = character and character:FindFirstChild("HumanoidRootPart")
+
+    if not humanoidRootPart then
+        Fluent:Notify({
+            Title = "Error",
+            Content = "HumanoidRootPart not found.",
+            Duration = 3
+        })
+        return
+    end
+
+    local currentPosition = humanoidRootPart.Position
+
+    local function IsAlive(Player)
+        for i, v in pairs(roles) do
+            if Player.Name == i then
+                return not v.Killed and not v.Dead
+            end
+        end
+        return false
+    end
+
+    local function getTargetPlayer()
+        if Sheriff and IsAlive(game.Players[Sheriff]) then
+            return game.Players[Sheriff]
+        elseif Hero and IsAlive(game.Players[Hero]) then
+            return game.Players[Hero]
+        else
+            for _, p in pairs(game.Players:GetPlayers()) do
+                if p.Backpack:FindFirstChild("Gun") and IsAlive(p) then
+                    return p
+                end
+            end
+        end
+        return nil
+    end
+
+    -- Check if the player has a knife
+    local backpack = player.Backpack
+    if not (backpack:FindFirstChild("Knife") or character:FindFirstChild("Knife")) then
+        Fluent:Notify({
+            Title = "You are not Murderer",
+            Content = "Bruh will not work if you're not Murderer",
+            Duration = 3
+        })
+        return
+    end
+
+    local targetPlayer = getTargetPlayer()
+
+    if targetPlayer then
+        local targetCharacter = targetPlayer.Character
+        if targetCharacter and targetCharacter:FindFirstChild("HumanoidRootPart") then
+            local targetPosition = targetCharacter.HumanoidRootPart.Position
+
+            -- Equip the knife if not already equipped
+            if backpack:FindFirstChild("Knife") then
+                backpack.Knife.Parent = character
+            end
+
+            humanoidRootPart.CFrame = CFrame.new(targetPosition)
+
+            -- Stab the target
+            if character:FindFirstChild("Knife") then
+                wait(0.2)
+                character:MoveTo(currentPosition)
+                if type(Stab) == "function" then
+                    Stab()
+                end
+                firetouchinterest(humanoidRootPart, targetCharacter.HumanoidRootPart, 1)
+                firetouchinterest(humanoidRootPart, targetCharacter.HumanoidRootPart, 0)
+
+                -- Force teleport to original position
+                humanoidRootPart.CFrame = CFrame.new(currentPosition)
+            end
+        else
+            Fluent:Notify({
+                Title = "Target not Found",
+                Content = "Target character not found.",
+                Duration = 3
+            })
+        end
+    else
+        Fluent:Notify({
+            Title = "Character not Found",
+            Content = "No suitable target found.",
+            Duration = 3
+        })
+    end
+end)
+
+        -- Function to handle GUI drag on mobile
+        local UserInputService = game:GetService("UserInputService")
+
+        local dragging
+        local dragInput
+        local dragStart
+        local startPos
+
+        local function update(input)
+            local delta = input.Position - dragStart
+            frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+            savedPosition = frame.Position  -- Save the updated position
+        end
+
+        frame.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                dragging = true
+                dragStart = input.Position
+                startPos = frame.Position
+
+                input.Changed:Connect(function()
+                    if input.UserInputState == Enum.UserInputState.End then
+                        dragging = false
+                    end
+                end)
+            end
+        end)
+
+        frame.InputChanged:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+                dragInput = input
+            end
+        end)
+
+        UserInputService.InputChanged:Connect(function(input)
+            if input == dragInput and dragging then
+                update(input)
+            end
+        end)
+
+    else
+        -- Destroy the GUI if it exists
+        if screenGui then
+            screenGui:Destroy()
+            screenGui = nil
+        end
+    end
+end
+
+-- Connect the toggle's OnChanged event to the function
+Toggle:OnChanged(toggleGui)
+
+-- Set the initial state of the toggle
+Options.StabSheriff:SetValue(false) ----CHANGE THIS
+
+-- Ensure the GUI persists across respawns and retains its position
+local player = game.Players.LocalPlayer
+player.CharacterAdded:Connect(function()
+    if Toggle.Value then
+        toggleGui(true)
+    end
+end)
+
+
+
+
+
+
+
+Tabs.Buttons:AddParagraph({
+            Title = "This is for Scrolling",
+            Content = "For scrolling only"
+        })
+        
+        Tabs.Buttons:AddParagraph({
+            Title = "This is for Scrolling",
+            Content = "For scrolling only"
+        })
+        
+        Tabs.Buttons:AddParagraph({
+            Title = "This is for Scrolling",
+            Content = "For scrolling only"
+        })
+
+
+
+
 
 
 
@@ -2396,3 +3099,5 @@ end)
     -- You can use the SaveManager:LoadAutoloadConfig() to load a config
     -- which has been marked to be one that auto loads!
     SaveManager:LoadAutoloadConfig()
+    
+    
