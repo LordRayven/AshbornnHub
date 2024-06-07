@@ -1,6 +1,12 @@
 local Nofitication = {}
 
 local GUI = game:GetService("CoreGui"):FindFirstChild("STX_Nofitication")
+if not GUI then
+    GUI = Instance.new("ScreenGui")
+    GUI.Name = "STX_Nofitication"
+    GUI.Parent = game:GetService("CoreGui")
+end
+
 function Nofitication:Notify(nofdebug, middledebug, all)
     local SelectedType = string.lower(tostring(middledebug.Type))
     local ambientShadow = Instance.new("ImageLabel")
@@ -14,7 +20,7 @@ function Nofitication:Notify(nofdebug, middledebug, all)
     ambientShadow.AnchorPoint = Vector2.new(0.5, 0.5)
     ambientShadow.BackgroundTransparency = 1.000
     ambientShadow.BorderSizePixel = 0
-    ambientShadow.Position = UDim2.new(0.91525954, 0, 0.936809778, 0)
+    ambientShadow.Position = UDim2.new(0.5, 0, 0.5, 0)
     ambientShadow.Size = UDim2.new(0, 0, 0, 0)
     ambientShadow.Image = "rbxassetid://1316045217"
     ambientShadow.ImageColor3 = Color3.fromRGB(20, 20, 20)  -- Darker shadow color
@@ -70,22 +76,18 @@ function Nofitication:Notify(nofdebug, middledebug, all)
     WindowDescription.TextXAlignment = Enum.TextXAlignment.Left
     WindowDescription.TextYAlignment = Enum.TextYAlignment.Top
 
+    local function destroyNotification()
+        ambientShadow:TweenSize(UDim2.new(0, 0, 0, 0), "Out", "Linear", 0.2)
+        wait(0.2)
+        ambientShadow:Destroy()
+    end
+
     if SelectedType == "default" then
-        local function ORBHB_fake_script()
-            local script = Instance.new('LocalScript', ambientShadow)
-        
-            ambientShadow:TweenSize(UDim2.new(0, 240, 0, 90), "Out", "Linear", 0.2)
-            Window.Size = UDim2.new(0, 230, 0, 80)
-            Outline_A:TweenSize(UDim2.new(0, 0, 0, 2), "Out", "Linear", middledebug.Time)
-    
-            wait(middledebug.Time)
-        
-            ambientShadow:TweenSize(UDim2.new(0, 0, 0, 0), "Out", "Linear", 0.2)
-            
-            wait(0.2)
-            ambientShadow:Destroy()
-        end
-        coroutine.wrap(ORBHB_fake_script)()
+        ambientShadow:TweenSize(UDim2.new(0, 240, 0, 90), "Out", "Linear", 0.2)
+        Window.Size = UDim2.new(0, 230, 0, 80)
+        Outline_A:TweenSize(UDim2.new(0, 0, 0, 2), "Out", "Linear", middledebug.Time)
+        wait(middledebug.Time)
+        destroyNotification()
     elseif SelectedType == "image" then
         ambientShadow:TweenSize(UDim2.new(0, 240, 0, 90), "Out", "Linear", 0.2)
         Window.Size = UDim2.new(0, 230, 0, 80)
@@ -101,20 +103,9 @@ function Nofitication:Notify(nofdebug, middledebug, all)
         ImageButton.AutoButtonColor = false
         ImageButton.Image = all.Image
         ImageButton.ImageColor3 = all.ImageColor
-
-        local function ORBHB_fake_script()
-            local script = Instance.new('LocalScript', ambientShadow)
-        
-            Outline_A:TweenSize(UDim2.new(0, 0, 0, 2), "Out", "Linear", middledebug.Time)
-
-            wait(middledebug.Time)
-        
-            ambientShadow:TweenSize(UDim2.new(0, 0, 0, 0), "Out", "Linear", 0.2)
-            
-            wait(0.2)
-            ambientShadow:Destroy()
-        end
-        coroutine.wrap(ORBHB_fake_script)()
+        Outline_A:TweenSize(UDim2.new(0, 0, 0, 2), "Out", "Linear", middledebug.Time)
+        wait(middledebug.Time)
+        destroyNotification()
     elseif SelectedType == "option" then
         ambientShadow:TweenSize(UDim2.new(0, 240, 0, 110), "Out", "Linear", 0.2)
         Window.Size = UDim2.new(0, 230, 0, 100)
@@ -145,21 +136,31 @@ function Nofitication:Notify(nofdebug, middledebug, all)
         Check.Image = "http://www.roblox.com/asset/?id=6031094667"
         Check.ImageColor3 = Color3.fromRGB(83, 230, 50)
 
-        local function ORBHB_fake_script()
-            local script = Instance.new('LocalScript', ambientShadow)
+        local function handleOption(callback)
+            pcall(function()
+                callback()
+            end)
+            destroyNotification()
+        end
+
+        Uncheck.MouseButton1Click:Connect(function()
+            handleOption(function()
+                all.Callback(false)
+            end)
+        end)
         
-            local Stilthere = true
-            local function Unchecked()
-                pcall(function()
-                    all.Callback(false)
-                end)
-                ambientShadow:TweenSize(UDim2.new(0, 0, 0, 0), "Out", "Linear", 0.2)
-                
-                wait(0.2)
-                ambientShadow:Destroy()
-                Stilthere = false
-            end
-            local function Checked()
-                pcall(function()
-                    all.Callback(true)
-                end
+        Check.MouseButton1Click:Connect(function()
+            handleOption(function()
+                all.Callback(true)
+            end)
+        end)
+        
+        Outline_A:TweenSize(UDim2.new(0, 0, 0, 2), "Out", "Linear", middledebug.Time)
+        wait(middledebug.Time)
+        if ambientShadow and ambientShadow.Parent then
+            destroyNotification()
+        end
+    end
+end
+
+return Nofitication
