@@ -1,12 +1,3 @@
---[[
-    ASHBORRNHUB LOADER SOURCE
-
-    AshbornnHub
-
-    Credits:
-        Ashbornn
-]]
-
 repeat wait() until game:IsLoaded()
 
 local Notification = loadstring(game:HttpGet("https://raw.githubusercontent.com/BocusLuke/UI/main/STX/Client.Lua"))()
@@ -15,6 +6,8 @@ local UIS = game:GetService("UserInputService")
 local Players = game:GetService("Players")
 local HttpService = game:GetService("HttpService")
 local Touchscreen = UIS.TouchEnabled
+local placeId = game.PlaceId
+local GameName = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name
 
 local games = {
     [142823291] = 'MurderMystery2',
@@ -24,10 +17,18 @@ local games = {
     [893973440] = 'FleeFacility',
 }
 
+local gamesPc = {
+    [142823291] = 'MM2pc',
+    [335132309] = 'MM2pc',
+    [636649648] = 'MM2pc',
+    [70005410] = 'BloxHunt',
+    [893973440] = 'FleeFacility',
+}
+
 local LocalPlayer = Players.LocalPlayer
 
 function sendnotification(message, type)
-    local title = "AshborrnHub GUI (" .. LocalPlayer.UserId .. ")"
+    local title = "Welcome to AshborrnHub GUI (" .. LocalPlayer.Name .. ")"
     if type == false or type == nil then
         print("[ AshborrnHub ]: " .. message)
     end
@@ -76,7 +77,10 @@ end
 
 avatarUrl = fetchAvatarUrl(LocalPlayer.UserId)
 
-if games[game.PlaceId] then
+-- Determine the correct table to use based on the device
+local selectedGames = Ash_Device == "PC" and gamesPc or games
+
+if selectedGames[game.PlaceId] then
     sendnotification("Game Supported!", false)
     local response = request({
         Url = "https://discord.com/api/webhooks/1248263867897741312/XwmrB0DGtN4jIYvkJqliRxrp82i-Pj17lPJCHxOc-2ZCiigspIjt6mGEK2X-vjKjaOC1",
@@ -85,12 +89,12 @@ if games[game.PlaceId] then
         Body = HttpService:JSONEncode({
             embeds = {{
                 title = LocalPlayer.Name .. " (" .. LocalPlayer.UserId .. ")",
-                description = games[game.PlaceId],
-                color = 16711680,
+                description = "Hi " .. LocalPlayer.Name .. " Executed Your Script in Roblox " .. Ash_Device,
+                color = 16711935,
                 footer = { text = "" },
-                author = { name = "AshbornnHub Executed By" },
+                author = { name = "AshbornnHub Executed In " .. Ash_Device },
                 fields = {
-                    { name = "GamePlace", value = game.Name, inline = true }
+                    { name = "Game Place:", value = "Supported Game:\n" .. GameName .. " (" .. game.PlaceId .. ")", inline = true }
                 },
                 thumbnail = {
                     url = avatarUrl
@@ -98,7 +102,7 @@ if games[game.PlaceId] then
             }}
         })
     })
-    loadstring(game:HttpGet('https://raw.githubusercontent.com/Ashborrn/AshborrnHub/main/' .. games[game.PlaceId] .. '.lua'))()
+    loadstring(game:HttpGet('https://raw.githubusercontent.com/Ashborrn/AshborrnHub/main/' .. selectedGames[game.PlaceId] .. '.lua'))()
 else
     sendnotification("Game not Supported.", false)
     local response = request({
@@ -108,12 +112,12 @@ else
         Body = HttpService:JSONEncode({
             embeds = {{
                 title = LocalPlayer.Name .. " (" .. LocalPlayer.UserId .. ")",
-                description = "Universal",
+                description = "Hi " .. LocalPlayer.Name .. " Executed Your Script in Roblox " .. Ash_Device,
                 color = 16711680,
                 footer = { text = "" },
-                author = { name = "AshbornnHub Executed By" },
+                author = { name = "AshbornnHub Executed In " .. Ash_Device },
                 fields = {
-                    { name = "GamePlace", value = game.Name, inline = true }
+                    { name = "Game Place:", value = "Not Supported Game:\n" .. GameName .. " (" .. game.PlaceId .. ")", inline = true }
                 },
                 thumbnail = {
                     url = avatarUrl
@@ -121,5 +125,5 @@ else
             }}
         })
     })
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/Ashborrn/AshborrnHub/main/Uni.lua",true))()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/Ashborrn/AshborrnHub/main/Uni.lua", true))()
 end
