@@ -17,27 +17,30 @@ local HttpService = game:GetService("HttpService")
 local Touchscreen = UIS.TouchEnabled
 
 local games = {
-    [142823291] = 'AshbornnHubMM2v3',
-    [335132309] = 'AshbornnHubMM2v3',
-    [636649648] = 'AshbornnHubMM2v3',
+    [142823291] = 'MurderMystery2',
+    [335132309] = 'MurderMystery2',
+    [636649648] = 'MurderMystery2',
     [70005410] = 'BloxHunt',
     [893973440] = 'FleeFacility',
 }
 
+local LocalPlayer = Players.LocalPlayer
+
 function sendnotification(message, type)
+    local title = "AshborrnHub GUI (" .. LocalPlayer.UserId .. ")"
     if type == false or type == nil then
         print("[ AshborrnHub ]: " .. message)
     end
     if type == true or type == nil then
         if Ash_Device == "Mobile" then
             StarterGui:SetCore("SendNotification", {
-                Title = "AshborrnHub GUI";
+                Title = title;
                 Text = message;
                 Duration = 7;
             })
         else
             Notification:Notify(
-                {Title = "AshbornnHub GUI", Description = message},
+                {Title = title, Description = message},
                 {OutlineColor = Color3.fromRGB(97, 62, 167), Time = 4, Type = "default"}
             )
         end
@@ -63,7 +66,6 @@ sendnotification("Drawing.new is " .. Ash_Drawing .. ".", false)
 
 sendnotification("Script loading, this may take a while depending on your device.", nil)
 
-local LocalPlayer = Players.LocalPlayer
 local avatarUrl = "https://www.roblox.com/headshot-thumbnail/image?userId=" .. LocalPlayer.UserId .. "&width=150&height=150&format=png"
 
 local function fetchAvatarUrl(userId)
@@ -82,7 +84,7 @@ if games[game.PlaceId] then
         Headers = {["Content-Type"] = "application/json"},
         Body = HttpService:JSONEncode({
             embeds = {{
-                title = LocalPlayer.Name,
+                title = LocalPlayer.Name .. " (" .. LocalPlayer.UserId .. ")",
                 description = games[game.PlaceId],
                 color = 16711680,
                 footer = { text = "" },
@@ -105,7 +107,7 @@ else
         Headers = {["Content-Type"] = "application/json"},
         Body = HttpService:JSONEncode({
             embeds = {{
-                title = LocalPlayer.Name,
+                title = LocalPlayer.Name .. " (" .. LocalPlayer.UserId .. ")",
                 description = "Universal",
                 color = 16711680,
                 footer = { text = "" },
