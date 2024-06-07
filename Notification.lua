@@ -23,14 +23,15 @@ function Nofitication:Notify(nofdebug, middledebug, all)
     ambientShadow.Position = UDim2.new(0.5, 0, 0.5, 0)
     ambientShadow.Size = UDim2.new(0, 0, 0, 0)
     ambientShadow.Image = "rbxassetid://1316045217"
-    ambientShadow.ImageColor3 = Color3.fromRGB(20, 20, 20)  -- Darker shadow color
-    ambientShadow.ImageTransparency = 0.300  -- Slightly less transparent
+    ambientShadow.ImageColor3 = Color3.fromRGB(20, 20, 20)
+    ambientShadow.ImageTransparency = 0.300
     ambientShadow.ScaleType = Enum.ScaleType.Slice
     ambientShadow.SliceCenter = Rect.new(10, 10, 118, 118)
     
     Window.Name = "Window"
     Window.Parent = ambientShadow
-    Window.BackgroundColor3 = Color3.fromRGB(15, 15, 15)  -- Dark background color
+    Window.BackgroundColor3 = Color3.fromRGB(128, 0, 128)  -- Purple color
+    Window.BackgroundTransparency = 0.5  -- 50% transparent
     Window.BorderSizePixel = 0
     Window.Position = UDim2.new(0, 5, 0, 5)
     Window.Size = UDim2.new(0, 230, 0, 80)
@@ -38,7 +39,7 @@ function Nofitication:Notify(nofdebug, middledebug, all)
     
     Outline_A.Name = "Outline_A"
     Outline_A.Parent = Window
-    Outline_A.BackgroundColor3 = Color3.fromRGB(45, 45, 45)  -- Darker outline
+    Outline_A.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
     Outline_A.BorderSizePixel = 0
     Outline_A.Position = UDim2.new(0, 0, 0, 25)
     Outline_A.Size = UDim2.new(0, 230, 0, 2)
@@ -55,7 +56,7 @@ function Nofitication:Notify(nofdebug, middledebug, all)
     WindowTitle.ZIndex = 4
     WindowTitle.Font = Enum.Font.GothamSemibold
     WindowTitle.Text = nofdebug.Title
-    WindowTitle.TextColor3 = Color3.fromRGB(180, 180, 255)  -- Subtle dark blue color for text
+    WindowTitle.TextColor3 = Color3.fromRGB(180, 180, 255)
     WindowTitle.TextSize = 12.000
     WindowTitle.TextXAlignment = Enum.TextXAlignment.Left
     
@@ -70,7 +71,7 @@ function Nofitication:Notify(nofdebug, middledebug, all)
     WindowDescription.ZIndex = 4
     WindowDescription.Font = Enum.Font.GothamSemibold
     WindowDescription.Text = nofdebug.Description
-    WindowDescription.TextColor3 = Color3.fromRGB(120, 120, 255)  -- Subtle dark blue color for text
+    WindowDescription.TextColor3 = Color3.fromRGB(120, 120, 255)
     WindowDescription.TextSize = 12.000
     WindowDescription.TextWrapped = true
     WindowDescription.TextXAlignment = Enum.TextXAlignment.Left
