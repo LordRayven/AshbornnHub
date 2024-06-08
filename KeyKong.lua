@@ -1,5 +1,6 @@
-local userkey = game:HttpGet("https://pastebin.com/raw/KmYqqn9J")
-local url = "https://lootdest.com/s?c8b29e4030bcd614"
+local userkey = game:HttpGet("https://pastebin.com/raw/aMp6mHAs")
+local url = "https://loot-link.com/s?ed7176e3c6a95569"
+local discordInvite = "https://discord.com/invite/AdYyzaTpXX"
 
 local NotificationHolder = loadstring(game:HttpGet("https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/NotificationHolder.lua"))()
 local Notification = loadstring(game:HttpGet("https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/Notification.lua"))()
@@ -87,6 +88,18 @@ checkKeyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 checkKeyButton.BorderSizePixel = 0
 checkKeyButton.Font = Enum.Font.SourceSansBold
 
+-- Add Discord button
+local discordButton = Instance.new("TextButton", frame)
+discordButton.Size = UDim2.new(0.35, 0, 0.2, 0)
+discordButton.Position = UDim2.new(0.325, 0, 0.8, 0)
+discordButton.Text = "Join Discord"
+discordButton.TextScaled = true
+discordButton.BackgroundColor3 = Color3.fromRGB(114, 137, 218)
+discordButton.BackgroundTransparency = 0.7  -- Set transparency to 70%
+discordButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+discordButton.BorderSizePixel = 0
+discordButton.Font = Enum.Font.SourceSansBold
+
 -- Close button functionality
 closeButton.MouseButton1Click:Connect(function()
     gui:Destroy()
@@ -95,6 +108,11 @@ end)
 -- Get Key button functionality
 getKeyButton.MouseButton1Click:Connect(function()
    setclipboard(url)
+end)
+
+-- Discord button functionality
+discordButton.MouseButton1Click:Connect(function()
+   setclipboard(discordInvite)
 end)
 
 -- Load saved key if available
