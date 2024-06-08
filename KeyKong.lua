@@ -1,3 +1,6 @@
+local userkey = game:HttpGet("https://pastebin.com/raw/aMp6mHAs")
+local url = "https://loot-link.com/s?ed7176e3c6a95569"
+
 local NotificationHolder = loadstring(game:HttpGet("https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/NotificationHolder.lua"))()
 local Notification = loadstring(game:HttpGet("https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/Notification.lua"))()
 
@@ -91,7 +94,6 @@ end)
 
 -- Get Key button functionality
 getKeyButton.MouseButton1Click:Connect(function()
-   local url = "https://loot-link.com/s?ed7176e3c6a95569"
    setclipboard(url)
 end)
 
@@ -110,32 +112,34 @@ local function saveKey(key)
     pcall(writefile, "AshbornnHub/saved_key.txt", key)
 end
 
+-- Define premium keys
+local premiumKeys = {
+    "RaizaR",
+    "UmF5dmVu",
+    userkey  -- Add the fetched user key here
+}
+
 local function CheckKey()
     _G.Key = textBox.Text
-    local userkey = "https://pastebin.com/raw/aMp6mHAs"
-    local key = game:HttpGet(userkey, true)
-    local plr = game.Players.LocalPlayer
-
-    -- Ensure exact match with key and handle multiple keys
-    local keys = {}
-    for k in key:gmatch("%S+") do
-        table.insert(keys, k)
-    end
 
     local keyValid = false
-    for _, k in ipairs(keys) do
-        if k == _G.Key then
-            keyValid = true
-            break
+    if _G.Key == "" then
+        print("Key is empty")
+    else
+        for _, k in ipairs(premiumKeys) do
+            if _G.Key == k then
+                keyValid = true
+                break
+            end
         end
     end
 
     if keyValid then
-        saveKey(_G.Key) -- Save the key if it is correct
+        saveKey(_G.Key)
         gui:Destroy()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/Ashborrn/AshborrnHub/main/loader", true))()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/AshMain.lua", true))()
     else
-        print("Key is invalid")  -- Debugging print statement
+        print("Key is invalid")
         Notification:Notify(
             {Title = "AshbornnHub GUI", Description = "Wrong Key"},
             {OutlineColor = Color3.fromRGB(97, 62, 167), Time = 7, Type = "default"}
