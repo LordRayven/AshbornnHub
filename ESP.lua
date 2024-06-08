@@ -1,6 +1,11 @@
 -- made by rang#2415
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local ownerUserIds = {
+    [290931] = true,
+    [129215104] = true
+}
+
 local Config = {
     Box = false,
     BoxOutline = false,
@@ -41,7 +46,7 @@ local function IsAlive(Player)
 end
 
 local function getRoleColor(player)
-    if player.UserId == 290931 or player.UserId == 129215104 then
+    if ownerUserIds[player.UserId] then
         return Color3.fromRGB(128, 0, 128) -- Purple color for specific UserIds
     end
 
