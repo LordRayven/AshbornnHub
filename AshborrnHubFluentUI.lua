@@ -58,6 +58,11 @@ local TimeStart = tick()
     local AntiFlingEnabled = false
     local playerAddedConnection = nil
     local localHeartbeatConnection = nil
+    
+    local ownerUserIds = {
+    [290931] = true,
+    [129215104] = true
+}
 
     -- Constants
     local Services = setmetatable({}, {
@@ -263,31 +268,31 @@ end
     end
     
     function UpdateHighlights()
-        for _, v in pairs(game.Players:GetPlayers()) do
-            if v ~= game:GetService("Players").LocalPlayer and v.Character ~= nil and v.Character:FindFirstChild("HumanoidRootPart") and v.Character:FindFirstChild("ESP_Highlight") then
-                local Highlight = v.Character:FindFirstChild("ESP_Highlight")
-                if v.UserId == 290931 or v.UserId == 129215104 then
-                    Highlight.FillColor = Color3.fromRGB(128, 0, 128) -- Purple color
-                    Highlight.FillTransparency = applyesptrans
-                elseif v.Name == Sheriff and IsAlive(v) then
-                    Highlight.FillColor = Color3.fromRGB(0, 0, 225) -- Blue color
-                    Highlight.FillTransparency = applyesptrans
-                elseif v.Name == Murder and IsAlive(v) then
-                    Highlight.FillColor = Color3.fromRGB(225, 0, 0) -- Red color
-                    Highlight.FillTransparency = applyesptrans
-                elseif v.Name == Hero and IsAlive(v) and (v.Backpack:FindFirstChild("Gun") or v.Character:FindFirstChild("Gun")) then
-                    Highlight.FillColor = Color3.fromRGB(255, 255, 0) -- Yellow color
-                    Highlight.FillTransparency = applyesptrans
-                elseif not IsAlive(v) then
-                    Highlight.FillColor = Color3.fromRGB(100, 100, 100) -- Gray color
-                    Highlight.FillTransparency = applyesptrans
-                else
-                    Highlight.FillColor = Color3.fromRGB(0, 225, 0) -- Green color
-                    Highlight.FillTransparency = applyesptrans
-                end
+    for _, v in pairs(game.Players:GetPlayers()) do
+        if v ~= game:GetService("Players").LocalPlayer and v.Character ~= nil and v.Character:FindFirstChild("HumanoidRootPart") and v.Character:FindFirstChild("ESP_Highlight") then
+            local Highlight = v.Character:FindFirstChild("ESP_Highlight")
+            if ownerUserIds[v.UserId] then
+                Highlight.FillColor = Color3.fromRGB(128, 0, 128) -- Purple color
+                Highlight.FillTransparency = applyesptrans
+            elseif v.Name == Sheriff and IsAlive(v) then
+                Highlight.FillColor = Color3.fromRGB(0, 0, 225) -- Blue color
+                Highlight.FillTransparency = applyesptrans
+            elseif v.Name == Murder and IsAlive(v) then
+                Highlight.FillColor = Color3.fromRGB(225, 0, 0) -- Red color
+                Highlight.FillTransparency = applyesptrans
+            elseif v.Name == Hero and IsAlive(v) and (v.Backpack:FindFirstChild("Gun") or v.Character:FindFirstChild("Gun")) then
+                Highlight.FillColor = Color3.fromRGB(255, 255, 0) -- Yellow color
+                Highlight.FillTransparency = applyesptrans
+            elseif not IsAlive(v) then
+                Highlight.FillColor = Color3.fromRGB(100, 100, 100) -- Gray color
+                Highlight.FillTransparency = applyesptrans
+            else
+                Highlight.FillColor = Color3.fromRGB(0, 225, 0) -- Green color
+                Highlight.FillTransparency = applyesptrans
             end
         end
     end
+end
 
     function IsAlive(Player)
         for i, v in pairs(roles) do
@@ -478,54 +483,87 @@ getgenv().GunHook = GunHook
     local SheriffHacks = Tabs.Combat:AddSection("Sheriff Hacks")
 
     Tabs.Combat:AddButton({
-        Title = "Grab Gun v2",
-        Description = "Teleport to and grab the gun if available",
-        Callback = function()
-            if game.Players.LocalPlayer.Character ~= nil then
-                local gundr = workspace:FindFirstChild("GunDrop")
-                if gundr then
-                    local oldpos = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame
-                    repeat
-                        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(90), math.rad(0), math.rad(0))
-                        task.wait()
-                        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(-90), math.rad(0), math.rad(0))
-                        task.wait()
-                    until not gundr:IsDescendantOf(workspace)
-                    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = oldpos
-                    oldpos = false
-                    game.Players.LocalPlayer.Character.Humanoid:ChangeState(1)
-                else
-                    Fluent:Notify({
-                        Title = "Gun not Found",
-                        Content = "Wait for the Sheriff's death to grab the gun.",
-                        Duration = 3
-                    })
-                end
+    Title = "Grab Gun v2",
+    Description = "Teleport to and grab the gun if available",
+    Callback = function()
+        local player = game.Players.LocalPlayer
+
+        if not IsAlive(player) then
+            Fluent:Notify({
+                Title = "You're not alive",
+                Content = "Please wait for the new round to grab the gun.",
+                Duration = 3
+            })
+            return
+        end
+
+        if player.Backpack:FindFirstChild("Gun") or (player.Character and player.Character:FindFirstChild("Gun")) then
+            Fluent:Notify({
+                Title = "You already have a gun",
+                Content = "Lollll.",
+                Duration = 3
+            })
+            return
+        end
+
+        if player.Character then
+            local gundr = workspace:FindFirstChild("GunDrop")
+            if gundr then
+                local oldpos = player.Character.HumanoidRootPart.CFrame
+                repeat
+                    player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(90), math.rad(0), math.rad(0))
+                    task.wait()
+                    player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(-90), math.rad(0), math.rad(0))
+                    task.wait()
+                until not gundr:IsDescendantOf(workspace)
+                player.Character.HumanoidRootPart.CFrame = oldpos
+                oldpos = false
+                player.Character.Humanoid:ChangeState(1)
+                button.Text = "Grab Gun (Gotcha)"
+            else
+                Fluent:Notify({
+                    Title = "Gun not Found",
+                    Content = "Wait for the Sheriff's death to grab the gun.",
+                    Duration = 3
+                })
             end
         end
-    }) 
+    end
+})
         
-        Tabs.Combat:AddButton({
-            Title = "Grab gun",
-            Description = "Tp to Gun",
-            Callback = function()
-                local currentX = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame.X
-                local currentY = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame.Y
-                local currentZ = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame.Z	
-                
-                if workspace:FindFirstChild("GunDrop") then
-                    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = workspace:FindFirstChild("GunDrop").CFrame	
-                    wait(.30)	
-                    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(currentX, currentY, currentZ)
-                else
-                    Fluent:Notify({
-                        Title = "Gun not Found",
-                        Content = "Wait for the Sheriff's death to grab the gun.",
-                        Duration = 3
-                    })
-                end
-            end
-        })
+Tabs.Combat:AddButton({
+    Title = "Grab gun",
+    Description = "Tp to Gun",
+    Callback = function()
+        local player = game.Players.LocalPlayer
+        
+        -- Check if the player is alive
+        if not IsAlive(player) then
+            Fluent:Notify({
+                Title = "You're not alive",
+                Content = "Please wait for the new round to grab the gun.",
+                Duration = 3
+            })
+            return
+        end
+
+        local currentX = player.Character.HumanoidRootPart.CFrame.X
+        local currentY = player.Character.HumanoidRootPart.CFrame.Y
+        local currentZ = player.Character.HumanoidRootPart.CFrame.Z
+        
+        if workspace:FindFirstChild("GunDrop") then
+            player.Character.HumanoidRootPart.CFrame = workspace:FindFirstChild("GunDrop").CFrame
+            wait(0.30)
+            player.Character.HumanoidRootPart.CFrame = CFrame.new(currentX, currentY, currentZ)
+        else
+            Fluent:Notify({
+                Title = "Gun not Found",
+                Content = "Wait for the Sheriff's death to grab the gun.",
+                Duration = 3
+            })
+        end
+    end
+})
         
 
         
@@ -537,34 +575,50 @@ getgenv().GunHook = GunHook
 
     Options.SilentAIM1:SetValue(false)
 
-    Tabs.Combat:AddButton({
+    
+
+Tabs.Combat:AddButton({
     Title = "Shoot Murderer",
     Description = "Tp to Murderer and Shoot",
     Callback = function()
         local player = game.Players.LocalPlayer
-        local humanoidRootPart = player.Character.HumanoidRootPart
-        local currentX = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame.X
-        local currentY = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame.Y
-        local currentZ = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame.Z	
-        
+        local humanoidRootPart = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+        if not humanoidRootPart then return end
+
+        local currentX = humanoidRootPart.CFrame.X
+        local currentY = humanoidRootPart.CFrame.Y
+        local currentZ = humanoidRootPart.CFrame.Z
+
         if Murder then
-            local murdererCharacter = game.Players[Murder].Character
+            local murdererPlayer = game.Players[Murder]
+            local murdererCharacter = murdererPlayer and murdererPlayer.Character
             if murdererCharacter and murdererCharacter:FindFirstChild("HumanoidRootPart") then
+                -- Check if the murderer is in the owner user IDs table
+                if ownerUserIds[murdererPlayer.UserId] then
+                    Fluent:Notify({
+                        Title = "You're trying to kill the script owner",
+                        Content = "Nuhh uhh",
+                        SubContent = "Im here kid", -- Optional
+                        Duration = 3 -- Set to nil to make the notification not disappear
+                    })
+                    return
+                end
+
                 local murdererPosition = murdererCharacter.HumanoidRootPart.CFrame
-                
+
                 -- Check if the player has a gun in their backpack or equipped
-                local backpack = player.Backpack
-                local gun = backpack:FindFirstChild("Gun") or player.Character:FindFirstChild("Gun")
-                
+                local backpack = player:FindFirstChild("Backpack")
+                local gun = backpack and (backpack:FindFirstChild("Gun") or player.Character:FindFirstChild("Gun"))
+
                 if gun then
                     -- Equip the gun if not already equipped
                     if backpack:FindFirstChild("Gun") then
                         backpack.Gun.Parent = player.Character
                     end
-                    
+
                     -- Teleport to the murderer
                     humanoidRootPart.CFrame = murdererPosition
-                    
+
                     -- Shoot the gun at the murderer's position
                     if player.Character:FindFirstChild("Gun") then
                         wait(0.2)
@@ -598,7 +652,7 @@ getgenv().GunHook = GunHook
 
         
         local MurderHacks = Tabs.Combat:AddSection("Murderer Hacks")
-        
+       
 Tabs.Combat:AddButton({
     Title = "Kill Sheriff or Hero (Stab)",
     Description = "Tp to Sheriff or Hero and Stab",
@@ -656,6 +710,17 @@ Tabs.Combat:AddButton({
         local targetPlayer = getTargetPlayer()
 
         if targetPlayer then
+            -- Check if the target player is in the owner user IDs table
+            if ownerUserIds[targetPlayer.UserId] then
+                Fluent:Notify({
+                    Title = "You're trying to kill the script owner",
+                    Content = "Nuhh uhh",
+                    SubContent = "Im here kid", -- Optional
+                    Duration = 3 -- Set to nil to make the notification not disappear
+                })
+                return
+            end
+
             local targetCharacter = targetPlayer.Character
             if targetCharacter and targetCharacter:FindFirstChild("HumanoidRootPart") then
                 local targetPosition = targetCharacter.HumanoidRootPart.Position
@@ -718,89 +783,93 @@ Tabs.Combat:AddButton({
 
     Slider:SetValue(20)
 
-    local knifeAuraToggle = Tabs.Combat:AddToggle("KnifeAura", {Title = "Knife Aura", Default = false})
+    
 
-    knifeAuraToggle:OnChanged(function(knifeaura)
-        knifeauraloop = knifeaura
-        while knifeauraloop do
-            local function knifeAuraLoopFunction()
-                for _, v in pairs(game.Players:GetPlayers()) do
-                    if v ~= game.Players.LocalPlayer and game.Players.LocalPlayer:DistanceFromCharacter(v.Character.HumanoidRootPart.Position) < kniferangenum then
-                        if v.UserId == 290931 or v.UserId == 129215104 then
+local knifeAuraToggle = Tabs.Combat:AddToggle("KnifeAura", {Title = "Knife Aura", Default = false})
+
+knifeAuraToggle:OnChanged(function(knifeaura)
+    knifeauraloop = knifeaura
+    while knifeauraloop do
+        local function knifeAuraLoopFunction()
+            for _, v in pairs(game.Players:GetPlayers()) do
+                if v ~= game.Players.LocalPlayer and game.Players.LocalPlayer:DistanceFromCharacter(v.Character.HumanoidRootPart.Position) < kniferangenum then
+                    if ownerUserIds[v.UserId] then
                         UnequipTool()
-                            Fluent:Notify({
-                                Title = "You're trying to kill the script owner",
-                                Content = "Nuhh uhh",
-                                SubContent = "Im here kid", -- Optional
-                                Duration = 3 -- Set to nil to make the notification not disappear
-                            })
-                        else
-                            EquipTool()
-                            wait()
-                            local localCharacter = game.Players.LocalPlayer.Character
-                            local knife = localCharacter and localCharacter:FindFirstChild("Knife")
-                            if not knife then return end
-                            wait()
-                            local playerCharacter = v.Character
-                            local humanoidRootPart = playerCharacter and playerCharacter:FindFirstChild("HumanoidRootPart")
-                            
-                            if humanoidRootPart then
-                                Stab()
-                                firetouchinterest(humanoidRootPart, knife.Handle, 1)
-                                firetouchinterest(humanoidRootPart, knife.Handle, 0)
-                            end
+                        Fluent:Notify({
+                            Title = "You're trying to kill the script owner",
+                            Content = "Nuhh uhh",
+                            SubContent = "Im here kid", -- Optional
+                            Duration = 3 -- Set to nil to make the notification not disappear
+                        })
+                    else
+                        EquipTool()
+                        wait()
+                        local localCharacter = game.Players.LocalPlayer.Character
+                        local knife = localCharacter and localCharacter:FindFirstChild("Knife")
+                        if not knife then return end
+                        wait()
+                        local playerCharacter = v.Character
+                        local humanoidRootPart = playerCharacter and playerCharacter:FindFirstChild("HumanoidRootPart")
+
+                        if humanoidRootPart then
+                            Stab()
+                            firetouchinterest(humanoidRootPart, knife.Handle, 1)
+                            firetouchinterest(humanoidRootPart, knife.Handle, 0)
                         end
                     end
                 end
             end
-            wait()
-            pcall(knifeAuraLoopFunction)
         end
-    end)
+        wait()
+        pcall(knifeAuraLoopFunction)
+    end
+end)
 
     Options.KnifeAura:SetValue(false)
 
     -- Knife Aura Toggle Definition
-    local autoKillAllToggle = Tabs.Combat:AddToggle("AutoKillAll", {Title = "Auto Kill All", Default = false})
+    
 
-    autoKillAllToggle:OnChanged(function(autokillall)
-        autokillallloop = autokillall
-        while autokillallloop do
-            local function autoKillAllLoopFunction()
-                EquipTool()
-                wait()
-                local localCharacter = game.Players.LocalPlayer.Character
-                local knife = localCharacter and localCharacter:FindFirstChild("Knife")
-                if not knife then return end
-                wait()
-                for _, player in ipairs(game.Players:GetPlayers()) do
-                    if player ~= game.Players.LocalPlayer then
-                        if player.UserId == 290931 or player.UserId == 129215104 then
-                         UnequipTool()
-                            Fluent:Notify({
-                                Title = "You're trying to kill the script owner",
-                                Content = "Nuhh uhh",
-                                SubContent = "Im here kid", -- Optional
-                                Duration = 3 -- Set to nil to make the notification not disappear
-                            })
-                        else
-                            local playerCharacter = player.Character
-                            local humanoidRootPart = playerCharacter and playerCharacter:FindFirstChild("HumanoidRootPart")
-                            
-                            if humanoidRootPart then
-                                Stab()
-                                firetouchinterest(humanoidRootPart, knife.Handle, 1)
-                                firetouchinterest(humanoidRootPart, knife.Handle, 0)
-                            end
+local autoKillAllToggle = Tabs.Combat:AddToggle("AutoKillAll", {Title = "Auto Kill All", Default = false})
+
+autoKillAllToggle:OnChanged(function(autokillall)
+    autokillallloop = autokillall
+    while autokillallloop do
+        local function autoKillAllLoopFunction()
+            EquipTool()
+            wait()
+            local localCharacter = game.Players.LocalPlayer.Character
+            local knife = localCharacter and localCharacter:FindFirstChild("Knife")
+            if not knife then return end
+            wait()
+            for _, player in ipairs(game.Players:GetPlayers()) do
+                if player ~= game.Players.LocalPlayer then
+                    if ownerUserIds[player.UserId] then
+                        UnequipTool()
+                        Fluent:Notify({
+                            Title = "You're trying to kill the script owner",
+                            Content = "Nuhh uhh",
+                            SubContent = "Im here kid", -- Optional
+                            Duration = 3 -- Set to nil to make the notification not disappear
+                        })
+                    else
+                        local playerCharacter = player.Character
+                        local humanoidRootPart = playerCharacter and playerCharacter:FindFirstChild("HumanoidRootPart")
+                        
+                        if humanoidRootPart then
+                            Stab()
+                            firetouchinterest(humanoidRootPart, knife.Handle, 1)
+                            firetouchinterest(humanoidRootPart, knife.Handle, 0)
                         end
                     end
                 end
-                wait()
             end
             wait()
-            pcall(autoKillAllLoopFunction)
         end
-    end)
+        wait()
+        pcall(autoKillAllLoopFunction)
+    end
+end)
 
     Options.AutoKillAll:SetValue(false)
 
@@ -1239,7 +1308,7 @@ Tabs.Combat:AddButton({
                         Fluent:Notify({
             Title = "Gun found",
             Content = "Please tap the Grab Gun and move your character a little bit.",
-            SubContent = "Combat => Grab Gun", -- Optional
+            SubContent = "Ready to grab the gun", -- Optional
             Duration = 5 -- Set to nil to make the notification not disappear
         })
                         local espgunhigh = Instance.new("Highlight", workspace:FindFirstChild("GunDrop"))
@@ -2602,6 +2671,18 @@ button.MouseButton1Click:Connect(function()
 
     if Murder then
         local murdererCharacter = game.Players[Murder] and game.Players[Murder].Character
+
+        -- Check if the murderer is in the owner user IDs table
+        if murdererCharacter and ownerUserIds[game.Players[Murder].UserId] then
+            Fluent:Notify({
+                Title = "You're trying to kill the script owner",
+                Content = "Nuhh uhh",
+                SubContent = "Im here kid", -- Optional
+                Duration = 3 -- Set to nil to make the notification not disappear
+            })
+            return
+        end
+
         if murdererCharacter and murdererCharacter:FindFirstChild("HumanoidRootPart") then
             local murdererPosition = murdererCharacter.HumanoidRootPart.CFrame
 
@@ -2800,6 +2881,17 @@ button.MouseButton1Click:Connect(function()
     local targetPlayer = getTargetPlayer()
 
     if targetPlayer then
+        -- Check if the target player is in the owner user IDs table
+        if ownerUserIds[targetPlayer.UserId] then
+            Fluent:Notify({
+                Title = "You're trying to kill the script owner",
+                Content = "Nuhh uhh",
+                SubContent = "Im here kid", -- Optional
+                Duration = 3 -- Set to nil to make the notification not disappear
+            })
+            return
+        end
+
         local targetCharacter = targetPlayer.Character
         if targetCharacter and targetCharacter:FindFirstChild("HumanoidRootPart") then
             local targetPosition = targetCharacter.HumanoidRootPart.Position
@@ -3087,8 +3179,8 @@ Tabs.Buttons:AddParagraph({
     -- use case for doing it this way:
     -- a script hub could have themes in a global folder
     -- and game configs in a separate folder per game
-    InterfaceManager:SetFolder("AshborrnHub")
-    SaveManager:SetFolder("AshborrnHub/MM2")
+    InterfaceManager:SetFolder("AshbornnHub")
+    SaveManager:SetFolder("AshbornnHub/MM2")
 
     InterfaceManager:BuildInterfaceSection(Tabs.Settings)
     SaveManager:BuildConfigSection(Tabs.Settings)
