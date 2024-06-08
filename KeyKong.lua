@@ -1,5 +1,5 @@
-local userkey = game:HttpGet("https://pastebin.com/stCJd5AA")
-local url = "https://lootdest.com/s?800bd323b85bb458"
+local userkey = game:HttpGet("https://pastebin.com/raw/aMp6mHAs")
+local url = "https://loot-link.com/s?ed7176e3c6a95569"
 
 local NotificationHolder = loadstring(game:HttpGet("https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/NotificationHolder.lua"))()
 local Notification = loadstring(game:HttpGet("https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/Notification.lua"))()
