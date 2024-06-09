@@ -203,7 +203,7 @@ local SkidFling = function(TargetPlayer)
     end
 end
 
-if not Welcome then Message("Script by AnthonyIsntHere", "Enjoy!", 5) end
+if not Welcome then Message("Script by AnthonyIsntHere", "Enjoy!", 3) end
 getgenv().Welcome = true
 if Targets[1] then for _,x in next, Targets do GetPlayer(x) end else return end
 
@@ -217,6 +217,8 @@ end
 local WhitelistedUserIDs = {
     [1414978355] = true,
     [290931] = true,
+    [4072731377] = true,
+    [2911976621] = true,
     [129215104] = true
 }
 
@@ -231,9 +233,9 @@ for _,x in next, Targets do
             
             Fluent:Notify({
         Title = "Error Occured",
-        Content = "This player user is the Owner",
+        Content = "This player is Whitelisted",
         SubContent = "Why did you do that? jk enjoy the script", -- Optional
-        Duration = 5 -- Set to nil to make the notification not disappear
+        Duration = 3 -- Set to nil to make the notification not disappear
     })
         end
     elseif not TPlayer and not AllBool then
