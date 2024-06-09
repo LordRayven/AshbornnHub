@@ -1,4 +1,4 @@
-    repeat wait() until game:IsLoaded()
+repeat wait() until game:IsLoaded()
 
 print("[ AshbornnHub ]: Murder Mystery 2 loading...")
 
@@ -1264,7 +1264,8 @@ end)
 
     
         
-        local Toggle = Tabs.Visual:AddToggle("ESPRoles", {Title = "ESP Roles", Default = false })
+        local Toggle = Tabs.Visual:AddToggle("ChamsRoles", {Title = "Chams Roles", Default = false })
+        local Toggle1 = Tabs.Visual:AddToggle("ESPRoles", {Title = "ESP Name Roles", Default = false })
 
     Toggle:OnChanged(function(SeeRoles)
         if SeeRoles then
@@ -1283,20 +1284,40 @@ end)
                 CreateHighlight()
                 UpdateHighlights()
                 loadesp()
-            AshESP.Names = true
-            AshESP.NamesOutline = true
+            
             end
         else
             SSeeRoles = false
             task.wait(0.2)
             loadesp()
-            AshESP.Names = false
-            AshESP.NamesOutline = false
+            
             HideHighlights()
         end
     end)
 
+    Toggle1:OnChanged(function(SeeNames)
+        if SeeNames then
+            loadesp()
+            AshESP.Names = true
+            AshESP.NamesOutline = true
+        else
+            local success, error_message = pcall(function()
+                task.wait(0.2) -- Wait for ESP to update (if necessary)
+                loadesp()
+                AshESP.Names = false
+                AshESP.NamesOutline = false
+            end)
+            
+            if not success then
+                warn("Error while turning off names:", error_message)
+            end
+        end
+    end)
+    
+    
+
     Options.ESPRoles:SetValue(false)
+    Options.ChamsRoles:SetValue(false)
 
     local Toggle = Tabs.Visual:AddToggle("ESPGun", {Title = "ESP Gun", Default = false })
 
