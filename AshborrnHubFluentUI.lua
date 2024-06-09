@@ -3,8 +3,7 @@ repeat wait() until game:IsLoaded()
 print("[ AshbornnHub ]: Murder Mystery 2 loading...")
 
 local TimeStart = tick()
-
-
+-- Place this LocalScript in StarterPlayerScripts
     
     
     local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
@@ -158,6 +157,8 @@ local TimeStart = tick()
 
     return Services.RunService.Heartbeat:Connect(CheckLocalPlayerFling)
 end
+
+
 
 
     -- Function to teleport to a player
@@ -1973,6 +1974,15 @@ Tabs.Buttons:AddParagraph({
             Title = "READ ME",
             Content = "To adjust the position of Buttons you can drag it at the side of UI"
         })
+    
+    local TColorpicker = Tabs.Buttons:AddColorpicker("TransparencyColorpicker", {
+        Title = "Customize Buttons",
+        Description = "Customize its Color and Transparency",
+        Transparency = 0,
+        Default = Color3.fromRGB(0, 0, 0)
+    })
+    
+    
 
 -- Assuming you have a UI library providing Toggle functionality
 local Toggle = Tabs.Buttons:AddToggle("FEInviButtonPerk", {Title = "FE invisible Button + Invisible(Need Ghost Perk) ", Default = false})
@@ -1991,7 +2001,8 @@ local function createGui()
     frame.Size = UDim2.new(0, 100, 0, 75) -- Smaller size
     frame.Position = savedPosition  -- Use saved position
     frame.AnchorPoint = Vector2.new(0.5, 0.5)
-    frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- Black background
+    frame.BackgroundTransparency = TColorpicker.Transparency 
+    frame.BackgroundColor3 = TColorpicker.Value -- Black background
     frame.Parent = screenGui
 
     -- Add UICorner to Frame
@@ -2119,7 +2130,8 @@ local function createGui()
     frame.Size = UDim2.new(0, 100, 0, 75) -- Smaller size
     frame.Position = savedPosition  -- Use saved position
     frame.AnchorPoint = Vector2.new(0.5, 0.5)
-    frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- Black background
+    frame.BackgroundTransparency = TColorpicker.Transparency
+    frame.BackgroundColor3 = TColorpicker.Value
     frame.Parent = screenGui
 
     -- Add UICorner to Frame
@@ -2243,7 +2255,8 @@ local function createGui()
     frame.Size = UDim2.new(0, 100, 0, 75) -- Smaller size
     frame.Position = savedPosition  -- Use saved position
     frame.AnchorPoint = Vector2.new(0.5, 0.5)
-    frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- Black background
+    frame.BackgroundTransparency = TColorpicker.Transparency
+    frame.BackgroundColor3 = TColorpicker.Value
     frame.Parent = screenGui
 
     -- Add UICorner to Frame
@@ -2395,7 +2408,8 @@ local function createGui()
     frame.Size = UDim2.new(0, 100, 0, 75) -- Smaller size
     frame.Position = savedPosition  -- Use saved position
     frame.AnchorPoint = Vector2.new(0.5, 0.5)
-    frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- Black background
+    frame.BackgroundTransparency = TColorpicker.Transparency
+    frame.BackgroundColor3 = TColorpicker.Value
     frame.Parent = screenGui
 
     -- Add UICorner to Frame
@@ -2506,8 +2520,9 @@ local function toggleGui(value)
         frame.Size = UDim2.new(0, 100, 0, 75) -- Smaller size
         frame.Position = savedPosition  -- Use saved position
         frame.AnchorPoint = Vector2.new(0.5, 0.5)
-        frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- Black background
+        frame.BackgroundColor3 = TColorpicker.Value
         frame.Parent = screenGui
+        frame.BackgroundTransparency = TColorpicker.Transparency
 
         -- Add UICorner to Frame
         local uiCornerFrame = Instance.new("UICorner")
@@ -2664,8 +2679,9 @@ local function toggleGui(value)
         frame.Size = UDim2.new(0, 100, 0, 75) -- Smaller size
         frame.Position = savedPosition  -- Use saved position
         frame.AnchorPoint = Vector2.new(0.5, 0.5)
-        frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- Black background
+        frame.BackgroundColor3 = TColorpicker.Value
         frame.Parent = screenGui
+        frame.BackgroundTransparency = TColorpicker.Transparency
 
         -- Add UICorner to Frame
         local uiCornerFrame = Instance.new("UICorner")
@@ -2677,7 +2693,7 @@ local function toggleGui(value)
         button.Size = UDim2.new(0, 80, 0, 40) -- Smaller size
         button.Position = UDim2.new(0.5, 0, 0.5, 0) -- Centered in the frame
         button.AnchorPoint = Vector2.new(0.5, 0.5)
-        button.BackgroundTransparency = 0.8 -- Remove background color
+        button.BackgroundTransparency = 1 -- Remove background color
         button.Text = "TP Shoot Murd"
         button.TextColor3 = Color3.fromRGB(255, 255, 255) -- White text color
         button.Parent = frame
@@ -2829,7 +2845,8 @@ local function toggleGui(value)
         frame.Size = UDim2.new(0, 100, 0, 75) -- Smaller size
         frame.Position = savedPosition  -- Use saved position
         frame.AnchorPoint = Vector2.new(0.5, 0.5)
-        frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- Black background
+        frame.BackgroundTransparency = TColorpicker.Transparency
+        frame.BackgroundColor3 = TColorpicker.Value
         frame.Parent = screenGui
 
         -- Add UICorner to Frame
@@ -2842,7 +2859,7 @@ local function toggleGui(value)
         button.Size = UDim2.new(0, 80, 0, 40) -- Smaller size
         button.Position = UDim2.new(0.5, 0, 0.5, 0) -- Centered in the frame
         button.AnchorPoint = Vector2.new(0.5, 0.5)
-        button.BackgroundTransparency = 0.8 -- Remove background color
+        button.BackgroundTransparency = 1 -- Remove background color
         button.Text = "TP Stab Sheriff/Hero"
         button.TextColor3 = Color3.fromRGB(255, 255, 255) -- White text color
         button.Parent = frame
@@ -3087,7 +3104,7 @@ Tabs.Buttons:AddParagraph({
     button.Text = "Close" -- Initial text set to "Close"
     button.Size = UDim2.new(0, 70, 0, 30) -- Adjust the size as needed
     button.Position = UDim2.new(0, 10, 0, 10) -- Position at top left with 10px offset
-    button.BackgroundTransparency = 0.3 -- Set transparency to 50%
+    button.BackgroundTransparency = 0.7 -- Set transparency to 50%
     button.BackgroundColor3 = Color3.fromRGB(97, 62, 167) -- Purple background color
     button.BorderSizePixel = 2 -- Add black stroke
     button.BorderColor3 = Color3.new(0, 0, 0) -- Black stroke color
@@ -3164,6 +3181,11 @@ Tabs.Buttons:AddParagraph({
     local function toggleButtonVisibility(visible)
         button.Visible = visible
     end
+    
+    Tabs.Settings:AddParagraph({
+            Title = "To open Window from Chat just say:",
+            Content = ".ash"
+        })
 
     -- Create the toggle for draggable button
     local DraggableToggle = Tabs.Settings:AddToggle("Draggable Button", {Title = "Draggable Button", Default = false})
@@ -3179,6 +3201,117 @@ Tabs.Buttons:AddParagraph({
     VisibilityToggle:OnChanged(function(value)
         toggleButtonVisibility(value)
     end)
+    
+local player = game.Players.LocalPlayer
+
+-- Define the function you want to execute when ".ash" is typed
+local function openWindow()
+    Window:Minimize()
+    end
+
+-- Define the function to execute commands
+local function executeCommand(command)
+    local commands = {
+        [".ash"] = function()
+            openWindow()
+        end,
+        [".c1"] = function()
+            Options.ChamsRoles:SetValue(true)
+            Fluent:Notify({
+                Title = "Chams Turned On",
+                Content = "Chams has been turned on.",
+                Duration = 3
+            })
+        end,
+        [".c0"] = function()
+            Options.ChamsRoles:SetValue(false)
+            Fluent:Notify({
+                Title = "Chams Turned Off",
+                Content = "Chams has been turned off.",
+                Duration = 3
+            })
+        end,
+        [".e1"] = function()
+            Options.ESPRoles:SetValue(true)
+            Fluent:Notify({
+                Title = "ESPRoles Turned On",
+                Content = "ESPRoles has been turned on.",
+                Duration = 3
+            })
+        end,
+        [".e0"] = function()
+            Options.ESPRoles:SetValue(false)
+            Fluent:Notify({
+                Title = "ESPRoles Turned Off",
+                Content = "ESPRoles has been turned off.",
+                Duration = 3
+            })
+        end,
+        [".s0"] = function()
+            Options.SilentAIM1:SetValue(false)
+            Fluent:Notify({
+                Title = "Silent Aim Turned Off",
+                Content = "Silent Aim has been turned off.",
+                Duration = 3
+            })
+        end,
+        [".s1"] = function()
+            Options.SilentAIM1:SetValue(true)
+            Fluent:Notify({
+                Title = "Silent Aim Turned On",
+                Content = "Silent Aim has been turned on.",
+                Duration = 3
+            })
+        end,
+        [".ka1"] = function()
+            Options.KnifeAura:SetValue(true)
+            Fluent:Notify({
+                Title = "Knife Aura Turned On",
+                Content = "Knife Aura has been turned on.",
+                Duration = 3
+            })
+        end,
+        [".ka0"] = function()
+            Options.KnifeAura:SetValue(false)
+            Fluent:Notify({
+                Title = "Knife Aura Turned Off",
+                Content = "Knife Aura has been turned off",
+                Duration = 3
+            })
+        end,
+        [".k1"] = function()
+            Options.AutoKillAll:SetValue(true)
+            Fluent:Notify({
+                Title = "Auto Kill All Turned On",
+                Content = "Auto Kill All has been turned on",
+                Duration = 3
+            })
+        end,
+        [".k0"] = function()
+            Options.AutoKillAll:SetValue(false)
+            Fluent:Notify({
+                Title = "Auto Kill All Turned Off",
+                Content = "Auto Kill All has been turned off",
+                Duration = 3
+            })
+        end
+    }
+
+    if commands[command] then
+        commands[command]()
+    end
+end
+
+-- Listen for chat messages
+local debounce = {}  -- Table to track if each command is currently debounced
+player.Chatted:Connect(function(message)
+    if not debounce[message] then
+        debounce[message] = true
+        executeCommand(message)
+        wait(0.5)  -- Adjust the delay if needed
+        debounce[message] = false  -- Reset debounce after a delay
+    end
+end)
         
 
     -- Addons:
@@ -3210,7 +3343,7 @@ Tabs.Buttons:AddParagraph({
     Fluent:Notify({
         Title = "AshbornnHub",
         Content = "AshbornnHub has been loaded.",
-        Duration = 8
+        Duration = 4
     })
 
     -- You can use the SaveManager:LoadAutoloadConfig() to load a config
