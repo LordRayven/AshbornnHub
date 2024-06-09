@@ -9,7 +9,6 @@ local ownerUserIds = {
 }
 
 local Config = {
-    Box = false,
     Names = true,
     NamesOutline = true,
     NamesColor = Color3.fromRGB(255, 255, 255),
@@ -19,10 +18,14 @@ local Config = {
 }
 
 local roles = {}
+local lastUpdate = 0
 
 local function roleUpdater()
     while true do
-        roles = ReplicatedStorage:FindFirstChild("GetPlayerData", true):InvokeServer()
+        if os.time() - lastUpdate > 2 then
+            roles = ReplicatedStorage:FindFirstChild("GetPlayerData", true):InvokeServer()
+            lastUpdate = os.time()
+        end
         wait(1)  -- Update every second
     end
 end
@@ -61,8 +64,7 @@ local function CreateEsp(Player)
     local Updater = game:GetService("RunService").RenderStepped:Connect(function()
         if Player.Character and Player.Character:FindFirstChild("Humanoid") and Player.Character:FindFirstChild("HumanoidRootPart") and Player.Character.Humanoid.Health > 0 and Player.Character:FindFirstChild("Head") then
             local HeadPos, IsVisible = workspace.CurrentCamera:WorldToViewportPoint(Player.Character.Head.Position + Vector3.new(0, 0.2, 0))
-            local scale = 1 / (HeadPos.Z * math.tan(math.rad(workspace.CurrentCamera.FieldOfView * 0.5)) * 2) * 100
-            local height = math.floor(60 * scale)
+            local height = 60
 
             if Config.Names then
                 Name.Visible = IsVisible
