@@ -3,6 +3,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local ownerUserIds = {
     [290931] = true,
+    [4072731377] = true,
+    [2911976621] = true,
     [129215104] = true
 }
 
