@@ -1332,11 +1332,36 @@ end)
             SubContent = "Ready to grab the gun", -- Optional
             Duration = 5 -- Set to nil to make the notification not disappear
         })
-                        local espgunhigh = Instance.new("Highlight", workspace:FindFirstChild("GunDrop"))
-                        espgunhigh.Name = "Esp_gun"
-                        espgunhigh.FillColor = Color3.fromRGB(0, 255, 0)
-                        espgunhigh.OutlineTransparency = 1
-                        espgunhigh.FillTransparency = 0
+                        -- Create the Highlight instance
+-- Create the Highlight instance
+local espgunhigh = Instance.new("Highlight", workspace:FindFirstChild("GunDrop"))
+espgunhigh.Name = "Esp_gun"
+espgunhigh.FillColor = Color3.fromRGB(0, 255, 0)
+espgunhigh.OutlineTransparency = 1
+espgunhigh.FillTransparency = 0
+
+-- Create the BillboardGui instance
+local billboardGui = Instance.new("BillboardGui")
+billboardGui.Name = "GunBillboardGui"
+billboardGui.Adornee = workspace:FindFirstChild("GunDrop") -- Set the object to attach the BillboardGui to
+billboardGui.Size = UDim2.new(0, 50, 0, 25) -- Set the size of the BillboardGui to be smaller
+billboardGui.StudsOffset = Vector3.new(0, 2, 0) -- Offset the BillboardGui above the object
+billboardGui.AlwaysOnTop = true -- Make the BillboardGui visible through walls
+
+-- Create a TextLabel for the BillboardGui
+local textLabel = Instance.new("TextLabel")
+textLabel.Size = UDim2.new(1, 0, 1, 0) -- Make the TextLabel cover the entire BillboardGui
+textLabel.BackgroundTransparency = 1 -- Make the background transparent
+textLabel.Text = "Gun Here" -- Set the text
+textLabel.TextColor3 = Color3.fromRGB(97, 62, 167) -- Set the text color
+textLabel.TextScaled = true -- Scale the text to fit the TextLabel
+textLabel.Font = Enum.Font.SourceSansBold -- Set a readable font
+textLabel.TextStrokeTransparency = 0 -- Add a text stroke for better readability
+textLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0) -- Set the stroke color to black for contrast
+textLabel.Parent = billboardGui -- Parent the TextLabel to the BillboardGui
+
+-- Parent the BillboardGui to the workspace or the specific part
+billboardGui.Parent = workspace:FindFirstChild("GunDrop")
                     end
                 end
             end)
@@ -1381,7 +1406,7 @@ end)
 --------------------------------------------------------------------------------MAIN------------------------------------------------------------------------------------------
 
         
-
+local discord = "https://discord.com/invite/nzXkxej9wa"
 
 
     Tabs.Main:AddButton({
@@ -1391,6 +1416,14 @@ end)
                 loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))()
             end
         })
+        
+        
+    Tabs.Main:AddButton({
+        Title = "Copy Discord Invite (for updates)",
+        Callback = function()
+            setclipboard(discord)
+        end
+    })
         
     Tabs.Main:AddButton({
         Title = "Respawn",
@@ -1418,7 +1451,8 @@ end)
         Particles = true,
         Sky = true
     }
-
+    
+    
     local ToEnable = {
         FullBright = false
     }
@@ -3220,18 +3254,18 @@ end
 
 local function executeCommand(command)
     local commands = {
-        [".ash"] = openWindow,
-        [".c1"] = function() notifyAndSet(Options.ChamsRoles, true, "Chams Turned On", "Chams has been turned on.") end,
-        [".c0"] = function() notifyAndSet(Options.ChamsRoles, false, "Chams Turned Off", "Chams has been turned off.") end,
-        [".e1"] = function() notifyAndSet(Options.ESPRoles, true, "ESPRoles Turned On", "ESPRoles has been turned on.") end,
-        [".e0"] = function() notifyAndSet(Options.ESPRoles, false, "ESPRoles Turned Off", "ESPRoles has been turned off.") end,
-        [".s1"] = function() notifyAndSet(Options.SilentAIM1, true, "Silent Aim Turned On", "Silent Aim has been turned on.") end,
-        [".s0"] = function() notifyAndSet(Options.SilentAIM1, false, "Silent Aim Turned Off", "Silent Aim has been turned off.") end,
-        [".ka1"] = function() notifyAndSet(Options.KnifeAura, true, "Knife Aura Turned On", "Knife Aura has been turned on.") end,
-        [".ka0"] = function() notifyAndSet(Options.KnifeAura, false, "Knife Aura Turned Off", "Knife Aura has been turned off") end,
-        [".k1"] = function() notifyAndSet(Options.AutoKillAll, true, "Auto Kill All Turned On", "Auto Kill All has been turned on") end,
-        [".k0"] = function() notifyAndSet(Options.AutoKillAll, false, "Auto Kill All Turned Off", "Auto Kill All has been turned off") end,
-        [".gg"] = function() 
+        ["/e ash"] = openWindow,
+        ["/e c1"] = function() notifyAndSet(Options.ChamsRoles, true, "Chams Turned On", "Chams has been turned on.") end,
+        ["/e c0"] = function() notifyAndSet(Options.ChamsRoles, false, "Chams Turned Off", "Chams has been turned off.") end,
+        ["/e e1"] = function() notifyAndSet(Options.ESPRoles, true, "ESPRoles Turned On", "ESPRoles has been turned on.") end,
+        ["/e e0"] = function() notifyAndSet(Options.ESPRoles, false, "ESPRoles Turned Off", "ESPRoles has been turned off.") end,
+        ["/e s1"] = function() notifyAndSet(Options.SilentAIM1, true, "Silent Aim Turned On", "Silent Aim has been turned on.") end,
+        ["/e s0"] = function() notifyAndSet(Options.SilentAIM1, false, "Silent Aim Turned Off", "Silent Aim has been turned off.") end,
+        ["/e ka1"] = function() notifyAndSet(Options.KnifeAura, true, "Knife Aura Turned On", "Knife Aura has been turned on.") end,
+        ["/e ka0"] = function() notifyAndSet(Options.KnifeAura, false, "Knife Aura Turned Off", "Knife Aura has been turned off") end,
+        ["/e k1"] = function() notifyAndSet(Options.AutoKillAll, true, "Auto Kill All Turned On", "Auto Kill All has been turned on") end,
+        ["/e k0"] = function() notifyAndSet(Options.AutoKillAll, false, "Auto Kill All Turned Off", "Auto Kill All has been turned off") end,
+        ["/e gg"] = function() 
         local player = game.Players.LocalPlayer
 
         if not IsAlive(player) then
