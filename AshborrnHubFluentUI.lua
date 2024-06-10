@@ -2006,9 +2006,11 @@ Tabs.LEmotes:AddButton({
 
 Tabs.Buttons:AddParagraph({
             Title = "READ ME",
-            Content = "To adjust the position of Buttons you can drag it at the side of UI"
+            Content = "To adjust the position of Buttons you can drag it at the side of UI. Also if you want to save your config you can use the Settings and Goto Configuration Add Config Name and Save it and Auto Load if You want."
         })
     
+    
+    local ButtonsC = Tabs.Buttons:AddSection("Button Customize")
     local TColorpicker = Tabs.Buttons:AddColorpicker("TransparencyColorpicker", {
         Title = "Customize Buttons",
         Description = "Customize its Color and Transparency",
@@ -2016,7 +2018,38 @@ Tabs.Buttons:AddParagraph({
         Default = Color3.fromRGB(0, 0, 0)
     })
     
+    local InputHeight = Tabs.Buttons:AddInput("InputHeight", {
+        Title = "Change Button Size (Height)",
+        Default = 75,
+        Placeholder = "Height",
+        Numeric = true, -- Only allows numbers
+        Finished = false, -- Only calls callback when you press enter
+        Callback = function(Value)
+            print("Button Size Height changed to:", Value)
+        end
+    })
+    local InputWidth = Tabs.Buttons:AddInput("InputWidth", {
+        Title = "Change Button Size (Width)",
+        Default = 100,
+        Placeholder = "Width",
+        Numeric = true, -- Only allows numbers
+        Finished = false, -- Only calls callback when you press enter
+        Callback = function(Value)
+            print("Button size Width changed to:", Value)
+        end
+    })
+    local InputTSize = Tabs.Buttons:AddInput("InputTSize", {
+        Title = "Change Button Text Size",
+        Default = 8,
+        Placeholder = "Text Size",
+        Numeric = true, -- Only allows numbers
+        Finished = false, -- Only calls callback when you press enter
+        Callback = function(Value)
+            print("Button Text Size changed to:", Value)
+        end
+    })
     
+    local ButtonsS = Tabs.Buttons:AddSection("Button Shortcuts")
 
 -- Assuming you have a UI library providing Toggle functionality
 local Toggle = Tabs.Buttons:AddToggle("FEInviButtonPerk", {Title = "FE invisible Button + Invisible(Need Ghost Perk) ", Default = false})
@@ -2032,7 +2065,7 @@ local function createGui()
 
     -- Create a Frame
     local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0, 100, 0, 75) -- Smaller size
+    frame.Size = UDim2.new(0, InputWidth.Value, 0, InputHeight.Value) -- Smaller size
     frame.Position = savedPosition  -- Use saved position
     frame.AnchorPoint = Vector2.new(0.5, 0.5)
     frame.BackgroundTransparency = TColorpicker.Transparency 
@@ -2050,7 +2083,8 @@ local function createGui()
     button.Position = UDim2.new(0.5, 0, 0.5, 0) -- Centered in the frame
     button.AnchorPoint = Vector2.new(0.5, 0.5)
     button.BackgroundTransparency = 1 -- Remove background color
-    button.Text = "(Perk)\nFE Invisible is"
+    button.Text = "(Ghost Perk) +\nFE Invisible is"
+    button.TextSize = InputTSize.Value
     button.TextColor3 = Color3.fromRGB(255, 255, 255) -- White text color
     button.Parent = frame
 
@@ -2058,10 +2092,10 @@ local function createGui()
     game:GetService("ReplicatedStorage").Remotes.Gameplay.Stealth:FireServer(false)
     local function toggleButtonText()
         if Options.FEInvisible.Value then
-            button.Text = "(Perk)\nFE Invisible is [ON]"
+            button.Text = "(Ghost Perk) +\nFE Invisible is [ON]"
             game:GetService("ReplicatedStorage").Remotes.Gameplay.Stealth:FireServer(true)
         else
-            button.Text = "(Perk)\nFE Invisible is [OFF]"
+            button.Text = "(Ghost Perk) +\nFE Invisible is [OFF]"
             game:GetService("ReplicatedStorage").Remotes.Gameplay.Stealth:FireServer(false)
         end
     end
@@ -2161,7 +2195,7 @@ local function createGui()
 
     -- Create a Frame
     local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0, 100, 0, 75) -- Smaller size
+    frame.Size = UDim2.new(0, InputWidth.Value, 0, InputHeight.Value) -- Smaller size
     frame.Position = savedPosition  -- Use saved position
     frame.AnchorPoint = Vector2.new(0.5, 0.5)
     frame.BackgroundTransparency = TColorpicker.Transparency
@@ -2180,6 +2214,7 @@ local function createGui()
     button.AnchorPoint = Vector2.new(0.5, 0.5)
     button.BackgroundTransparency = 1 -- Remove background color
     button.Text = "FE Invisible is"
+    button.TextSize = InputTSize.Value
     button.TextColor3 = Color3.fromRGB(255, 255, 255) -- White text color
     button.Parent = frame
 
@@ -2286,7 +2321,7 @@ local function createGui()
 
     -- Create a Frame
     local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0, 100, 0, 75) -- Smaller size
+    frame.Size = UDim2.new(0, InputWidth.Value, 0, InputHeight.Value) -- Smaller size
     frame.Position = savedPosition  -- Use saved position
     frame.AnchorPoint = Vector2.new(0.5, 0.5)
     frame.BackgroundTransparency = TColorpicker.Transparency
@@ -2305,6 +2340,7 @@ local function createGui()
     button.AnchorPoint = Vector2.new(0.5, 0.5)
     button.BackgroundTransparency = 1 -- Remove background color
     button.Text = "Invisible is"
+    button.TextSize = InputTSize.Value
     button.TextColor3 = Color3.fromRGB(255, 255, 255) -- White text color
     button.Parent = frame
 
@@ -2439,7 +2475,7 @@ local function createGui()
 
     -- Create a Frame
     local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0, 100, 0, 75) -- Smaller size
+    frame.Size = UDim2.new(0, InputWidth.Value, 0, InputHeight.Value) -- Smaller size
     frame.Position = savedPosition  -- Use saved position
     frame.AnchorPoint = Vector2.new(0.5, 0.5)
     frame.BackgroundTransparency = TColorpicker.Transparency
@@ -2458,6 +2494,7 @@ local function createGui()
     button.AnchorPoint = Vector2.new(0.5, 0.5)
     button.BackgroundTransparency = 1 -- Remove background color
     button.Text = "Shoot"
+    button.TextSize = InputTSize.Value
     button.TextColor3 = Color3.fromRGB(255, 255, 255) -- White text color
     button.Parent = frame
 
@@ -2551,7 +2588,7 @@ local function toggleGui(value)
 
         -- Create the Frame
         local frame = Instance.new("Frame")
-        frame.Size = UDim2.new(0, 100, 0, 75) -- Smaller size
+        frame.Size = UDim2.new(0, InputWidth.Value, 0, InputHeight.Value) -- Smaller size
         frame.Position = savedPosition  -- Use saved position
         frame.AnchorPoint = Vector2.new(0.5, 0.5)
         frame.BackgroundColor3 = TColorpicker.Value
@@ -2570,6 +2607,7 @@ local function toggleGui(value)
         button.AnchorPoint = Vector2.new(0.5, 0.5)
         button.BackgroundTransparency = 1 -- Remove background color
         button.Text = "Grab Gun"
+        button.TextSize = InputTSize.Value
         button.TextColor3 = Color3.fromRGB(255, 255, 255) -- White text color
         button.Parent = frame
              local function updateButtonText()
@@ -2710,7 +2748,7 @@ local function toggleGui(value)
 
         -- Create the Frame
         local frame = Instance.new("Frame")
-        frame.Size = UDim2.new(0, 100, 0, 75) -- Smaller size
+        frame.Size = UDim2.new(0, InputWidth.Value, 0, InputHeight.Value) -- Smaller size
         frame.Position = savedPosition  -- Use saved position
         frame.AnchorPoint = Vector2.new(0.5, 0.5)
         frame.BackgroundColor3 = TColorpicker.Value
@@ -2729,6 +2767,7 @@ local function toggleGui(value)
         button.AnchorPoint = Vector2.new(0.5, 0.5)
         button.BackgroundTransparency = 1 -- Remove background color
         button.Text = "TP Shoot Murd"
+        button.TextSize = InputTSize.Value
         button.TextColor3 = Color3.fromRGB(255, 255, 255) -- White text color
         button.Parent = frame
 
@@ -2876,7 +2915,7 @@ local function toggleGui(value)
 
         -- Create the Frame
         local frame = Instance.new("Frame")
-        frame.Size = UDim2.new(0, 100, 0, 75) -- Smaller size
+        frame.Size = UDim2.new(0, InputWidth.Value, 0, InputHeight.Value) -- Smaller size
         frame.Position = savedPosition  -- Use saved position
         frame.AnchorPoint = Vector2.new(0.5, 0.5)
         frame.BackgroundTransparency = TColorpicker.Transparency
@@ -2895,6 +2934,7 @@ local function toggleGui(value)
         button.AnchorPoint = Vector2.new(0.5, 0.5)
         button.BackgroundTransparency = 1 -- Remove background color
         button.Text = "TP Stab Sheriff/Hero"
+        button.TextSize = InputTSize.Value
         button.TextColor3 = Color3.fromRGB(255, 255, 255) -- White text color
         button.Parent = frame
 
@@ -3262,58 +3302,63 @@ local function executeCommand(command)
         ["/e s1"] = function() notifyAndSet(Options.SilentAIM1, true, "Silent Aim Turned On", "Silent Aim has been turned on.") end,
         ["/e s0"] = function() notifyAndSet(Options.SilentAIM1, false, "Silent Aim Turned Off", "Silent Aim has been turned off.") end,
         ["/e ka1"] = function() notifyAndSet(Options.KnifeAura, true, "Knife Aura Turned On", "Knife Aura has been turned on.") end,
-        ["/e ka0"] = function() notifyAndSet(Options.KnifeAura, false, "Knife Aura Turned Off", "Knife Aura has been turned off") end,
-        ["/e k1"] = function() notifyAndSet(Options.AutoKillAll, true, "Auto Kill All Turned On", "Auto Kill All has been turned on") end,
-        ["/e k0"] = function() notifyAndSet(Options.AutoKillAll, false, "Auto Kill All Turned Off", "Auto Kill All has been turned off") end,
+        ["/e ka0"] = function() notifyAndSet(Options.KnifeAura, false, "Knife Aura Turned Off", "Knife Aura has been turned off.") end,
+        ["/e k1"] = function() notifyAndSet(Options.AutoKillAll, true, "Auto Kill All Turned On", "Auto Kill All has been turned on.") end,
+        ["/e k0"] = function() notifyAndSet(Options.AutoKillAll, false, "Auto Kill All Turned Off", "Auto Kill All has been turned off.") end,
+        ["/e eg1"] = function() notifyAndSet(Options.ESPGun, true, "ESP Gun Turned On", "ESP Gun has been turned on.") end,
+        ["/e eg2"] = function() notifyAndSet(Options.ESPGun, false, "ESP Gun Turned Off", "ESP Gun has been turned off.") end,
         ["/e gg"] = function() 
-        local player = game.Players.LocalPlayer
+            local player = game.Players.LocalPlayer
 
-        if not IsAlive(player) then
-            Fluent:Notify({
-                Title = "You're not alive",
-                Content = "Please wait for the new round to grab the gun.",
-                Duration = 3
-            })
-            return
-        end
-
-        if player.Backpack:FindFirstChild("Gun") or (player.Character and player.Character:FindFirstChild("Gun")) then
-            Fluent:Notify({
-                Title = "You already have a gun",
-                Content = "Lollll.",
-                Duration = 3
-            })
-            return
-        end
-
-        if player.Character then
-            local gundr = workspace:FindFirstChild("GunDrop")
-            if gundr then
-                local oldpos = player.Character.HumanoidRootPart.CFrame
-                
-                repeat
-                game:GetService("ReplicatedStorage").Remotes.Gameplay.Stealth:FireServer(true)
-                    player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(90), math.rad(0), math.rad(0))
-                    task.wait()
-                    player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(-90), math.rad(0), math.rad(0))
-                    task.wait()
-                until not gundr:IsDescendantOf(workspace)
-                game:GetService("ReplicatedStorage").Remotes.Gameplay.Stealth:FireServer(false)
-                player.Character.HumanoidRootPart.CFrame = oldpos
-                oldpos = false
-                player.Character.Humanoid:ChangeState(1)
-                button.Text = "Grab Gun (Gotcha)"
-            else
+            if not IsAlive(player) then
                 Fluent:Notify({
-                    Title = "Gun not Found",
-                    Content = "Wait for the Sheriff's death to grab the gun.",
+                    Title = "You're not alive",
+                    Content = "Please wait for the new round to grab the gun.",
                     Duration = 3
                 })
+                return
             end
+
+            if player.Backpack:FindFirstChild("Gun") or (player.Character and player.Character:FindFirstChild("Gun")) then
+                Fluent:Notify({
+                    Title = "You already have a gun",
+                    Content = "Lollll.",
+                    Duration = 3
+                })
+                return
+            end
+
+            if player.Character then
+                local gundr = workspace:FindFirstChild("GunDrop")
+                if gundr then
+                    local oldpos = player.Character.HumanoidRootPart.CFrame
+                    game:GetService("ReplicatedStorage").Remotes.Gameplay.Stealth:FireServer(true)
+                    wait(2)
+                    repeat
+                        player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(90), math.rad(0), math.rad(0))
+                        task.wait()
+                        player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(-90), math.rad(0), math.rad(0))
+                        task.wait()
+                    until not gundr:IsDescendantOf(workspace)
+                    game:GetService("ReplicatedStorage").Remotes.Gameplay.Stealth:FireServer(false)
+                    player.Character.HumanoidRootPart.CFrame = oldpos
+                    oldpos = false
+                    player.Character.Humanoid:ChangeState(1)
+                else
+                    Fluent:Notify({
+                        Title = "Gun not Found",
+                        Content = "Wait for the Sheriff's death to grab the gun.",
+                        Duration = 3
+                    })
+                end
+            end
+        end,
+        ["lol"] = function()
+            print("lol")
+        end,
+        ["huh"] = function()
+            print("He said Huh lollll")
         end
-        
-        
-       end  -- End for Command Prompt
     }
 
     if commands[command] then
@@ -3327,7 +3372,7 @@ player.Chatted:Connect(function(message)
     if not debounce[message] then
         debounce[message] = true
         executeCommand(message)
-        wait(0.5)  -- Adjust the delay if needed
+        wait(1)  -- Adjust the delay if needed
         debounce[message] = false  -- Reset debounce after a delay
     end
 end)
