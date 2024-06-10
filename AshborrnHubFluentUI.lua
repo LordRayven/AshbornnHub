@@ -3207,94 +3207,79 @@ local player = game.Players.LocalPlayer
 -- Define the function you want to execute when ".ash" is typed
 local function openWindow()
     Window:Minimize()
-    end
+end
 
--- Define the function to execute commands
+local function notifyAndSet(option, value, title, content)
+    option:SetValue(value)
+    Fluent:Notify({
+        Title = title,
+        Content = content,
+        Duration = 3
+    })
+end
+
 local function executeCommand(command)
     local commands = {
-        [".ash"] = function()
-            openWindow()
-        end,
-        [".c1"] = function()
-            Options.ChamsRoles:SetValue(true)
+        [".ash"] = openWindow,
+        [".c1"] = function() notifyAndSet(Options.ChamsRoles, true, "Chams Turned On", "Chams has been turned on.") end,
+        [".c0"] = function() notifyAndSet(Options.ChamsRoles, false, "Chams Turned Off", "Chams has been turned off.") end,
+        [".e1"] = function() notifyAndSet(Options.ESPRoles, true, "ESPRoles Turned On", "ESPRoles has been turned on.") end,
+        [".e0"] = function() notifyAndSet(Options.ESPRoles, false, "ESPRoles Turned Off", "ESPRoles has been turned off.") end,
+        [".s1"] = function() notifyAndSet(Options.SilentAIM1, true, "Silent Aim Turned On", "Silent Aim has been turned on.") end,
+        [".s0"] = function() notifyAndSet(Options.SilentAIM1, false, "Silent Aim Turned Off", "Silent Aim has been turned off.") end,
+        [".ka1"] = function() notifyAndSet(Options.KnifeAura, true, "Knife Aura Turned On", "Knife Aura has been turned on.") end,
+        [".ka0"] = function() notifyAndSet(Options.KnifeAura, false, "Knife Aura Turned Off", "Knife Aura has been turned off") end,
+        [".k1"] = function() notifyAndSet(Options.AutoKillAll, true, "Auto Kill All Turned On", "Auto Kill All has been turned on") end,
+        [".k0"] = function() notifyAndSet(Options.AutoKillAll, false, "Auto Kill All Turned Off", "Auto Kill All has been turned off") end,
+        [".gg"] = function() 
+        local player = game.Players.LocalPlayer
+
+        if not IsAlive(player) then
             Fluent:Notify({
-                Title = "Chams Turned On",
-                Content = "Chams has been turned on.",
+                Title = "You're not alive",
+                Content = "Please wait for the new round to grab the gun.",
                 Duration = 3
             })
-        end,
-        [".c0"] = function()
-            Options.ChamsRoles:SetValue(false)
-            Fluent:Notify({
-                Title = "Chams Turned Off",
-                Content = "Chams has been turned off.",
-                Duration = 3
-            })
-        end,
-        [".e1"] = function()
-            Options.ESPRoles:SetValue(true)
-            Fluent:Notify({
-                Title = "ESPRoles Turned On",
-                Content = "ESPRoles has been turned on.",
-                Duration = 3
-            })
-        end,
-        [".e0"] = function()
-            Options.ESPRoles:SetValue(false)
-            Fluent:Notify({
-                Title = "ESPRoles Turned Off",
-                Content = "ESPRoles has been turned off.",
-                Duration = 3
-            })
-        end,
-        [".s0"] = function()
-            Options.SilentAIM1:SetValue(false)
-            Fluent:Notify({
-                Title = "Silent Aim Turned Off",
-                Content = "Silent Aim has been turned off.",
-                Duration = 3
-            })
-        end,
-        [".s1"] = function()
-            Options.SilentAIM1:SetValue(true)
-            Fluent:Notify({
-                Title = "Silent Aim Turned On",
-                Content = "Silent Aim has been turned on.",
-                Duration = 3
-            })
-        end,
-        [".ka1"] = function()
-            Options.KnifeAura:SetValue(true)
-            Fluent:Notify({
-                Title = "Knife Aura Turned On",
-                Content = "Knife Aura has been turned on.",
-                Duration = 3
-            })
-        end,
-        [".ka0"] = function()
-            Options.KnifeAura:SetValue(false)
-            Fluent:Notify({
-                Title = "Knife Aura Turned Off",
-                Content = "Knife Aura has been turned off",
-                Duration = 3
-            })
-        end,
-        [".k1"] = function()
-            Options.AutoKillAll:SetValue(true)
-            Fluent:Notify({
-                Title = "Auto Kill All Turned On",
-                Content = "Auto Kill All has been turned on",
-                Duration = 3
-            })
-        end,
-        [".k0"] = function()
-            Options.AutoKillAll:SetValue(false)
-            Fluent:Notify({
-                Title = "Auto Kill All Turned Off",
-                Content = "Auto Kill All has been turned off",
-                Duration = 3
-            })
+            return
         end
+
+        if player.Backpack:FindFirstChild("Gun") or (player.Character and player.Character:FindFirstChild("Gun")) then
+            Fluent:Notify({
+                Title = "You already have a gun",
+                Content = "Lollll.",
+                Duration = 3
+            })
+            return
+        end
+
+        if player.Character then
+            local gundr = workspace:FindFirstChild("GunDrop")
+            if gundr then
+                local oldpos = player.Character.HumanoidRootPart.CFrame
+                
+                repeat
+                game:GetService("ReplicatedStorage").Remotes.Gameplay.Stealth:FireServer(true)
+                    player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(90), math.rad(0), math.rad(0))
+                    task.wait()
+                    player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(-90), math.rad(0), math.rad(0))
+                    task.wait()
+                until not gundr:IsDescendantOf(workspace)
+                game:GetService("ReplicatedStorage").Remotes.Gameplay.Stealth:FireServer(false)
+                player.Character.HumanoidRootPart.CFrame = oldpos
+                oldpos = false
+                player.Character.Humanoid:ChangeState(1)
+                button.Text = "Grab Gun (Gotcha)"
+            else
+                Fluent:Notify({
+                    Title = "Gun not Found",
+                    Content = "Wait for the Sheriff's death to grab the gun.",
+                    Duration = 3
+                })
+            end
+        end
+        
+        
+       end  -- End for Command Prompt
     }
 
     if commands[command] then
