@@ -1,5 +1,5 @@
-local userkey = game:HttpGet("https://pastebin.com/raw/R7nbUVJp")
-local url = "https://link-center.net/480893/ashbornnhub"
+local userkey = game:HttpGet("https://pastebin.com/raw/JJaqyKbn")
+local url = "https://lootdest.com/s?c5ec45be"
 local discordInvite = "https://discord.com/invite/AdYyzaTpXX"
 
 local NotificationHolder = loadstring(game:HttpGet("https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/NotificationHolder.lua"))()
