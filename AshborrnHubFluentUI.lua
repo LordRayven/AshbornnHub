@@ -1523,36 +1523,51 @@ local discord = "https://discord.com/invite/nzXkxej9wa"
 
 
 -------------------------------------------------------------------------LOCAL PLAYER----------------------------------------------------------------------------------------------
-
 local player = game.Players.LocalPlayer
 local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
 
-local N = { SecondLife = false } -- Initialize N as a table with SecondLife property
+local function TwoLifes()
+    local Character = player.Character
+    if Character and humanoid then
+        humanoid.Name = "1"
+        local HumanoidClone = Character["1"]:Clone()
+        HumanoidClone.Parent = Character
+        HumanoidClone.Name = "Humanoid"
+        wait(0.1)
+        Character["1"]:Destroy()
+        game.Workspace.CurrentCamera.CameraSubject = player.Character.Humanoid
+        Character.Animate.Disabled = true
+        wait(0.1)
+        Character.Animate.Disabled = false
+    end
+end
 
-local Toggle = Tabs.LPlayer:AddToggle("SecondLife", {Title = "Second Life", Default = false})
+local Toggle = Tabs.LPlayer:AddToggle("TwoLifes", {Title = "2 Lifes (Can't be Turn off) ", Default = false})
 
 Toggle:OnChanged(function(Value)
-    N.SecondLife = Value -- Update N.SecondLife based on the toggle state
-    
-    if N.SecondLife and humanoid then
-        coroutine.wrap(function()
-            while N.SecondLife do
-                wait()
-                if humanoid.Health <= 0 then
-                    coroutine.wrap(function()
-                        humanoid:ChangeState(11)
-                        wait(2.5)
-                        humanoid.Health = 100
-                        wait(1)
-                        humanoid:ChangeState(1)
-                    end)()
-                end
-            end
-        end)()
+    if Value then
+        TwoLifes()
     end
 end)
 
-Options.SecondLife:SetValue(false) -- Set initial value of the option
+Options.TwoLifes:SetValue(false)
+
+-- Event connection for mobile jumping
+if game:GetService("UserInputService").TouchEnabled then
+    local JumpButton = player.PlayerGui:WaitForChild("TouchGui"):WaitForChild("TouchControlFrame"):WaitForChild("JumpButton")
+    
+    JumpButton.MouseButton1Click:Connect(function()
+        local Character = player.Character
+        if Character then
+            local humanoid = Character:FindFirstChildWhichIsA("Humanoid")
+            if humanoid then
+                humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+            end
+        end
+    end)
+end
+
+
 
     local Toggle = Tabs.LPlayer:AddToggle("Invisible", {Title = "Invisible (Need Ghost Perk)", Default = false})
 
