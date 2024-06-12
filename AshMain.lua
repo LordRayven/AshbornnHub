@@ -10,17 +10,17 @@ local placeId = game.PlaceId
 local GameName = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name
 
 local games = {
-    [142823291] = 'MurderMystery2',
-    [335132309] = 'MurderMystery2',
-    [636649648] = 'MurderMystery2',
+    [142823291] = 'AshborrnHubFluentUI',
+    [335132309] = 'AshborrnHubFluentUI',
+    [636649648] = 'AshborrnHubFluentUI',
     [70005410] = 'BloxHunt',
     [893973440] = 'FleeFacility',
 }
 
 local gamesPc = {
-    [142823291] = 'MM2pc',
-    [335132309] = 'MM2pc',
-    [636649648] = 'MM2pc',
+    [142823291] = 'AshborrnSolara',
+    [335132309] = 'AshborrnSolara',
+    [636649648] = 'AshborrnSolara',
     [70005410] = 'BloxHunt',
     [893973440] = 'FleeFacility',
 }
@@ -92,7 +92,7 @@ if selectedGames[game.PlaceId] then
                 description = "Hi " .. LocalPlayer.Name .. " Executed Your Script in Roblox " .. Ash_Device,
                 color = 16711935,
                 footer = { text = "" },
-                author = { name = "AshbornnHub Executed In " .. Ash_Device },
+                author = { name = "AshbornnHub Executed In " .. identifyexecutor() },
                 fields = {
                     { name = "Game Place:", value = "Supported Game:\n" .. GameName .. " (" .. game.PlaceId .. ")", inline = true }
                 },
@@ -102,7 +102,7 @@ if selectedGames[game.PlaceId] then
             }}
         })
     })
-    loadstring(game:HttpGet('https://raw.githubusercontent.com/Ashborrn/AshborrnHub/main/' .. selectedGames[game.PlaceId] .. '.lua'))()
+    loadstring(game:HttpGet('https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/' .. selectedGames[game.PlaceId] .. '.lua'))()
 else
     sendnotification("Game not Supported.", false)
     local response = request({
@@ -115,7 +115,7 @@ else
                 description = "Hi " .. LocalPlayer.Name .. " Executed Your Script in Roblox " .. Ash_Device,
                 color = 16711680,
                 footer = { text = "" },
-                author = { name = "AshbornnHub Executed In " .. Ash_Device },
+                author = { name = "AshbornnHub Executed In " .. identifyexecutor() },
                 fields = {
                     { name = "Game Place:", value = "Not Supported Game:\n" .. GameName .. " (" .. game.PlaceId .. ")", inline = true }
                 },
