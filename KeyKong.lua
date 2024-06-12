@@ -1,4 +1,4 @@
-local userkey = game:HttpGet("https://pastebin.com/Q6GGKJyE")
+local userkey = game:HttpGet("https://pastebin.com/raw/Q6GGKJyE")
 local url = "https://direct-link.net/480893/key-system"
 local discordInvite = "https://discord.com/invite/AdYyzaTpXX"
 
