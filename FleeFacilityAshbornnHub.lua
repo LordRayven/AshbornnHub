@@ -26,103 +26,20 @@ local gui = Instance.new("ScreenGui")
 gui.Name = "AshbornnHubGui"
 gui.Parent = game.CoreGui
 
--- Create the button as a TextButton
+-- Create the button
 local button = Instance.new("TextButton")
 button.Name = "ToggleButton"
-button.Text = "Close" -- Initial text set to "Close"
+button.Text = "Open/Close"
 button.Size = UDim2.new(0, 70, 0, 30) -- Adjust the size as needed
 button.Position = UDim2.new(0, 10, 0, 10) -- Position at top left with 10px offset
-button.BackgroundTransparency = 0.3 -- Set transparency to 50%
-button.BackgroundColor3 = Color3.fromRGB(97, 62, 167) -- Purple background color
-button.BorderSizePixel = 2 -- Add black stroke
-button.BorderColor3 = Color3.new(0, 0, 0) -- Black stroke color
-button.TextColor3 = Color3.new(1, 1, 1) -- White text color
-button.FontSize = Enum.FontSize.Size12 -- Adjust text size
-button.TextScaled = false -- Allow text to scale with button size
-button.TextWrapped = true -- Wrap text if it's too long
-button.TextStrokeTransparency = 0 -- Make text fully visible
-button.TextStrokeColor3 = Color3.new(0, 0, 0) -- Black text stroke color
+button.BackgroundColor3 = Color3.new(0, 0, 0) -- Black background
+button.TextColor3 = Color3.new(1, 1, 1) -- White text
 button.Parent = gui
-
--- Apply blur effect
-local blur = Instance.new("BlurEffect")
-blur.Parent = button
-blur.Size = 5 -- Adjust blur size as needed
-
--- Variable to keep track of button state
-local isOpen = false
-local isDraggable = false
-local dragConnection
 
 -- Functionality for the button
 button.MouseButton1Click:Connect(function()
-    isOpen = not isOpen -- Toggle button state
-    
-    if isOpen then
-        button.Text = "Open"
-    else
-        button.Text = "Close"
-    end
-    
     Window:Minimize()
-end)
-
--- Function to make the button draggable
-local function setDraggable(draggable)
-    if draggable then
-        -- Connect events for dragging
-        dragConnection = button.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.Touch then
-                local dragStart = input.Position
-                local startPos = button.Position
-                local dragInput = input
-
-                local function onInputChanged(input)
-                    if input == dragInput then
-                        local delta = input.Position - dragStart
-                        button.Position = UDim2.new(0, startPos.X.Offset + delta.X, 0, startPos.Y.Offset + delta.Y)
-                    end
-                end
-
-                local function onInputEnded(input)
-                    if input == dragInput then
-                        dragInput = nil
-                        game:GetService("UserInputService").InputChanged:Disconnect(onInputChanged)
-                        input.Changed:Disconnect(onInputEnded)
-                    end
-                end
-
-                game:GetService("UserInputService").InputChanged:Connect(onInputChanged)
-                input.Changed:Connect(onInputEnded)
-            end
-        end)
-    else
-        -- Disconnect events if not draggable
-        if dragConnection then
-            dragConnection:Disconnect()
-            dragConnection = nil -- Reset dragConnection
-        end
-    end
-end
-
--- Function to toggle button visibility
-local function toggleButtonVisibility(visible)
-    button.Visible = visible
-end
-
--- Create the toggle for draggable button
-local DraggableToggle = Tabs.Settings:AddToggle("Draggable Button", {Title = "Draggable Button", Default = false})
-
-DraggableToggle:OnChanged(function(value)
-    isDraggable = value
-    setDraggable(isDraggable)
-end)
-
--- Create another toggle for button visibility
-local VisibilityToggle = Tabs.Settings:AddToggle("Button Visibility", {Title = "Toggle Window Visibility", Default = true})
-
-VisibilityToggle:OnChanged(function(value)
-    toggleButtonVisibility(value)
+    
 end)
 
 local Options = Fluent.Options
@@ -180,7 +97,7 @@ local function setup_character(character)
             local oldcf = root.CFrame
             local oldcamoffset = hum.CameraOffset
 
-            local newcf = oldcf * CFrame.new(0, -25, 0)
+            local newcf = oldcf * CFrame.new(0, -40, 0)
 
             hum.CameraOffset = newcf:ToObjectSpace(CFrame.new(oldcf.Position)).Position
             root.CFrame = newcf
@@ -254,6 +171,8 @@ end
 -- Connect to PlayerAdded and PlayerRemoving events to update the dropdown
 game.Players.PlayerAdded:Connect(UpdateDropdownA)
 game.Players.PlayerRemoving:Connect(UpdateDropdownA)
+
+
     
     
     
@@ -680,6 +599,8 @@ if lp.Character then
     end
 end
 
+Options.FEInvisible:SetValue(false)
+
     
 -- Store input values in getgenv()
 getgenv().walkSpeedValue = 16
@@ -817,7 +738,126 @@ Tabs.Main:AddParagraph({
         Content = "For scrolling only"
     })
 
+local Toggle = Tabs.Main:AddToggle("FEinviButton", {Title = "FE invisible Button", Default = false})
 
+-- Variable to hold the ScreenGui and its position
+local screenGui
+local savedPosition = UDim2.new(0.5, -75, 0.5, -37.5)  -- Default position
+
+local function createGui()
+    -- Create a ScreenGui
+    screenGui = Instance.new("ScreenGui")
+    screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+    -- Create a Frame
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(0, 100, 0, 75) -- Smaller size
+    frame.Position = savedPosition  -- Use saved position
+    frame.AnchorPoint = Vector2.new(0.5, 0.5)
+    frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- Black background
+    frame.Parent = screenGui
+
+    -- Add UICorner to Frame
+    local uiCornerFrame = Instance.new("UICorner")
+    uiCornerFrame.CornerRadius = UDim.new(0, 15)
+    uiCornerFrame.Parent = frame
+
+    -- Create a Button
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(0, 80, 0, 40) -- Smaller size
+    button.Position = UDim2.new(0.5, 0, 0.5, 0) -- Centered in the frame
+    button.AnchorPoint = Vector2.new(0.5, 0.5)
+    button.BackgroundTransparency = 1 -- Remove background color
+    button.Text = "Invisible [ON]"
+    button.TextColor3 = Color3.fromRGB(255, 255, 255) -- White text color
+    button.Parent = frame
+
+    -- Function to toggle button text based on Options.FEInvisible value
+    local function toggleButtonText()
+        if Options.FEInvisible.Value then
+            button.Text = " FE Invisible [ON]"
+        else
+            button.Text = "FE Invisible [OFF]"
+        end
+    end
+
+    -- Connect the button click event to the toggle function
+    button.MouseButton1Click:Connect(function()
+        Options.FEInvisible:SetValue(not Options.FEInvisible.Value)
+        toggleButtonText()
+    end)
+
+    -- Make the Frame draggable
+    local UserInputService = game:GetService("UserInputService")
+
+    local dragging
+    local dragInput
+    local dragStart
+    local startPos
+
+    local function update(input)
+        local delta = input.Position - dragStart
+        frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        savedPosition = frame.Position  -- Save the updated position
+    end
+
+    frame.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = frame.Position
+
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+
+    frame.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            dragInput = input
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            update(input)
+        end
+    end)
+
+    -- Update button text based on Options.FEInvisible initial value
+    toggleButtonText()
+end
+
+-- Function to handle GUI creation and destruction
+local function handleToggle(value)
+    if value then
+        -- Create and show the GUI
+        createGui()
+    else
+        -- Destroy the GUI
+        if screenGui then
+            screenGui:Destroy()
+            screenGui = nil
+        end
+    end
+end
+
+-- Handle the toggle state change
+Toggle:OnChanged(handleToggle)
+
+-- Set the initial state of the toggle
+Options.FEInvisible:SetValue(false)
+
+-- Ensure the GUI persists across respawns
+local player = game.Players.LocalPlayer
+player.CharacterAdded:Connect(function()
+    if Toggle.Value then
+        createGui()
+    end
+end)
 
 
 
