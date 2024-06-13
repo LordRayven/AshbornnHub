@@ -1,6 +1,6 @@
 repeat wait() until game:IsLoaded()
 
-local Notification = loadstring(game:HttpGet("https://raw.githubusercontent.com/BocusLuke/UI/main/STX/Client.Lua"))()
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
 local StarterGui = game:GetService("StarterGui")
 local UIS = game:GetService("UserInputService")
 local Players = game:GetService("Players")
@@ -40,10 +40,11 @@ function sendnotification(message, type)
                 Duration = 7;
             })
         else
-            Notification:Notify(
-                {Title = title, Description = message},
-                {OutlineColor = Color3.fromRGB(97, 62, 167), Time = 4, Type = "default"}
-            )
+            Fluent:Notify({
+                    Title = title,
+                    Content = message,
+                    Duration = 3
+                })
         end
     end
 end
