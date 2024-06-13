@@ -4,9 +4,7 @@ local url = "https://link-center.net/480893/ashbornnhub-key-system1"
 local discordInvite = "https://discord.com/invite/AdYyzaTpXX"
 
 -- Load external scripts for notifications
-local NotificationHolder = loadstring(game:HttpGet("https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/NotificationHolder.lua"))()
-local Notification = loadstring(game:HttpGet("https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/Notification.lua"))()
-
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
 -- Create GUI
 local player = game.Players.LocalPlayer
 local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
@@ -48,7 +46,7 @@ closeButton.Font = Enum.Font.SourceSansBold
 local textBox = Instance.new("TextBox", frame)
 textBox.Size = UDim2.new(0.8, 0, 0.2, 0)
 textBox.Position = UDim2.new(0.1, 0, 0.3, 0)
-textBox.PlaceholderText = "Enter Key"
+textBox.PlaceholderText = "Paste key here"
 textBox.Text = ""
 textBox.TextScaled = true
 textBox.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
@@ -104,10 +102,20 @@ end)
 
 getKeyButton.MouseButton1Click:Connect(function()
    setclipboard(url)
+   Fluent:Notify({
+                Title = "Key System Says:",
+                Content = "Key link has been copied to clipboard",
+                Duration = 3
+            })
 end)
 
 discordButton.MouseButton1Click:Connect(function()
-   setclipboard(discordInvite)
+setclipboard(discordInvite)
+   Fluent:Notify({
+                Title = "Key System Says:",
+                Content = "Discord invite has been copied to clipboard",
+                Duration = 3
+            })
 end)
 
 local function loadSavedKey()
@@ -150,10 +158,11 @@ local function CheckKey()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/AshMain.lua", true))()
     else
         print("Key is invalid")
-        Notification:Notify(
-            {Title = "AshbornnHub GUI", Description = "Wrong Key"},
-            {OutlineColor = Color3.fromRGB(97, 62, 167), Time = 7, Type = "default"}
-        )
+        Fluent:Notify({
+                Title = "Wrong Key maybe its updated",
+                Content = "Tap or Click Get Key and Paste in your Browser",
+                Duration = 8
+            })
     end
 end
 
