@@ -1,6 +1,6 @@
 -- Define URLs and user key
 local userkey = game:HttpGet("https://pastebin.com/raw/Uag14ZfV")
-local url = "https://link-target.net/480893/ashbornnhub-key-system"
+local url = "https://link-center.net/480893/ashbornnhub-key-system1"
 local discordInvite = "https://discord.com/invite/AdYyzaTpXX"
 
 -- Load external scripts for notifications
