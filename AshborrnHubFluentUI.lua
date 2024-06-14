@@ -1523,51 +1523,6 @@ local discord = "https://discord.com/invite/nzXkxej9wa"
 
 
 -------------------------------------------------------------------------LOCAL PLAYER----------------------------------------------------------------------------------------------
-local player = game.Players.LocalPlayer
-local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
-
-local function TwoLifes()
-    local Character = player.Character
-    if Character and humanoid then
-        humanoid.Name = "1"
-        local HumanoidClone = Character["1"]:Clone()
-        HumanoidClone.Parent = Character
-        HumanoidClone.Name = "Humanoid"
-        wait(0.1)
-        Character["1"]:Destroy()
-        game.Workspace.CurrentCamera.CameraSubject = player.Character.Humanoid
-        Character.Animate.Disabled = true
-        wait(0.1)
-        Character.Animate.Disabled = false
-    end
-end
-
-local Toggle = Tabs.LPlayer:AddToggle("TwoLifes", {Title = "2 Lifes (Can't be Turn off) ", Default = false})
-
-Toggle:OnChanged(function(Value)
-    if Value then
-        TwoLifes()
-    end
-end)
-
-Options.TwoLifes:SetValue(false)
-
--- Event connection for mobile jumping
-if game:GetService("UserInputService").TouchEnabled then
-    local JumpButton = player.PlayerGui:WaitForChild("TouchGui"):WaitForChild("TouchControlFrame"):WaitForChild("JumpButton")
-    
-    JumpButton.MouseButton1Click:Connect(function()
-        local Character = player.Character
-        if Character then
-            local humanoid = Character:FindFirstChildWhichIsA("Humanoid")
-            if humanoid then
-                humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-            end
-        end
-    end)
-end
-
-
 
     local Toggle = Tabs.LPlayer:AddToggle("Invisible", {Title = "Invisible (Need Ghost Perk)", Default = false})
 
@@ -3115,6 +3070,161 @@ Options.StabSheriff:SetValue(false) ----CHANGE THIS
 
 -- Ensure the GUI persists across respawns and retains its position
 local player = game.Players.LocalPlayer
+player.CharacterAdded:Connect(function()
+    if Toggle.Value then
+        toggleGui(true)
+    end
+end)
+
+local SheriffHacks = Tabs.Buttons:AddSection("Speed Hacks")
+
+
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local player = game.Players.LocalPlayer
+local hb = RunService.Heartbeat
+local normalWalkSpeed = 16
+local tpWalkSpeed = 3  -- Initial speed value
+local tpwalking = false
+
+-- Create a toggle button in the GUI
+local Toggle = Tabs.Buttons:AddToggle("HoldTpWalk", {Title = "Hold to Speed", default = false})
+
+-- Create a slider for teleport walk speed
+local Slider = Tabs.Buttons:AddSlider("TpWalkSpeed", {
+    Title = "Speed",
+    Description = "Hold to Speed Slider",
+    Default = tpWalkSpeed,
+    Min = 0,
+    Max = 10,
+    Rounding = 1,
+    Callback = function(Value)
+        tpWalkSpeed = Value
+    end
+})
+
+-- Ensure slider initial value is set correctly
+Slider:SetValue(tpWalkSpeed)
+
+-- Create a ScreenGui
+local screenGui
+local savedPosition = UDim2.new(0.5, 75, 0.5, 37)  -- Default position
+
+-- Function to create or destroy the GUI based on toggle state
+local function toggleGui(value)
+    if value then
+        -- Create the GUI
+        screenGui = Instance.new("ScreenGui")
+        screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+        -- Create the Frame
+        local frame = Instance.new("Frame")
+        frame.Size = UDim2.new(0, InputWidth.Value, 0, InputHeight.Value) -- Smaller size
+        frame.Position = savedPosition  -- Use saved position
+        frame.AnchorPoint = Vector2.new(0.5, 0.5)
+        frame.BackgroundTransparency = TColorpicker.Transparency
+        frame.BackgroundColor3 = TColorpicker.Value
+        frame.Parent = screenGui
+
+        -- Add UICorner to Frame
+        local uiCornerFrame = Instance.new("UICorner")
+        uiCornerFrame.CornerRadius = UDim.new(0, 15)
+        uiCornerFrame.Parent = frame
+
+        -- Create the Button
+        local button = Instance.new("TextButton")
+        button.Size = UDim2.new(0, 80, 0, 40) -- Smaller size
+        button.Position = UDim2.new(0.5, 0, 0.5, 0) -- Centered in the frame
+        button.AnchorPoint = Vector2.new(0.5, 0.5)
+        button.BackgroundTransparency = 1 -- Remove background color
+        button.Text = "Hold to Speed"
+        button.TextSize = InputTSize.Value
+        button.TextColor3 = Color3.fromRGB(255, 255, 255) -- White text color
+        button.Parent = frame
+
+        -- Teleport walk function
+        local function startTpWalk()
+            tpwalking = true
+            local chr = player.Character
+            local hum = chr and chr:FindFirstChildWhichIsA("Humanoid")
+            while tpwalking and chr and hum and hum.Parent do
+                local delta = hb:Wait()
+                if hum.MoveDirection.Magnitude > 0 then
+                    chr:TranslateBy(hum.MoveDirection * tpWalkSpeed * delta * 10)
+                end
+            end
+        end
+
+        -- Stop teleport walk function
+        local function stopTpWalk()
+            tpwalking = false
+        end
+
+        -- Hold to speed button event
+        button.MouseButton1Down:Connect(function()
+            player.Character.Humanoid.WalkSpeed = tpWalkSpeed
+            startTpWalk()
+        end)
+
+        button.MouseButton1Up:Connect(function()
+            player.Character.Humanoid.WalkSpeed = normalWalkSpeed
+            stopTpWalk()
+        end)
+
+        -- Function to handle GUI drag on mobile
+        local dragging
+        local dragInput
+        local dragStart
+        local startPos
+
+        local function update(input)
+            local delta = input.Position - dragStart
+            frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+            savedPosition = frame.Position  -- Save the updated position
+        end
+
+        frame.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                dragging = true
+                dragStart = input.Position
+                startPos = frame.Position
+
+                input.Changed:Connect(function()
+                    if input.UserInputState == Enum.UserInputState.End then
+                        dragging = false
+                    end
+                end)
+            end
+        end)
+
+        frame.InputChanged:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+                dragInput = input
+            end
+        end)
+
+        UserInputService.InputChanged:Connect(function(input)
+            if input == dragInput and dragging then
+                update(input)
+            end
+        end)
+
+    else
+        -- Destroy the GUI if it exists
+        if screenGui then
+            screenGui:Destroy()
+            screenGui = nil
+        end
+    end
+end
+
+-- Connect the toggle's OnChanged event to the function
+Toggle:OnChanged(toggleGui)
+
+-- Set the initial state of the toggle
+Options.HoldTpWalk:SetValue(false)
+
+-- Ensure the GUI persists across respawns and retains its position
 player.CharacterAdded:Connect(function()
     if Toggle.Value then
         toggleGui(true)
