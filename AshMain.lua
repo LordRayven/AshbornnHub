@@ -8,13 +8,13 @@ function isBanned(playerId)
     return banList[playerId] ~= nil
 end
 
--- Event when a player joins the game
-game.Players.PlayerAdded:Connect(function(player)
-    if isBanned(player.UserId) then
-        player:Kick("Lol why did you do that")
-    end
-end)
+-- Get the local player
+local player = game.Players.LocalPlayer
 
+-- Check if the local player is banned and kick if necessary
+if isBanned(player.UserId) then
+    player:Kick("You have been banned from this game. Please contact support for more information.")
+end
 
 
 
