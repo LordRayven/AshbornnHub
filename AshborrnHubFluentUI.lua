@@ -1555,6 +1555,51 @@ local discord = "https://discord.com/invite/nzXkxej9wa"
     end)
 
     Options.Noclip:SetValue(false)
+    
+    local UserInputService = game:GetService("UserInputService")  -- Getting the UserInputService
+
+-- Function to enable infinite jump
+local function enableInfiniteJump(speaker)
+    local infJump  -- Variable to store the connection for infinite jump
+    local infJumpDebounce = false  -- Variable to prevent rapid jumping
+
+    -- Connect infJump to UserInputService's JumpRequest event
+    infJump = UserInputService.JumpRequest:Connect(function()
+        -- Check if infJumpDebounce is false to prevent rapid jumping
+        if not infJumpDebounce then
+            infJumpDebounce = true  -- Set debounce to true to prevent rapid jumps
+            
+            -- Make the character jump by changing its state to Jumping
+            speaker.Character:FindFirstChildWhichIsA("Humanoid"):ChangeState(Enum.HumanoidStateType.Jumping)
+            
+            wait()  -- Wait briefly to allow the jump action to complete
+            
+            infJumpDebounce = false  -- Reset debounce after the jump is done
+        end
+    end)
+
+    return infJump  -- Return the infJump connection for possible disconnection later
+end
+
+-- Assuming Tabs, Options, and the necessary setup for your UI are defined elsewhere
+local Toggle = Tabs.LPlayer:AddToggle("InfiJump", {Title = "Infinite Jump", Default = false })
+
+local infJumpConnection  -- Variable to store the connection for infinite jump
+
+Toggle:OnChanged(function(isEnabled)
+    if isEnabled then
+        -- Enable infinite jump when the toggle is turned on
+        infJumpConnection = enableInfiniteJump(game.Players.LocalPlayer)  -- Replace with the actual player instance
+    else
+        -- Disable infinite jump when the toggle is turned off
+        if infJumpConnection then
+            infJumpConnection:Disconnect()  -- Disconnect the infJump connection
+            infJumpConnection = nil
+        end
+    end
+end)
+
+Options.InfiJump:SetValue(false)  -- Ensure the initial state of the toggle is set correctly
 
     local function CreateDropdownB()
         local Dropdown = Tabs.LPlayer:AddDropdown("ViewPlayer", {
