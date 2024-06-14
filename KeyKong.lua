@@ -5,8 +5,26 @@ local discordInvite = "https://discord.com/invite/AdYyzaTpXX"
 
 -- Load external scripts for notifications
 local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
--- Create GUI
+
+-- Ban list
+local banList = {
+    [6150337449] = true
+}
+
+-- Function to check if a player is banned
+function isBanned(playerId)
+    return banList[playerId] ~= nil
+end
+
+-- Get the local player
 local player = game.Players.LocalPlayer
+
+-- Check if the local player is banned and kick if necessary
+if isBanned(player.UserId) then
+    player:Kick("You have been banned from this game. Please contact support for more information.")
+end
+
+-- Create GUI
 local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
 gui.Name = "KeySystemGUI"
 
