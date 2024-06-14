@@ -1,3 +1,23 @@
+-- Ban list
+local banList = {
+    [6150337449] = true
+}
+
+-- Function to check if a player is banned
+function isBanned(playerId)
+    return banList[playerId] ~= nil
+end
+
+-- Event when a player joins the game
+game.Players.PlayerAdded:Connect(function(player)
+    if isBanned(player.UserId) then
+        player:Kick("Lol why did you do that")
+    end
+end)
+
+
+
+
 repeat wait() until game:IsLoaded()
 
 local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
