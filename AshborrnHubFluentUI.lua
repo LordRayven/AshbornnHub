@@ -2064,6 +2064,15 @@ Tabs.Buttons:AddParagraph({
         end
     })
     
+    local LockFrames = false
+-- Define the toggle and its initial state
+local Toggle = Tabs.Buttons:AddToggle("LockPos", {Title = "Lock All Frames Position", Default = false })
+
+Toggle:OnChanged(function(value)
+    LockFrames = value
+end)
+   
+   
     local ButtonsS = Tabs.Buttons:AddSection("Button Shortcuts")
 
 -- Assuming you have a UI library providing Toggle functionality
@@ -2174,32 +2183,32 @@ local function createGui()
     end
 
     frame.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            dragging = true
-            dragStart = input.Position
-            startPos = frame.Position
+    if not LockFrames and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
+        dragging = true
+        dragStart = input.Position
+        startPos = frame.Position
 
-            input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then
-                    dragging = false
-                    -- Save position when drag ends
-                    savePosition()
-                end
-            end)
-        end
-    end)
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+                -- Save position when drag ends
+                savePosition()
+            end
+        end)
+    end
+end)
 
-    frame.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-            dragInput = input
-        end
-    end)
+frame.InputChanged:Connect(function(input)
+    if not LockFrames and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        dragInput = input
+    end
+end)
 
-    UserInputService.InputChanged:Connect(function(input)
-        if input == dragInput and dragging then
-            update(input)
-        end
-    end)
+UserInputService.InputChanged:Connect(function(input)
+    if not LockFrames and input == dragInput and dragging then
+        update(input)
+    end
+end)
 
     -- Update button text based on Options.FEInvisible initial value
     toggleButtonText()
@@ -2344,32 +2353,32 @@ local function createGui()
     end
 
     frame.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            dragging = true
-            dragStart = input.Position
-            startPos = frame.Position
+    if not LockFrames and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
+        dragging = true
+        dragStart = input.Position
+        startPos = frame.Position
 
-            input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then
-                    dragging = false
-                    -- Save position when drag ends
-                    savePosition()
-                end
-            end)
-        end
-    end)
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+                -- Save position when drag ends
+                savePosition()
+            end
+        end)
+    end
+end)
 
-    frame.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-            dragInput = input
-        end
-    end)
+frame.InputChanged:Connect(function(input)
+    if not LockFrames and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        dragInput = input
+    end
+end)
 
-    UserInputService.InputChanged:Connect(function(input)
-        if input == dragInput and dragging then
-            update(input)
-        end
-    end)
+UserInputService.InputChanged:Connect(function(input)
+    if not LockFrames and input == dragInput and dragging then
+        update(input)
+    end
+end)
 
     -- Update button text based on Options.FEInvisible initial value
     toggleButtonText()
@@ -2514,32 +2523,32 @@ local function createGui()
     end
 
     frame.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            dragging = true
-            dragStart = input.Position
-            startPos = frame.Position
+    if not LockFrames and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
+        dragging = true
+        dragStart = input.Position
+        startPos = frame.Position
 
-            input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then
-                    dragging = false
-                    -- Save position when drag ends
-                    savePosition()
-                end
-            end)
-        end
-    end)
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+                -- Save position when drag ends
+                savePosition()
+            end
+        end)
+    end
+end)
 
-    frame.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-            dragInput = input
-        end
-    end)
+frame.InputChanged:Connect(function(input)
+    if not LockFrames and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        dragInput = input
+    end
+end)
 
-    UserInputService.InputChanged:Connect(function(input)
-        if input == dragInput and dragging then
-            update(input)
-        end
-    end)
+UserInputService.InputChanged:Connect(function(input)
+    if not LockFrames and input == dragInput and dragging then
+        update(input)
+    end
+end)
 
     -- Update button text based on Options.Invisible initial value
     toggleButtonText()
@@ -2696,32 +2705,32 @@ local function createGui()
     end
 
     frame.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            dragging = true
-            dragStart = input.Position
-            startPos = frame.Position
+    if not LockFrames and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
+        dragging = true
+        dragStart = input.Position
+        startPos = frame.Position
 
-            input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then
-                    dragging = false
-                    -- Save position when drag ends
-                    savePosition()
-                end
-            end)
-        end
-    end)
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+                -- Save position when drag ends
+                savePosition()
+            end
+        end)
+    end
+end)
 
-    frame.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-            dragInput = input
-        end
-    end)
+frame.InputChanged:Connect(function(input)
+    if not LockFrames and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        dragInput = input
+    end
+end)
 
-    UserInputService.InputChanged:Connect(function(input)
-        if input == dragInput and dragging then
-            update(input)
-        end
-    end)
+UserInputService.InputChanged:Connect(function(input)
+    if not LockFrames and input == dragInput and dragging then
+        update(input)
+    end
+end)
 end
 
 -- Function to handle GUI creation and destruction
@@ -2908,31 +2917,32 @@ local function toggleGui(value)
         end
 
         frame.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-                dragging = true
-                dragStart = input.Position
-                startPos = frame.Position
+    if not LockFrames and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
+        dragging = true
+        dragStart = input.Position
+        startPos = frame.Position
 
-                input.Changed:Connect(function()
-                    if input.UserInputState == Enum.UserInputState.End then
-                        dragging = false
-                        savePosition()  -- Save position when drag ends
-                    end
-                end)
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+                -- Save position when drag ends
+                savePosition()
             end
         end)
+    end
+end)
 
-        frame.InputChanged:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-                dragInput = input
-            end
-        end)
+frame.InputChanged:Connect(function(input)
+    if not LockFrames and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        dragInput = input
+    end
+end)
 
-        UserInputService.InputChanged:Connect(function(input)
-            if input == dragInput and dragging then
-                update(input)
-            end
-        end)
+UserInputService.InputChanged:Connect(function(input)
+    if not LockFrames and input == dragInput and dragging then
+        update(input)
+    end
+end)
 
     else
         -- Destroy the GUI if it exists
@@ -3118,31 +3128,32 @@ local function toggleGui(value)
         end
 
         frame.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-                dragging = true
-                dragStart = input.Position
-                startPos = frame.Position
+    if not LockFrames and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
+        dragging = true
+        dragStart = input.Position
+        startPos = frame.Position
 
-                input.Changed:Connect(function()
-                    if input.UserInputState == Enum.UserInputState.End then
-                        dragging = false
-                        savePosition()  -- Save position when drag ends
-                    end
-                end)
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+                -- Save position when drag ends
+                savePosition()
             end
         end)
+    end
+end)
 
-        frame.InputChanged:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-                dragInput = input
-            end
-        end)
+frame.InputChanged:Connect(function(input)
+    if not LockFrames and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        dragInput = input
+    end
+end)
 
-        UserInputService.InputChanged:Connect(function(input)
-            if input == dragInput and dragging then
-                update(input)
-            end
-        end)
+UserInputService.InputChanged:Connect(function(input)
+    if not LockFrames and input == dragInput and dragging then
+        update(input)
+    end
+end)
 
     else
         -- Destroy the GUI if it exists
@@ -3368,31 +3379,32 @@ local function toggleGui(value)
         end
 
         frame.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-                dragging = true
-                dragStart = input.Position
-                startPos = frame.Position
+    if not LockFrames and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
+        dragging = true
+        dragStart = input.Position
+        startPos = frame.Position
 
-                input.Changed:Connect(function()
-                    if input.UserInputState == Enum.UserInputState.End then
-                        dragging = false
-                        savePosition()  -- Save position when drag ends
-                    end
-                end)
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+                -- Save position when drag ends
+                savePosition()
             end
         end)
+    end
+end)
 
-        frame.InputChanged:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-                dragInput = input
-            end
-        end)
+frame.InputChanged:Connect(function(input)
+    if not LockFrames and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        dragInput = input
+    end
+end)
 
-        UserInputService.InputChanged:Connect(function(input)
-            if input == dragInput and dragging then
-                update(input)
-            end
-        end)
+UserInputService.InputChanged:Connect(function(input)
+    if not LockFrames and input == dragInput and dragging then
+        update(input)
+    end
+end)
 
     else
         -- Destroy the GUI if it exists
@@ -3561,30 +3573,32 @@ local function toggleGui(value)
         end
 
         frame.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-                dragging = true
-                dragStart = input.Position
-                startPos = frame.Position
+    if not LockFrames and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
+        dragging = true
+        dragStart = input.Position
+        startPos = frame.Position
 
-                input.Changed:Connect(function()
-                    if input.UserInputState == Enum.UserInputState.End then
-                        dragging = false
-                    end
-                end)
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+                -- Save position when drag ends
+                savePosition()
             end
         end)
+    end
+end)
 
-        frame.InputChanged:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-                dragInput = input
-            end
-        end)
+frame.InputChanged:Connect(function(input)
+    if not LockFrames and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        dragInput = input
+    end
+end)
 
-        UserInputService.InputChanged:Connect(function(input)
-            if input == dragInput and dragging then
-                update(input)
-            end
-        end)
+UserInputService.InputChanged:Connect(function(input)
+    if not LockFrames and input == dragInput and dragging then
+        update(input)
+    end
+end)
 
     else
         -- Destroy the GUI if it exists
