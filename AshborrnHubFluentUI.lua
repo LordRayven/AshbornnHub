@@ -3428,7 +3428,7 @@ Tabs.Buttons:AddParagraph({
     
     Tabs.Settings:AddParagraph({
             Title = "To open Window from Chat just say:",
-            Content = ".ash"
+            Content = "/e ash"
         })
 
     -- Create the toggle for draggable button
@@ -3448,7 +3448,7 @@ Tabs.Buttons:AddParagraph({
     
 local player = game.Players.LocalPlayer
 
--- Define the function you want to execute when ".ash" is typed
+-- Define the function you want to execute when "/e ash" is typed
 local function openWindow()
     Window:Minimize()
 end
