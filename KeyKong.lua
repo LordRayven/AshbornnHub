@@ -8,8 +8,7 @@ local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/
 
 -- Ban list
 local banList = {
-    [6150337449] = false,
-    [6150323353] = false
+    
 }
 
 -- Function to check if a player is banned
