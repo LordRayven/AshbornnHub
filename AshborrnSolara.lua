@@ -519,7 +519,101 @@ Tabs.Combat:AddButton({
         end
     end
 })
+
+
+local player = game.Players.LocalPlayer
+local shootKey = Enum.KeyCode.E  -- Default shoot key
+
+-- Function to shoot at the murderer's position
+local function shootAtMurderer()
+    local murderer = game.Players[Murder]
+    local murdererCharacter = murderer and murderer.Character
+    local playerCharacter = player.Character
+
+    if murdererCharacter and murdererCharacter:FindFirstChild("HumanoidRootPart") then
+        if playerCharacter:FindFirstChild("Gun") then
+            playerCharacter.Gun.KnifeServer.ShootGun:InvokeServer(1, murdererCharacter.HumanoidRootPart.Position, "AH")
+        else
+            -- Player doesn't have a gun, show notification
+            Fluent:Notify({
+                Title = "You don't have a gun",
+                Content = "Wait for the sheriff death or grab the gun",
+                Duration = 3
+            })
+        end
+    else
+        -- Notify if the murderer or its root part isn't found
+        Fluent:Notify({
+            Title = "Murderer or HumanoidRootPart not found",
+            Content = "Character or root part missing.",
+            Duration = 3
+        })
+    end
+end
+
+-- Function to update shoot key based on keybind change
+local function updateShootKey(newKey)
+    shootKey = newKey
+    print("Shoot key updated to:", shootKey.Name)  -- Use .Name to get the string representation of the key
+end
+
+-- Listen for the shoot key press
+game:GetService("UserInputService").InputBegan:Connect(function(input, isProcessed)
+    if not isProcessed and input.KeyCode == shootKey then
+        print(shootKey.Name.." key pressed")  -- Use .Name to get the string representation of the key
         
+        -- Check if the player has a gun
+        local playerCharacter = player.Character
+        if playerCharacter then
+            local gun = playerCharacter:FindFirstChild("Gun")
+            if gun then
+                shootAtMurderer()
+            else
+                Fluent:Notify({
+                    Title = "You don't have a Gun",
+                    Content = "Grab the gun or wait for Sheriff Death.",
+                    Duration = 3
+                })
+            end
+        end
+    end
+end)
+
+-- Adding the Keybind to change shoot key
+local Keybind = Tabs.Combat:AddKeybind("Keybind", {
+    Title = "Change Shoot Keybind",
+    Mode = "Always", -- Allow the keybind to always be active
+    Default = shootKey.Name, -- Default to current shoot key
+    -- Occurs when the keybind is clicked, Value is `true`/`false`
+    Callback = function(Value)
+        local newKey = Enum.KeyCode[Value]
+        if newKey then
+            updateShootKey(newKey)
+            Fluent:Notify({
+                Title = "Shoot Keybind Changed",
+                Content = "New keybind set to "..newKey.Name,  -- Use .Name to get the string representation of the key
+                Duration = 3
+            })
+        else
+            Fluent:Notify({
+                Title = "Invalid Keybind",
+                Content = "Please choose a valid keybind.",
+                Duration = 3
+            })
+        end
+    end,
+    -- Occurs when the keybind itself is changed, `New` is a KeyCode Enum OR a UserInputType Enum
+    ChangedCallback = function(New)
+        local newKey = New
+        updateShootKey(newKey)
+        Fluent:Notify({
+            Title = "Shoot Keybind Changed",
+            Content = "New keybind set to "..newKey.Name,  -- Use .Name to get the string representation of the key
+            Duration = 3
+        })
+    end
+})
+
 
         
 Tabs.Combat:AddButton({
@@ -2107,3 +2201,4 @@ end)
     -- You can use the SaveManager:LoadAutoloadConfig() to load a config
     -- which has been marked to be one that auto loads!
     SaveManager:LoadAutoloadConfig()
+    
