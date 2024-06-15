@@ -934,21 +934,6 @@ end)
 
 
     --------------------------------------------COMBAT-----------------------------------------------
-
-
-
-    
-
-    Tabs.Main:AddButton({
-        Title = "Infinite Yield",
-        Description = "Best script for all games",
-        Callback = function()
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))()
-        end
-    })
-    ---------------------MISC
-
-    
 ----------------------------------------------MISC---------------------------------------------------
 
 Tabs.Misc:AddButton({
@@ -2110,9 +2095,10 @@ end)
     Fluent:Notify({
         Title = "AshbornnHub",
         Content = "AshbornnHub has been loaded.",
-        Duration = 4
+        Duration = 3
     })
 
     -- You can use the SaveManager:LoadAutoloadConfig() to load a config
     -- which has been marked to be one that auto loads!
     SaveManager:LoadAutoloadConfig()
+    
