@@ -648,8 +648,137 @@ Tabs.Combat:AddButton({
         end
     end
 })
-    
 
+local autoShootingActive = false
+local autoShootingTask = nil
+local gunNotificationShown = false -- Flag to track if the gun notification has been shown
+
+local function autoShoot()
+    while autoShootingActive do
+        local player = game.Players.LocalPlayer
+        local characterRootPart = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+        if not characterRootPart then return end
+        
+        if Murder then
+            local murdererPlayer = game.Players[Murder]
+            local murdererCharacter = murdererPlayer and murdererPlayer.Character
+            if murdererCharacter and murdererCharacter:FindFirstChild("HumanoidRootPart") then
+                -- Calculate direction to murderer
+                local murdererPosition = murdererCharacter.HumanoidRootPart.Position
+                local rayDirection = murdererPosition - characterRootPart.Position
+                
+                -- Perform a raycast to check for obstacles between player and murderer
+                local raycastParams = RaycastParams.new()
+                raycastParams.FilterType = Enum.RaycastFilterType.Exclude
+                raycastParams.FilterDescendantsInstances = {player.Character}
+                
+                local hit = workspace:Raycast(characterRootPart.Position, rayDirection.Unit * rayDirection.Magnitude, raycastParams)
+                
+                -- Check if the raycast did not hit anything or if it hit the murderer
+                if not hit or (hit.Instance and hit.Instance.Parent == murdererCharacter) then
+                    -- Check if the player has a gun in their backpack or equipped
+                    local backpack = player:FindFirstChild("Backpack")
+                    local gun = backpack and (backpack:FindFirstChild("Gun") or player.Character:FindFirstChild("Gun"))
+                    
+                    if gun then
+                        -- Equip the gun if not already equipped
+                        if not player.Character:FindFirstChild("Gun") then
+                            backpack.Gun.Parent = player.Character
+                        end
+                        
+                        -- Loop to continuously shoot the gun until the player no longer has it
+                        while autoShootingActive and (player.Character:FindFirstChild("Gun")) do
+                            -- Shoot the gun at the murderer's position
+                            local gunObject = player.Character:FindFirstChild("Gun")
+                            if gunObject then
+                                local knifeServer = gunObject:FindFirstChild("KnifeServer")
+                                if knifeServer then
+                                    knifeServer:FindFirstChild("ShootGun"):InvokeServer(1, murdererPosition, "AH")
+                                else
+                                    warn("KnifeServer not found in Gun.")
+                                end
+                            else
+                                warn("Gun not found in character.")
+                                break
+                            end
+                            task.wait(0.1) -- Short delay between shots
+                        end
+                    else
+                        -- Notify about the absence of a gun, if not already notified
+                        if not gunNotificationShown then
+                            Fluent:Notify({
+                                Title = "Gun Not Found",
+                                Content = "You don't have a gun.",
+                                Duration = 3
+                            })
+                            gunNotificationShown = true -- Set flag to true to prevent further notifications
+                        end
+                    end
+                else
+                    -- If the raycast hit an obstacle, do nothing (optional notification removed)
+                end
+            else
+                -- If murderer's character not found, handle this situation (optional)
+                -- Optional notification or debugging message can be added here
+            end
+        else
+            -- If Murder is not defined or found, handle this situation (optional)
+            -- Optional notification or debugging message can be added here
+        end
+        
+        -- Wait for the cooldown interval before checking again
+        wait(2) -- Cooldown before checking the murderer's presence and line of sight again
+    end
+end
+
+local function onCharacterAdded(character)
+    -- Re-toggle the auto-shoot feature to ensure it starts correctly
+    Options.AutoShoot:SetValue(false)
+    wait(0.1)
+    Options.AutoShoot:SetValue(true)
+end
+
+
+
+local player = game.Players.LocalPlayer
+player.CharacterAdded:Connect(onCharacterAdded)
+
+local Toggle = Tabs.Combat:AddToggle("AutoShoot", {Title = "Auto Shoot Murderer", Default = false})
+
+Toggle:OnChanged(function()
+    autoShootingActive = Toggle.Value
+    if autoShootingActive then
+        autoShootingTask = task.spawn(autoShoot)
+        Fluent:Notify({
+            Title = "Auto Shooting Enabled",
+            Content = "Now automatically shooting at the murderer.",
+            Duration = 3
+        })
+    else
+        autoShootingActive = false
+        if autoShootingTask then
+            task.cancel(autoShootingTask)
+            autoShootingTask = nil
+        end
+        Fluent:Notify({
+            Title = "Auto Shooting Disabled",
+            Content = "Auto shooting at the murderer stopped.",
+            Duration = 3
+        })
+        gunNotificationShown = false -- Reset the flag when auto shooting is disabled
+    end
+end)
+
+-- Initialize auto shooting if the toggle is already enabled
+if Toggle.Value then
+    autoShootingActive = true
+    autoShootingTask = task.spawn(autoShoot)
+end
+
+-- Ensure auto-shoot starts if the character is already loaded
+if player.Character then
+    onCharacterAdded(player.Character)
+end
         
         local MurderHacks = Tabs.Combat:AddSection("Murderer Hacks")
        
