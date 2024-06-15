@@ -732,10 +732,11 @@ local function autoShoot()
 end
 
 local function onCharacterAdded(character)
-    -- Re-toggle the auto-shoot feature to ensure it starts correctly
-    Options.AutoShoot:SetValue(false)
-    wait(0.1)
-    Options.AutoShoot:SetValue(true)
+   if Options.AutoShoot.Value == true then
+      Options.AutoShoot:SetValue(false)
+      wait(0.1)
+      Options.AutoShoot:SetValue(true)
+   end
 end
 
 
@@ -749,22 +750,13 @@ Toggle:OnChanged(function()
     autoShootingActive = Toggle.Value
     if autoShootingActive then
         autoShootingTask = task.spawn(autoShoot)
-        Fluent:Notify({
-            Title = "Auto Shooting Enabled",
-            Content = "Now automatically shooting at the murderer.",
-            Duration = 3
-        })
+        
     else
         autoShootingActive = false
         if autoShootingTask then
             task.cancel(autoShootingTask)
             autoShootingTask = nil
         end
-        Fluent:Notify({
-            Title = "Auto Shooting Disabled",
-            Content = "Auto shooting at the murderer stopped.",
-            Duration = 3
-        })
         gunNotificationShown = false -- Reset the flag when auto shooting is disabled
     end
 end)
