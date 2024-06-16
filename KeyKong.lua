@@ -6,25 +6,8 @@ local discordInvite = "https://discord.com/invite/AdYyzaTpXX"
 -- Load external scripts for notifications
 local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
 
--- Ban list
-local banList = {
-    
-}
-
--- Function to check if a player is banned
-function isBanned(playerId)
-    return banList[playerId] ~= nil
-end
-
--- Get the local player
-local player = game.Players.LocalPlayer
-
--- Check if the local player is banned and kick if necessary
-if isBanned(player.UserId) then
-    player:Kick("You have been banned from this game. Please contact support for more information.")
-end
-
 -- Create GUI
+local player = game.Players.LocalPlayer
 local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
 gui.Name = "KeySystemGUI"
 
@@ -118,76 +101,99 @@ closeButton.MouseButton1Click:Connect(function()
     gui:Destroy()
 end)
 
-getKeyButton.MouseButton1Click:Connect(function()
-   setclipboard(url)
-   Fluent:Notify({
-                Title = "Key System Says:",
-                Content = "Key link has been copied to clipboard",
-                Duration = 3
-            })
-end)
-
-discordButton.MouseButton1Click:Connect(function()
-setclipboard(discordInvite)
-   Fluent:Notify({
-                Title = "Key System Says:",
-                Content = "Discord invite has been copied to clipboard",
-                Duration = 3
-            })
-end)
-
-local function loadSavedKey()
-    local success, key = pcall(readfile, "AshbornnHub/saved_key.txt")
-    if success and key then
-        return key
-    else
-        return nil
-    end
+local function getCurrentTime()
+    return os.time()
 end
 
 local function saveKey(key)
     pcall(writefile, "AshbornnHub/saved_key.txt", key)
+    pcall(writefile, "AshbornnHub/key_time.txt", tostring(getCurrentTime()))
 end
 
-local premiumKeys = {
-    "RaizaR",
-    "UmF5dmVu",
-    userkey
-}
+local function loadKey()
+    local success, key = pcall(readfile, "AshbornnHub/saved_key.txt")
+    local successTime, time = pcall(readfile, "AshbornnHub/key_time.txt")
+    if success and key and successTime and time then
+        return key, tonumber(time)
+    else
+        return nil, nil
+    end
+end
+
+local function resetKey()
+    pcall(writefile, "AshbornnHub/saved_key.txt", "")
+    pcall(writefile, "AshbornnHub/key_time.txt", "")
+end
+
+local function isKeyValid(key, timestamp)
+    if key == userkey and (getCurrentTime() - timestamp) < 86400 then
+        return true
+    else
+        resetKey()
+        return false
+    end
+end
 
 local function CheckKey()
     _G.Key = textBox.Text
 
-    local keyValid = false
     if _G.Key == "" then
         print("Key is empty")
-    else
-        for _, k in ipairs(premiumKeys) do
-            if _G.Key == k then
-                keyValid = true
-                break
-            end
-        end
+        Fluent:Notify({
+            Title = "Key System Says:",
+            Content = "Please enter a key",
+            Duration = 3
+        })
+        return
     end
 
-    if keyValid then
-        saveKey(_G.Key)
+    local key, timestamp = loadKey()
+
+    if _G.Key == userkey and isKeyValid(_G.Key, getCurrentTime()) then
+        saveKey(_G.Key) -- Save key and current time
         gui:Destroy()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/AshMain.lua", true))()
     else
-        print("Key is invalid")
+        print("Key is invalid or expired")
         Fluent:Notify({
-                Title = "Wrong Key maybe its updated",
-                Content = "Tap or Click Get Key and Paste in your Browser",
-                Duration = 8
-            })
+            Title = "Wrong Key or Expired",
+            Content = "Get a new key",
+            Duration = 8
+        })
     end
 end
 
+getKeyButton.MouseButton1Click:Connect(function()
+    setclipboard(url)
+    Fluent:Notify({
+        Title = "Key System Says:",
+        Content = "Key link has been copied to clipboard",
+        Duration = 3
+    })
+end)
+
 checkKeyButton.MouseButton1Click:Connect(CheckKey)
 
-local savedKey = loadSavedKey()
-if savedKey then
-    textBox.Text = savedKey
-    CheckKey()
+discordButton.MouseButton1Click:Connect(function()
+    setclipboard(discordInvite)
+    Fluent:Notify({
+        Title = "Key System Says:",
+        Content = "Discord invite has been copied to clipboard",
+        Duration = 3
+    })
+end)
+
+local savedKey, savedTime = loadKey()
+if savedKey and savedTime then
+    if isKeyValid(savedKey, savedTime) then
+        textBox.Text = savedKey
+        CheckKey()
+    else
+        resetKey()
+        Fluent:Notify({
+            Title = "Key Expired",
+            Content = "Please get a new key",
+            Duration = 3
+        })
+    end
 end
