@@ -156,9 +156,9 @@ local function isKeyValid(key, timestamp)
 end
 
 local function CheckKey()
-    _G.Key = textBox.Text
+    local enteredKey = textBox.Text
 
-    if _G.Key == "" then
+    if enteredKey == "" then
         print("Key is empty")
         Fluent:Notify({
             Title = "Key System Says:",
@@ -168,21 +168,25 @@ local function CheckKey()
         return
     end
 
-    local key, timestamp = loadKey()
+    -- Check if the entered key matches any premium key for the local player
+    local isPremiumKey = premiumUsers[tostring(game.Players.LocalPlayer.UserId)] == enteredKey
 
-    -- Check if the key is either the userkey or a premium key
-    local isPremiumKey = false
+    -- Check if the entered key matches the user key or any premium key
+    if enteredKey == userkey or isPremiumKey then
+        -- If it's a premium key but doesn't match the current user's UserId, kick the player
+        if enteredKey ~= userkey and not isPremiumKey then
+            game.Players.LocalPlayer:Kick("You are not authorized to use this premium key.")
+            return
+        end
 
-    -- Check if the key matches any premium user
-    local function isPremiumUser(userID, key)
-        return premiumUsers[userID] == key
-    end
-
-    if _G.Key == userkey or isPremiumUser(tostring(game.Players.LocalPlayer.UserId), _G.Key) then
-        saveKey(_G.Key) -- Save key and current time
+        -- Save the key and current time
+        saveKey(enteredKey)
         gui:Destroy()
+
+        -- Load the main script
         loadstring(game:HttpGet("https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/AshMain.lua", true))()
     else
+        -- Key is invalid
         print("Key is invalid or expired")
         Fluent:Notify({
             Title = "Wrong Key or Expired",
@@ -197,7 +201,7 @@ getKeyButton.MouseButton1Click:Connect(function()
     Fluent:Notify({
         Title = "Key System Says:",
         Content = "Key link has been copied to clipboard",
-        Duration = 3
+        Duration =     3
     })
 end)
 
