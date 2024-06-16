@@ -7,6 +7,26 @@ local discordInvite = "https://discord.com/invite/AdYyzaTpXX"
 -- Load external scripts for notifications
 local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
 
+-- Premium keys table (replace with your own premium keys)
+local premiumUsers = {
+    ["129215104"] = "UmF5dmVu",
+    ["6069697086"] = "RaizaR",
+    ["4072731377"] = "RaizaR",
+    ["6150337449"] = "RaizaR",
+    ["1571371222"] = "RaizaR",
+    ["2911976621"] = "Qxj2aw4=",
+    ["4072731377"] = "Qxj2aw4",
+    ["2729297689"] = "Qxj2aw4",
+    ["6150320395"] = "Qxj2aw4",
+    ["301098121"] = "UmF5dmVu",
+    ["773902683"] = "UmF5dmVu",
+    ["290931"] = "UmF5dmVu",
+    ["671905963"] = "Melvs",
+    ["3129701628"] = "Melvs",
+    ["3063352401"] = "Melvs",
+    ["3129413184"] = "Melvs",
+}
+
 -- Create GUI
 local player = game.Players.LocalPlayer
 local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
@@ -152,37 +172,13 @@ local function CheckKey()
 
     -- Check if the key is either the userkey or a premium key
     local isPremiumKey = false
-    local premiumKeys = {}
 
-    -- Fetch premium keys from URL
-    local function fetchPremiumKeys()
-        local success, response = pcall(game.HttpGet, game, premiumKeys_url)
-        if success then
-            return response
-        else
-            return nil
-        end
+    -- Check if the key matches any premium user
+    local function isPremiumUser(userID, key)
+        return premiumUsers[userID] == key
     end
 
-    -- Convert fetched keys to table
-    local function parsePremiumKeys(keysRaw)
-        local keysTable = {}
-        for key in keysRaw:gmatch("[^\r\n]+") do
-            keysTable[key] = true
-        end
-        return keysTable
-    end
-
-    -- Example usage
-    local keysRaw = fetchPremiumKeys()
-    if keysRaw then
-        premiumKeys = parsePremiumKeys(keysRaw)
-        -- Now premiumKeys is a table containing your keys
-    else
-        print("Failed to fetch premium keys from", premiumKeys_url)
-    end
-
-    if _G.Key == userkey or premiumKeys[_G.Key] then
+    if _G.Key == userkey or isPremiumUser(tostring(game.Players.LocalPlayer.UserId), _G.Key) then
         saveKey(_G.Key) -- Save key and current time
         gui:Destroy()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/AshMain.lua", true))()
