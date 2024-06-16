@@ -1,5 +1,6 @@
 -- Define URLs and user key
 local userkey = game:HttpGet("https://pastebin.com/raw/fbjjpCnp")
+local premiumKeys_url = "https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/prem"
 local url = "https://direct-link.net/480893/ashbornn-hub-key-system"
 local discordInvite = "https://discord.com/invite/AdYyzaTpXX"
 
@@ -149,7 +150,39 @@ local function CheckKey()
 
     local key, timestamp = loadKey()
 
-    if _G.Key == userkey and isKeyValid(_G.Key, getCurrentTime()) then
+    -- Check if the key is either the userkey or a premium key
+    local isPremiumKey = false
+    local premiumKeys = {}
+
+    -- Fetch premium keys from URL
+    local function fetchPremiumKeys()
+        local success, response = pcall(game.HttpGet, game, premiumKeys_url)
+        if success then
+            return response
+        else
+            return nil
+        end
+    end
+
+    -- Convert fetched keys to table
+    local function parsePremiumKeys(keysRaw)
+        local keysTable = {}
+        for key in keysRaw:gmatch("[^\r\n]+") do
+            keysTable[key] = true
+        end
+        return keysTable
+    end
+
+    -- Example usage
+    local keysRaw = fetchPremiumKeys()
+    if keysRaw then
+        premiumKeys = parsePremiumKeys(keysRaw)
+        -- Now premiumKeys is a table containing your keys
+    else
+        print("Failed to fetch premium keys from", premiumKeys_url)
+    end
+
+    if _G.Key == userkey or premiumKeys[_G.Key] then
         saveKey(_G.Key) -- Save key and current time
         gui:Destroy()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/AshMain.lua", true))()
