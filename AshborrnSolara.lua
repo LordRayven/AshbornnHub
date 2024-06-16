@@ -1018,6 +1018,7 @@ Tabs.Misc:AddButton({
     Callback = function()
         SayMessageRequest:FireServer("Murderer Is: " .. Murder, "normalchat")
         SayMessageRequest:FireServer("Sheriff Is: " .. Sheriff, "normalchat")
+        
     end
 })
     
