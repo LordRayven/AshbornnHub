@@ -62,7 +62,6 @@ local TimeStart = tick()
     [290931] = true,
     [4072731377] = true,
     [2911976621] = true,
-    [301098121] = true,
     [129215104] = true
 }
 
@@ -4047,14 +4046,16 @@ end)
 
     Window:SelectTab(1)
 
-    Fluent:Notify({
-        Title = "AshbornnHub",
-        Content = "AshbornnHub has been loaded.",
-        Duration = 4
-    })
-
+    
     -- You can use the SaveManager:LoadAutoloadConfig() to load a config
     -- which has been marked to be one that auto loads!
     SaveManager:LoadAutoloadConfig()
     
     
+local TimeEnd = tick()
+local TotalTime = string.format("%.2f", math.abs(TimeStart - TimeEnd))
+Fluent:Notify({
+    Title = "AshbornnHub",
+    Content = "Successfully loaded the script in " .. TotalTime .. "s.",
+    Duration = 4
+})
