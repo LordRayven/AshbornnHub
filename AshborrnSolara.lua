@@ -485,6 +485,83 @@ end
         end
     end
 })
+
+-- The original button functionality
+local function GrabGunV2()
+    local player = game.Players.LocalPlayer
+
+    if not IsAlive(player) then
+        Fluent:Notify({
+            Title = "You're not alive",
+            Content = "Please wait for the new round to grab the gun.",
+            Duration = 3
+        })
+        return
+    end
+
+    if player.Backpack:FindFirstChild("Gun") or (player.Character and player.Character:FindFirstChild("Gun")) then
+        Fluent:Notify({
+            Title = "You already have a gun",
+            Content = "Lollll.",
+            Duration = 3
+        })
+        return
+    end
+
+    if player.Character then
+        local gundr = workspace:FindFirstChild("GunDrop")
+        if gundr then
+            local oldpos = player.Character.HumanoidRootPart.CFrame
+            repeat
+                player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(90), math.rad(0), math.rad(0))
+                task.wait()
+                player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(-90), math.rad(0), math.rad(0))
+                task.wait()
+            until not gundr:IsDescendantOf(workspace)
+            player.Character.HumanoidRootPart.CFrame = oldpos
+            oldpos = false
+            player.Character.Humanoid:ChangeState(1)
+            button.Text = "Grab Gun (Gotcha)"
+        else
+            Fluent:Notify({
+                Title = "Gun not Found",
+                Content = "Wait for the Sheriff's death to grab the gun.",
+                Duration = 3
+            })
+        end
+    end
+end
+
+-- Create the keybind
+local Keybind = Tabs.Combat:AddKeybind("GrabGunKeybind", {
+    Title = "Grab Gun V2 Keybind",
+    Mode = "Toggle", -- Always, Toggle, Hold
+    Default = "", -- String as the name of the keybind (MB1, MB2 for mouse buttons)
+
+    -- Occurs when the keybind is clicked, Value is `true`/`false`
+    Callback = function(Value)
+        print("Keybind clicked!", Value)
+    end,
+
+    -- Occurs when the keybind itself is changed, `New` is a KeyCode Enum OR a UserInputType Enum
+    ChangedCallback = function(New)
+        print("Keybind changed!", New)
+    end
+})
+
+-- OnClick is only fired when you press the keybind and the mode is Toggle
+-- Otherwise, you will have to use Keybind:GetState()
+Keybind:OnClick(function()
+    print("Keybind clicked:", Keybind:GetState())
+    if Keybind:GetState() then
+        GrabGunV2()
+    end
+end)
+
+Keybind:OnChanged(function()
+    print("Keybind changed:", Keybind.Value)
+end)
+
         
 Tabs.Combat:AddButton({
     Title = "Grab gun",
@@ -522,7 +599,6 @@ Tabs.Combat:AddButton({
 
 
 local player = game.Players.LocalPlayer
-local shootKey = Enum.KeyCode.E  -- Default shoot key
 
 -- Function to shoot at the murderer's position
 local function shootAtMurderer()
@@ -581,9 +657,9 @@ end)
 
 -- Adding the Keybind to change shoot key
 local Keybind = Tabs.Combat:AddKeybind("Keybind", {
-    Title = "Change Shoot Keybind",
+    Title = "Silent Aim Keybind",
     Mode = "Always", -- Allow the keybind to always be active
-    Default = shootKey.Name, -- Default to current shoot key
+    Default = "", -- Default to current shoot key
     -- Occurs when the keybind is clicked, Value is `true`/`false`
     Callback = function(Value)
         local newKey = Enum.KeyCode[Value]
@@ -1122,6 +1198,16 @@ Tabs.Misc:AddParagraph({
 --------------------------------------------------------MISC ENDS--------------------------------------------------
 
     -------------------------------------------------------------------------------------TROLLING--------------------------------------------------------------------------------
+
+    
+    if _G.cons then
+        for _, v in pairs(_G.cons) do
+            v:Disconnect()
+        end
+
+        _G.cons = nil
+    end
+
     local rsrv = game:GetService("RunService")
     local heartbeat = rsrv.Heartbeat
     local renderstepped = rsrv.RenderStepped
@@ -1217,6 +1303,8 @@ Tabs.Misc:AddParagraph({
             ghost_parts()
         end
     end
+
+    
     
 
         
@@ -2102,3 +2190,14 @@ end)
     -- which has been marked to be one that auto loads!
     SaveManager:LoadAutoloadConfig()
     
+
+local TimeEnd = tick()
+local TotalTime = string.format("%.2f", math.abs(TimeStart - TimeEnd))
+Fluent:Notify({
+    Title = "AshbornnHub",
+    Content = "Successfully loaded the script in " .. TotalTime .. "s.",
+    Duration = 4
+})
+
+
+
