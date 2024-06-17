@@ -12,7 +12,11 @@ if success then
         Duration = 3
     })
 else
-    error("Failed to fetch the user key: " .. fetchedKey)
+    Fluent:Notify({
+        Title = "Key System Says:",
+        Content = "Key has been failed to fetched try again later or rejoin.",
+        Duration = 3
+    })
 end
 
 -- Define URLs and user key
