@@ -20,6 +20,9 @@ local TimeStart = tick()
     local players = game:GetService("Players")
     local ReplicatedStorage = game:GetService('ReplicatedStorage')
     local N = game:GetService("VirtualInputManager")
+    local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local Humanoid = Character:WaitForChild("Humanoid")
+local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
 
     local DefaultChatSystemChatEvents = ReplicatedStorage.DefaultChatSystemChatEvents
     local SayMessageRequest = DefaultChatSystemChatEvents.SayMessageRequest
@@ -37,26 +40,12 @@ local TimeStart = tick()
     newwalkspeed = defualtwalkspeed
     newjumppower = defualtjumppower
     antiafk = true
-
-
-    local newflyspeed = 50
-    local c
-    local h
-    local bv
-    local bav
-    local cam
-    local flying
-    local p = game.Players.LocalPlayer
-    local buttons = {W = false, S = false, A = false, D = false, Moving = false}
     
-    
-    
-    
-
-
-    local AntiFlingEnabled = false
-    local playerAddedConnection = nil
-    local localHeartbeatConnection = nil
+local AntiFlingEnabled = false
+local playerAddedConnection = nil
+local localHeartbeatConnection = nil 
+local TrapSystem = ReplicatedStorage:WaitForChild("TrapSystem")
+local PlaceTrap = TrapSystem:WaitForChild("PlaceTrap")
     
     local ownerUserIds = {
     [290931] = true,
@@ -993,7 +982,7 @@ autoKillAllToggle:OnChanged(function(autokillall)
 end)
 
     Options.AutoKillAll:SetValue(false)
-
+    
 
 
 
@@ -2006,7 +1995,181 @@ Options.InfiJump:SetValue(false)  -- Ensure the initial state of the toggle is s
     end)
 
     Options.Fling:SetValue(false)
+    
+    
+    local TrapSec = Tabs.Troll:AddSection("Trap Trolling (Need Perk)")
+    local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local LocalPlayer = Players.LocalPlayer
+
+-- Ensure TrapSystem and PlaceTrap are correctly referenced
+local TrapSystem = ReplicatedStorage:WaitForChild("TrapSystem")
+local PlaceTrap = TrapSystem:WaitForChild("PlaceTrap")
+
+local roles = {}
+local Murder, Sheriff, Hero
+
+-- Function to update roles
+local function updateRoles()
+    while true do
+        roles = ReplicatedStorage:FindFirstChild("GetPlayerData", true):InvokeServer()
+        for i, v in pairs(roles) do
+            if v.Role == "Murderer" then
+                Murder = i
+            elseif v.Role == "Sheriff" then
+                Sheriff = i
+            elseif v.Role == "Hero" then
+                Hero = i
+            end
+        end
+        wait(1)  -- Update every second
+    end
+end
+
+-- Function to get other players, including an "All" option
+local function GetOtherPlayers()
+    local players = {"All"}
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer then
+            table.insert(players, player.Name)
+        end
+    end
+    return players
+end
+
+local selectedPlayer = "All"  -- Default to "All"
+local Dropdown
+
+-- Function to create the dropdown menu
+local function CreateDropdown()
+    Dropdown = Tabs.Troll:AddDropdown("Select Loop Target Player", {
+        Title = "Select Player",
+        Values = GetOtherPlayers(),
+        Multi = false,
+        Default = "All",
+    })
+
+    Dropdown:OnChanged(function(Value)
+        selectedPlayer = Value  -- Update selectedPlayer when selection changes
+        ChangeLoopTarget = Value  -- Update ChangeLoopTarget when selection changes
+    end)
+end
+
+-- Initial creation of the dropdown
+CreateDropdown()
+
+-- Function to update the dropdown values
+local function UpdateDropdown()
+    local newValues = GetOtherPlayers()
+    Dropdown.Values = newValues  -- Update the dropdown values
+    Dropdown:SetValue("All")  -- Reset selected value to default
+end
+
+-- Connect to PlayerAdded and PlayerRemoving events to update the dropdown
+Players.PlayerAdded:Connect(UpdateDropdown)
+Players.PlayerRemoving:Connect(UpdateDropdown)
+
+local ToggleTrapAll = Tabs.Troll:AddToggle("TrapAll", {Title = "Loop Trap Selected Player", Default = false })
+local ToggleTrapSheriff = Tabs.Troll:AddToggle("TrapSheriff", {Title = "Loop Trap Sheriff", Default = false })
+local ToggleTrapMurderer = Tabs.Troll:AddToggle("TrapMurderer", {Title = "Loop Trap Murderer", Default = false })
+
+local function placeTrapForPlayer(player)
+    local HumanoidRootPart = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+    if HumanoidRootPart then
+        pcall(function()
+            PlaceTrap:InvokeServer(CFrame.new(HumanoidRootPart.Position))
+        end)
+    end
+end
+
+local function ChangeLoopTrapPlayerFix()
+    if ChangeLoopTarget == "All" then
+        for _, v in pairs(Players:GetChildren()) do
+            if v ~= LocalPlayer then
+                placeTrapForPlayer(v)
+            end
+        end
+    else
+        local Target = Players:FindFirstChild(ChangeLoopTarget)
+        if Target then
+            placeTrapForPlayer(Target)
+        end
+    end
+end
+
+local function ChangeLoopTrapSheriffFix()
+    if Sheriff then
+        local SheriffPlayer = Players:FindFirstChild(Sheriff)
+        if SheriffPlayer then
+            placeTrapForPlayer(SheriffPlayer)
+        end
+    end
+end
+
+local function ChangeLoopTrapMurdererFix()
+    if Murder then
+        local MurderPlayer = Players:FindFirstChild(Murder)
+        if MurderPlayer then
+            placeTrapForPlayer(MurderPlayer)
+        end
+    end
+end
+
+ToggleTrapAll:OnChanged(function(Value)
+    ChangeLoopTrapPlayer = Value
+
+    spawn(function()
+        while ChangeLoopTrapPlayer do
+            pcall(ChangeLoopTrapPlayerFix)
+            task.wait(0.1)  -- Reduce wait time for faster trap placement
+        end
+    end)
+end)
+
+ToggleTrapSheriff:OnChanged(function(Value)
+    ChangeLoopTrapSheriff = Value
+
+    spawn(function()
+        while ChangeLoopTrapSheriff do
+            pcall(ChangeLoopTrapSheriffFix)
+            task.wait(0.1)  -- Reduce wait time for faster trap placement
+        end
+    end)
+end)
+
+ToggleTrapMurderer:OnChanged(function(Value)
+    ChangeLoopTrapMurderer = Value
+
+    spawn(function()
+        while ChangeLoopTrapMurderer do
+            pcall(ChangeLoopTrapMurdererFix)
+            task.wait(0.1)  -- Reduce wait time for faster trap placement
+        end
+    end)
+end)
+
+Options.TrapAll:SetValue(false)
+Options.TrapSheriff:SetValue(false)
+Options.TrapMurderer:SetValue(false)
+
+-- Start role updater in a separate thread
+spawn(updateRoles)
         
+        
+        Tabs.Troll:AddParagraph({
+            Title = "This is for Scrolling",
+            Content = "For scrolling only"
+        })
+        
+        Tabs.Troll:AddParagraph({
+            Title = "This is for Scrolling",
+            Content = "For scrolling only"
+        })
+        
+        Tabs.Troll:AddParagraph({
+            Title = "This is for Scrolling",
+            Content = "For scrolling only"
+        })
 ------------------------------------------------------------------------------------TROLLING-----------------------------------------------------------------------------------
         
 ------------------------------------------------------------------------------------------SERVER-----------------------------------------------------------------------------------
