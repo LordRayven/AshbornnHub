@@ -763,6 +763,129 @@ Tabs.Combat:AddButton({
         end
     end
 })
+
+local autoShootingActive = false
+local autoShootingTask = nil
+local gunNotificationShown = false -- Flag to track if the gun notification has been shown
+
+local function autoShoot()
+    while autoShootingActive do
+        local player = game.Players.LocalPlayer
+        local characterRootPart = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+        if not characterRootPart then return end
+        
+        if Murder then
+            local murdererPlayer = game.Players[Murder]
+            local murdererCharacter = murdererPlayer and murdererPlayer.Character
+            if murdererCharacter and murdererCharacter:FindFirstChild("HumanoidRootPart") then
+                -- Calculate direction to murderer
+                local murdererPosition = murdererCharacter.HumanoidRootPart.Position
+                local rayDirection = murdererPosition - characterRootPart.Position
+                
+                -- Perform a raycast to check for obstacles between player and murderer
+                local raycastParams = RaycastParams.new()
+                raycastParams.FilterType = Enum.RaycastFilterType.Exclude
+                raycastParams.FilterDescendantsInstances = {player.Character}
+                
+                local hit = workspace:Raycast(characterRootPart.Position, rayDirection.Unit * rayDirection.Magnitude, raycastParams)
+                
+                -- Check if the raycast did not hit anything or if it hit the murderer
+                if not hit or (hit.Instance and hit.Instance.Parent == murdererCharacter) then
+                    -- Check if the player has a gun in their backpack or equipped
+                    local backpack = player:FindFirstChild("Backpack")
+                    local gun = backpack and (backpack:FindFirstChild("Gun") or player.Character:FindFirstChild("Gun"))
+                    
+                    if gun then
+                        -- Equip the gun if not already equipped
+                        if not player.Character:FindFirstChild("Gun") then
+                            backpack.Gun.Parent = player.Character
+                        end
+                        
+                        -- Loop to continuously shoot the gun until the player no longer has it
+                        while autoShootingActive and (player.Character:FindFirstChild("Gun")) do
+                            -- Shoot the gun at the murderer's position
+                            local gunObject = player.Character:FindFirstChild("Gun")
+                            if gunObject then
+                                local knifeServer = gunObject:FindFirstChild("KnifeServer")
+                                if knifeServer then
+                                    knifeServer:FindFirstChild("ShootGun"):InvokeServer(1, murdererPosition, "AH")
+                                else
+                                    warn("KnifeServer not found in Gun.")
+                                end
+                            else
+                                warn("Gun not found in character.")
+                                break
+                            end
+                            task.wait(0.1) -- Short delay between shots
+                        end
+                    else
+                        -- Notify about the absence of a gun, if not already notified
+                        if not gunNotificationShown then
+                            Fluent:Notify({
+                                Title = "Gun Not Found",
+                                Content = "You don't have a gun.",
+                                Duration = 3
+                            })
+                            gunNotificationShown = true -- Set flag to true to prevent further notifications
+                        end
+                    end
+                else
+                    -- If the raycast hit an obstacle, do nothing (optional notification removed)
+                end
+            else
+                -- If murderer's character not found, handle this situation (optional)
+                -- Optional notification or debugging message can be added here
+            end
+        else
+            -- If Murder is not defined or found, handle this situation (optional)
+            -- Optional notification or debugging message can be added here
+        end
+        
+        -- Wait for the cooldown interval before checking again
+        wait(2) -- Cooldown before checking the murderer's presence and line of sight again
+    end
+end
+
+local function onCharacterAdded(character)
+   if Options.AutoShoot.Value == true then
+      Options.AutoShoot:SetValue(false)
+      wait(0.1)
+      Options.AutoShoot:SetValue(true)
+   end
+end
+
+
+
+local player = game.Players.LocalPlayer
+player.CharacterAdded:Connect(onCharacterAdded)
+
+local Toggle = Tabs.Combat:AddToggle("AutoShoot", {Title = "Auto Shoot Murderer", Default = false})
+
+Toggle:OnChanged(function()
+    autoShootingActive = Toggle.Value
+    if autoShootingActive then
+        autoShootingTask = task.spawn(autoShoot)
+        
+    else
+        autoShootingActive = false
+        if autoShootingTask then
+            task.cancel(autoShootingTask)
+            autoShootingTask = nil
+        end
+        gunNotificationShown = false -- Reset the flag when auto shooting is disabled
+    end
+end)
+
+-- Initialize auto shooting if the toggle is already enabled
+if Toggle.Value then
+    autoShootingActive = true
+    autoShootingTask = task.spawn(autoShoot)
+end
+
+-- Ensure auto-shoot starts if the character is already loaded
+if player.Character then
+    onCharacterAdded(player.Character)
+end
     
 
         
@@ -1408,6 +1531,186 @@ Tabs.Misc:AddParagraph({
     end)
 
     Options.Fling:SetValue(false)
+
+    local TrapSec = Tabs.Troll:AddSection("Trap Trolling (Need Perk)")
+    local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local LocalPlayer = Players.LocalPlayer
+
+-- Ensure TrapSystem and PlaceTrap are correctly referenced
+local TrapSystem = ReplicatedStorage:WaitForChild("TrapSystem")
+local PlaceTrap = TrapSystem:WaitForChild("PlaceTrap")
+
+local roles = {}
+local Murder, Sheriff, Hero
+
+-- Function to update roles
+local function updateRoles()
+    while true do
+        roles = ReplicatedStorage:FindFirstChild("GetPlayerData", true):InvokeServer()
+        for i, v in pairs(roles) do
+            if v.Role == "Murderer" then
+                Murder = i
+            elseif v.Role == "Sheriff" then
+                Sheriff = i
+            elseif v.Role == "Hero" then
+                Hero = i
+            end
+        end
+        wait(1)  -- Update every second
+    end
+end
+
+-- Function to get other players, including an "All" option
+local function GetOtherPlayers()
+    local players = {"All"}
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer then
+            table.insert(players, player.Name)
+        end
+    end
+    return players
+end
+
+local selectedPlayer = "All"  -- Default to "All"
+local Dropdown
+
+-- Function to create the dropdown menu
+local function CreateDropdown()
+    Dropdown = Tabs.Troll:AddDropdown("Select Loop Target Player", {
+        Title = "Select Player",
+        Values = GetOtherPlayers(),
+        Multi = false,
+        Default = "All",
+    })
+
+    Dropdown:OnChanged(function(Value)
+        selectedPlayer = Value  -- Update selectedPlayer when selection changes
+        ChangeLoopTarget = Value  -- Update ChangeLoopTarget when selection changes
+    end)
+end
+
+-- Initial creation of the dropdown
+CreateDropdown()
+
+-- Function to update the dropdown values
+local function UpdateDropdown()
+    local newValues = GetOtherPlayers()
+    Dropdown.Values = newValues  -- Update the dropdown values
+    Dropdown:SetValue("All")  -- Reset selected value to default
+end
+
+-- Connect to PlayerAdded and PlayerRemoving events to update the dropdown
+Players.PlayerAdded:Connect(UpdateDropdown)
+Players.PlayerRemoving:Connect(UpdateDropdown)
+
+local ToggleTrapAll = Tabs.Troll:AddToggle("TrapAll", {Title = "Loop Trap Selected Player", Default = false })
+local ToggleTrapSheriff = Tabs.Troll:AddToggle("TrapSheriff", {Title = "Loop Trap Sheriff", Default = false })
+local ToggleTrapMurderer = Tabs.Troll:AddToggle("TrapMurderer", {Title = "Loop Trap Murderer", Default = false })
+
+local function placeTrapForPlayer(player)
+    local HumanoidRootPart = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+    if HumanoidRootPart then
+        pcall(function()
+            PlaceTrap:InvokeServer(CFrame.new(HumanoidRootPart.Position))
+        end)
+    end
+end
+
+local function ChangeLoopTrapPlayerFix()
+    if ChangeLoopTarget == "All" then
+        for _, v in pairs(Players:GetChildren()) do
+            if v ~= LocalPlayer then
+                placeTrapForPlayer(v)
+            end
+        end
+    else
+        local Target = Players:FindFirstChild(ChangeLoopTarget)
+        if Target then
+            placeTrapForPlayer(Target)
+        end
+    end
+end
+
+local function ChangeLoopTrapSheriffFix()
+    if Sheriff then
+        local SheriffPlayer = Players:FindFirstChild(Sheriff)
+        if SheriffPlayer then
+            placeTrapForPlayer(SheriffPlayer)
+        end
+    end
+end
+
+local function ChangeLoopTrapMurdererFix()
+    if Murder then
+        local MurderPlayer = Players:FindFirstChild(Murder)
+        if MurderPlayer then
+            placeTrapForPlayer(MurderPlayer)
+        end
+    end
+end
+
+ToggleTrapAll:OnChanged(function(Value)
+    ChangeLoopTrapPlayer = Value
+
+    spawn(function()
+        while ChangeLoopTrapPlayer do
+            pcall(ChangeLoopTrapPlayerFix)
+            task.wait(0.1)  -- Reduce wait time for faster trap placement
+        end
+    end)
+end)
+
+ToggleTrapSheriff:OnChanged(function(Value)
+    ChangeLoopTrapSheriff = Value
+
+    spawn(function()
+        while ChangeLoopTrapSheriff do
+            pcall(ChangeLoopTrapSheriffFix)
+            task.wait(0.1)  -- Reduce wait time for faster trap placement
+        end
+    end)
+end)
+
+ToggleTrapMurderer:OnChanged(function(Value)
+    ChangeLoopTrapMurderer = Value
+
+    spawn(function()
+        while ChangeLoopTrapMurderer do
+            pcall(ChangeLoopTrapMurdererFix)
+            task.wait(0.1)  -- Reduce wait time for faster trap placement
+        end
+    end)
+end)
+
+Options.TrapAll:SetValue(false)
+Options.TrapSheriff:SetValue(false)
+Options.TrapMurderer:SetValue(false)
+
+-- Start role updater in a separate thread
+spawn(updateRoles)
+
+local ToggleAntiTrap = Tabs.Troll:AddToggle("AntiTrap", {Title = "Anti Trap", Default = false})
+
+local function AntiTrapFix()
+    local Humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
+    if Humanoid and Humanoid.WalkSpeed == 0.009999999776482582 then
+        Humanoid.WalkSpeed = 16
+    end
+end
+
+ToggleAntiTrap:OnChanged(function(Value)
+    ChangeAntiTrap = Value
+
+    spawn(function()
+        while ChangeAntiTrap do
+            pcall(AntiTrapFix)
+            task.wait(0.1)  -- Check more frequently for traps
+        end
+    end)
+end)
+
+Options.AntiTrap:SetValue(false)
         
 ------------------------------------------------------------------------------------TROLLING-----------------------------------------------------------------------------------
         
