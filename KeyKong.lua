@@ -1,3 +1,18 @@
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+
+local userkey
+local success, fetchedKey = pcall(game.HttpGet, game, "https://pastebin.com/raw/fbjjpCnp")
+if success then
+    userkey = fetchedKey
+    Fluent:Notify({
+        Title = "Key System Says:",
+        Content = "Key has been successfully fetched",
+        Duration = 3
+    })
+else
+    error("Failed to fetch the user key: " .. fetchedKey)
+end
+
 -- Define URLs and user key
 local userkey = game:HttpGet("https://pastebin.com/raw/fbjjpCnp")
 local premiumKeys_url = "https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/prem"
@@ -5,7 +20,6 @@ local url = "https://direct-link.net/480893/ashbornn-hub-key-system"
 local discordInvite = "https://discord.com/invite/AdYyzaTpXX"
 
 -- Load external scripts for notifications
-local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
 
 -- Premium keys table (replace with your own premium keys)
 local premiumUsers = {
