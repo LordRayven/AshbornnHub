@@ -2154,6 +2154,28 @@ Options.TrapMurderer:SetValue(false)
 
 -- Start role updater in a separate thread
 spawn(updateRoles)
+
+local ToggleAntiTrap = Tabs.Troll:AddToggle("AntiTrap", {Title = "Anti Trap", Default = false})
+
+local function AntiTrapFix()
+    local Humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
+    if Humanoid and Humanoid.WalkSpeed == 0.009999999776482582 then
+        Humanoid.WalkSpeed = 16
+    end
+end
+
+ToggleAntiTrap:OnChanged(function(Value)
+    ChangeAntiTrap = Value
+
+    spawn(function()
+        while ChangeAntiTrap do
+            pcall(AntiTrapFix)
+            task.wait(0.1)  -- Check more frequently for traps
+        end
+    end)
+end)
+
+Options.AntiTrap:SetValue(false)
         
         
         Tabs.Troll:AddParagraph({
