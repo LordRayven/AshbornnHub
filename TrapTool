@@ -50,10 +50,4 @@ local function addToolToBackpack()
     end
 end
 
-Tabs.Troll:AddButton({
-    Title = "Trap Tool",
-    Description = "Give you a tool that is placing a trap",
-    Callback = function()
-        addToolToBackpack()
-    end
-})
+addToolToBackpack()
