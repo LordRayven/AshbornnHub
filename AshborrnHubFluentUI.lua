@@ -2155,6 +2155,14 @@ Options.TrapMurderer:SetValue(false)
 -- Start role updater in a separate thread
 spawn(updateRoles)
 
+Tabs.Troll:AddButton({
+        Title = "Get Trap Tool",
+        Description = "Give you trap tool that u can place anywhere you want loll",
+        Callback = function()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/TrapTool",true))()
+end
+    })
+
 local ToggleAntiTrap = Tabs.Troll:AddToggle("AntiTrap", {Title = "Anti Trap", Default = false})
 
 local function AntiTrapFix()
