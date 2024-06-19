@@ -1,3 +1,5 @@
+local Buttons = require(game:GetService("ReplicatedStorage"):WaitForChild("Fluent"))
+
 local Toggle = Tabs.Buttons:AddToggle("LockPos", {Title = "Lock All Frames Position", Default = false })
 
 Toggle:OnChanged(function(value)
