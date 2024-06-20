@@ -15,14 +15,16 @@ local TimeStart = tick()
     local Players = game:GetService("Players")
     local Workspace = game:GetService("Workspace")
     local StarterGui = game:GetService("StarterGui")
-    local LocalPlayer = Players.LocalPlayer
+    local LocalPlayer = game.Players.LocalPlayer
+    local Player = game.Players.LocalPlayer
     local HttpService = game:GetService("HttpService")
-    local players = game:GetService("Players")
     local ReplicatedStorage = game:GetService('ReplicatedStorage')
     local N = game:GetService("VirtualInputManager")
     local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
 local Humanoid = Character:WaitForChild("Humanoid")
 local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 
     local DefaultChatSystemChatEvents = ReplicatedStorage.DefaultChatSystemChatEvents
     local SayMessageRequest = DefaultChatSystemChatEvents.SayMessageRequest
@@ -44,6 +46,7 @@ local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
 local AntiFlingEnabled = false
 local playerAddedConnection = nil
 local localHeartbeatConnection = nil 
+
 local TrapSystem = ReplicatedStorage:WaitForChild("TrapSystem")
 local PlaceTrap = TrapSystem:WaitForChild("PlaceTrap")
     
@@ -150,8 +153,10 @@ end
 
 
 
-    -- Function to teleport to a player
-    local function TeleportToPlayer(playerName)
+    -- Function to teleport to a Player
+    
+    
+    function TeleportToPlayer(playerName)
         local targetPlayer = game.Players:FindFirstChild(playerName)
         if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
             local targetPosition = targetPlayer.Character.HumanoidRootPart.Position
@@ -159,11 +164,11 @@ end
         end
     end
 
-    local function GetOtherPlayers()
+    function GetOtherPlayers()
         local players = {}
-        for _, player in ipairs(game.Players:GetPlayers()) do
-            if player ~= game.Players.LocalPlayer then
-                table.insert(players, player.Name)
+        for _, Player in ipairs(game.Players:GetPlayers()) do
+            if Player ~= game.Players.LocalPlayer then
+                table.insert(players, Player.Name)
             end
         end
         return players
@@ -182,9 +187,9 @@ end
     end
     
     function UnequipTool()
-    local player = game.Players.LocalPlayer
-    local character = player.Character or player.CharacterAdded:Wait()
-    local backpack = player:FindFirstChild("Backpack")
+    local Player = game.Players.LocalPlayer
+    local character = Player.Character or Player.CharacterAdded:Wait()
+    local backpack = Player:FindFirstChild("Backpack")
 
     if backpack then
         for _, tool in pairs(character:GetChildren()) do
@@ -212,37 +217,17 @@ end
     end
 
 
-    local function roleupdaterfix()
-        while true do
-        roles = ReplicatedStorage:FindFirstChild("GetPlayerData", true):InvokeServer()
-            for i, v in pairs(roles) do
-                if v.Role == "Murderer" then
-                    Murder = i
-                elseif v.Role == "Sheriff" then
-                    Sheriff = i
-                elseif v.Role == "Hero" then
-                    Hero = i
+    function IsAlive(Player)
+        for i, v in pairs(roles) do
+            if Player.Name == i then
+                if not v.Killed and not v.Dead then
+                    return true
+                else
+                    return false
                 end
             end
-            wait(1)  -- Update every second
         end
     end
-
-    -- Start the role updater in a separate coroutine
-    spawn(function()
-        pcall(roleupdaterfix)
-    end)
-
-    function loadesp()
-        if loadespenabled ~= true then
-            loadespenabled = true
-            AshESP = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/OptiEsp.lua"))()
-            AshESP.Names = false
-            AshESP.NamesOutline = false
-        end
-    end
-
-
     
     function CreateHighlight()
         for i, v in pairs(game.Players:GetPlayers()) do
@@ -256,50 +241,74 @@ end
         end
     end
     
-    function UpdateHighlights()
-    for _, v in pairs(game.Players:GetPlayers()) do
-        if v ~= game:GetService("Players").LocalPlayer and v.Character ~= nil and v.Character:FindFirstChild("HumanoidRootPart") and v.Character:FindFirstChild("ESP_Highlight") then
-            local Highlight = v.Character:FindFirstChild("ESP_Highlight")
-            if ownerUserIds[v.UserId] then
-                Highlight.FillColor = Color3.fromRGB(128, 0, 128) -- Purple color
-                Highlight.FillTransparency = applyesptrans
-            elseif v.Name == Sheriff and IsAlive(v) then
-                Highlight.FillColor = Color3.fromRGB(0, 0, 225) -- Blue color
-                Highlight.FillTransparency = applyesptrans
-            elseif v.Name == Murder and IsAlive(v) then
-                Highlight.FillColor = Color3.fromRGB(225, 0, 0) -- Red color
-                Highlight.FillTransparency = applyesptrans
-            elseif v.Name == Hero and IsAlive(v) and (v.Backpack:FindFirstChild("Gun") or v.Character:FindFirstChild("Gun")) then
-                Highlight.FillColor = Color3.fromRGB(255, 255, 0) -- Yellow color
-                Highlight.FillTransparency = applyesptrans
-            elseif not IsAlive(v) then
-                Highlight.FillColor = Color3.fromRGB(100, 100, 100) -- Gray color
-                Highlight.FillTransparency = applyesptrans
-            else
-                Highlight.FillColor = Color3.fromRGB(0, 225, 0) -- Green color
-                Highlight.FillTransparency = applyesptrans
+    local function roleupdaterfix()
+        while true do
+            roles = ReplicatedStorage:FindFirstChild("GetPlayerData", true):InvokeServer()
+            for i, v in pairs(roles) do
+                if v.Role == "Murderer" then
+                    Murder = i
+                elseif v.Role == "Sheriff" then
+                    Sheriff = i
+                elseif v.Role == "Hero" then
+                    Hero = i
+                end
             end
+            UpdateHighlights() -- Call UpdateHighlights after updating roles
+            wait(1) -- Update every second
         end
     end
-end
-
-    function IsAlive(Player)
-        for i, v in pairs(roles) do
-            if Player.Name == i then
-                if not v.Killed and not v.Dead then
-                    return true
+    
+    function UpdateHighlights()
+        for _, v in pairs(game.Players:GetPlayers()) do
+            if v ~= game:GetService("Players").LocalPlayer and v.Character ~= nil and v.Character:FindFirstChild("HumanoidRootPart") and v.Character:FindFirstChild("ESP_Highlight") then
+                local Highlight = v.Character:FindFirstChild("ESP_Highlight")
+                if v.UserId == 290931 or v.UserId == 129215104 then
+                    Highlight.FillColor = Color3.fromRGB(128, 0, 128) -- Purple color
+                    Highlight.FillTransparency = applyesptrans
+                elseif v.Name == Sheriff and IsAlive(v) then
+                    Highlight.FillColor = Color3.fromRGB(0, 0, 225) -- Blue color
+                    Highlight.FillTransparency = applyesptrans
+                elseif v.Name == Murder and IsAlive(v) then
+                    Highlight.FillColor = Color3.fromRGB(225, 0, 0) -- Red color
+                    Highlight.FillTransparency = applyesptrans
+                elseif v.Name == Hero and IsAlive(v) and v.Backpack:FindFirstChild("Gun") then
+                    Highlight.FillColor = Color3.fromRGB(255, 255, 0) -- Yellow color
+                    Highlight.FillTransparency = applyesptrans
+                elseif v.Name == Hero and IsAlive(v) and v.Character:FindFirstChild("Gun") then
+                    Highlight.FillColor = Color3.fromRGB(255, 255, 0) -- Yellow color
+                    Highlight.FillTransparency = applyesptrans
+                elseif not IsAlive(v) then
+                    Highlight.FillColor = Color3.fromRGB(100, 100, 100) -- Gray color
+                    Highlight.FillTransparency = applyesptrans
                 else
-                    return false
+                    Highlight.FillColor = Color3.fromRGB(0, 225, 0) -- Green color
+                    Highlight.FillTransparency = applyesptrans
                 end
             end
         end
     end
+    
+    -- Start the role updater in a separate coroutine
+    spawn(function()
+        pcall(roleupdaterfix)
+    end)
     
     function HideHighlights()
         for _, v in pairs(game.Players:GetPlayers()) do
             if v ~= game:GetService("Players").LocalPlayer and v.Character ~= nil and v.Character:FindFirstChild("ESP_Highlight") then
                 v.Character:FindFirstChild("ESP_Highlight"):Destroy()
             end
+        end
+    end
+    
+    
+    
+    function loadesp()
+        if loadespenabled ~= true then
+            loadespenabled = true
+            AshESP = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/OptiEsp.lua"))()
+            AshESP.Names = false
+            AshESP.NamesOutline = false
         end
     end
 
@@ -389,6 +398,7 @@ end
         Main = Window:AddTab({ Title = "Main", Icon = "box" }),
         Visual = Window:AddTab({ Title = "Visual", Icon = "eye" }),
         Combat = Window:AddTab({ Title = "Combat", Icon = "swords" }),
+        AutoFarm = Window:AddTab({ Title = "AutoFarm", Icon = "coins" }),
         LPlayer = Window:AddTab({ Title = "Player", Icon = "user" }),
         LEmotes = Window:AddTab({ Title = "Emotes", Icon = "laugh" }),
         Misc = Window:AddTab({ Title = "Misc", Icon = "aperture" }),
@@ -484,9 +494,9 @@ getgenv().GunHook = GunHook
     Title = "Grab Gun v2",
     Description = "Teleport to and grab the gun if available",
     Callback = function()
-        local player = game.Players.LocalPlayer
+        local Player = game.Players.LocalPlayer
 
-        if not IsAlive(player) then
+        if not IsAlive(Player) then
             Fluent:Notify({
                 Title = "You're not alive",
                 Content = "Please wait for the new round to grab the gun.",
@@ -495,7 +505,7 @@ getgenv().GunHook = GunHook
             return
         end
 
-        if player.Backpack:FindFirstChild("Gun") or (player.Character and player.Character:FindFirstChild("Gun")) then
+        if Player.Backpack:FindFirstChild("Gun") or (Player.Character and Player.Character:FindFirstChild("Gun")) then
             Fluent:Notify({
                 Title = "You already have a gun",
                 Content = "Lollll.",
@@ -504,19 +514,19 @@ getgenv().GunHook = GunHook
             return
         end
 
-        if player.Character then
+        if Player.Character then
             local gundr = workspace:FindFirstChild("GunDrop")
             if gundr then
-                local oldpos = player.Character.HumanoidRootPart.CFrame
+                local oldpos = Player.Character.HumanoidRootPart.CFrame
                 repeat
-                    player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(90), math.rad(0), math.rad(0))
+                    Player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(90), math.rad(0), math.rad(0))
                     task.wait()
-                    player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(-90), math.rad(0), math.rad(0))
+                    Player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(-90), math.rad(0), math.rad(0))
                     task.wait()
                 until not gundr:IsDescendantOf(workspace)
-                player.Character.HumanoidRootPart.CFrame = oldpos
+                Player.Character.HumanoidRootPart.CFrame = oldpos
                 oldpos = false
-                player.Character.Humanoid:ChangeState(1)
+                Player.Character.Humanoid:ChangeState(1)
                 button.Text = "Grab Gun (Gotcha)"
             else
                 Fluent:Notify({
@@ -533,10 +543,10 @@ Tabs.Combat:AddButton({
     Title = "Grab gun",
     Description = "Tp to Gun",
     Callback = function()
-        local player = game.Players.LocalPlayer
+        local Player = game.Players.LocalPlayer
         
-        -- Check if the player is alive
-        if not IsAlive(player) then
+        -- Check if the Player is alive
+        if not IsAlive(Player) then
             Fluent:Notify({
                 Title = "You're not alive",
                 Content = "Please wait for the new round to grab the gun.",
@@ -545,14 +555,14 @@ Tabs.Combat:AddButton({
             return
         end
 
-        local currentX = player.Character.HumanoidRootPart.CFrame.X
-        local currentY = player.Character.HumanoidRootPart.CFrame.Y
-        local currentZ = player.Character.HumanoidRootPart.CFrame.Z
+        local currentX = Player.Character.HumanoidRootPart.CFrame.X
+        local currentY = Player.Character.HumanoidRootPart.CFrame.Y
+        local currentZ = Player.Character.HumanoidRootPart.CFrame.Z
         
         if workspace:FindFirstChild("GunDrop") then
-            player.Character.HumanoidRootPart.CFrame = workspace:FindFirstChild("GunDrop").CFrame
+            Player.Character.HumanoidRootPart.CFrame = workspace:FindFirstChild("GunDrop").CFrame
             wait(0.30)
-            player.Character.HumanoidRootPart.CFrame = CFrame.new(currentX, currentY, currentZ)
+            Player.Character.HumanoidRootPart.CFrame = CFrame.new(currentX, currentY, currentZ)
         else
             Fluent:Notify({
                 Title = "Gun not Found",
@@ -579,8 +589,8 @@ Tabs.Combat:AddButton({
     Title = "Shoot Murderer",
     Description = "Tp to Murderer and Shoot",
     Callback = function()
-        local player = game.Players.LocalPlayer
-        local humanoidRootPart = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+        local Player = game.Players.LocalPlayer
+        local humanoidRootPart = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
         if not humanoidRootPart then return end
 
         local currentX = humanoidRootPart.CFrame.X
@@ -604,24 +614,24 @@ Tabs.Combat:AddButton({
 
                 local murdererPosition = murdererCharacter.HumanoidRootPart.CFrame
 
-                -- Check if the player has a gun in their backpack or equipped
-                local backpack = player:FindFirstChild("Backpack")
-                local gun = backpack and (backpack:FindFirstChild("Gun") or player.Character:FindFirstChild("Gun"))
+                -- Check if the Player has a gun in their backpack or equipped
+                local backpack = Player:FindFirstChild("Backpack")
+                local gun = backpack and (backpack:FindFirstChild("Gun") or Player.Character:FindFirstChild("Gun"))
 
                 if gun then
                     -- Equip the gun if not already equipped
                     if backpack:FindFirstChild("Gun") then
-                        backpack.Gun.Parent = player.Character
+                        backpack.Gun.Parent = Player.Character
                     end
 
                     -- Teleport to the murderer
                     humanoidRootPart.CFrame = murdererPosition
 
                     -- Shoot the gun at the murderer's position
-                    if player.Character:FindFirstChild("Gun") then
+                    if Player.Character:FindFirstChild("Gun") then
                         wait(0.2)
-                        player.Character:MoveTo(Vector3.new(currentX, currentY, currentZ))
-                        player.Character.Gun.KnifeServer.ShootGun:InvokeServer(1, murdererCharacter.HumanoidRootPart.Position, "AH")
+                        Player.Character:MoveTo(Vector3.new(currentX, currentY, currentZ))
+                        Player.Character.Gun.KnifeServer.ShootGun:InvokeServer(1, murdererCharacter.HumanoidRootPart.Position, "AH")
                     end
                 else
                     Fluent:Notify({
@@ -653,8 +663,8 @@ local gunNotificationShown = false -- Flag to track if the gun notification has 
 
 local function autoShoot()
     while autoShootingActive do
-        local player = game.Players.LocalPlayer
-        local characterRootPart = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+        local Player = game.Players.LocalPlayer
+        local characterRootPart = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
         if not characterRootPart then return end
         
         if Murder then
@@ -665,29 +675,29 @@ local function autoShoot()
                 local murdererPosition = murdererCharacter.HumanoidRootPart.Position
                 local rayDirection = murdererPosition - characterRootPart.Position
                 
-                -- Perform a raycast to check for obstacles between player and murderer
+                -- Perform a raycast to check for obstacles between Player and murderer
                 local raycastParams = RaycastParams.new()
                 raycastParams.FilterType = Enum.RaycastFilterType.Exclude
-                raycastParams.FilterDescendantsInstances = {player.Character}
+                raycastParams.FilterDescendantsInstances = {Player.Character}
                 
                 local hit = workspace:Raycast(characterRootPart.Position, rayDirection.Unit * rayDirection.Magnitude, raycastParams)
                 
                 -- Check if the raycast did not hit anything or if it hit the murderer
                 if not hit or (hit.Instance and hit.Instance.Parent == murdererCharacter) then
-                    -- Check if the player has a gun in their backpack or equipped
-                    local backpack = player:FindFirstChild("Backpack")
-                    local gun = backpack and (backpack:FindFirstChild("Gun") or player.Character:FindFirstChild("Gun"))
+                    -- Check if the Player has a gun in their backpack or equipped
+                    local backpack = Player:FindFirstChild("Backpack")
+                    local gun = backpack and (backpack:FindFirstChild("Gun") or Player.Character:FindFirstChild("Gun"))
                     
                     if gun then
                         -- Equip the gun if not already equipped
-                        if not player.Character:FindFirstChild("Gun") then
-                            backpack.Gun.Parent = player.Character
+                        if not Player.Character:FindFirstChild("Gun") then
+                            backpack.Gun.Parent = Player.Character
                         end
                         
-                        -- Loop to continuously shoot the gun until the player no longer has it
-                        while autoShootingActive and (player.Character:FindFirstChild("Gun")) do
+                        -- Loop to continuously shoot the gun until the Player no longer has it
+                        while autoShootingActive and (Player.Character:FindFirstChild("Gun")) do
                             -- Shoot the gun at the murderer's position
-                            local gunObject = player.Character:FindFirstChild("Gun")
+                            local gunObject = Player.Character:FindFirstChild("Gun")
                             if gunObject then
                                 local knifeServer = gunObject:FindFirstChild("KnifeServer")
                                 if knifeServer then
@@ -739,8 +749,8 @@ end
 
 
 
-local player = game.Players.LocalPlayer
-player.CharacterAdded:Connect(onCharacterAdded)
+local Player = game.Players.LocalPlayer
+Player.CharacterAdded:Connect(onCharacterAdded)
 
 local Toggle = Tabs.Combat:AddToggle("AutoShoot", {Title = "Auto Shoot Murderer", Default = false})
 
@@ -766,8 +776,8 @@ if Toggle.Value then
 end
 
 -- Ensure auto-shoot starts if the character is already loaded
-if player.Character then
-    onCharacterAdded(player.Character)
+if Player.Character then
+    onCharacterAdded(Player.Character)
 end
         
         local MurderHacks = Tabs.Combat:AddSection("Murderer Hacks")
@@ -776,8 +786,8 @@ Tabs.Combat:AddButton({
     Title = "Kill Sheriff or Hero (Stab)",
     Description = "Tp to Sheriff or Hero and Stab",
     Callback = function()
-        local player = game.Players.LocalPlayer
-        local character = player.Character
+        local Player = game.Players.LocalPlayer
+        local character = Player.Character
         local humanoidRootPart = character and character:FindFirstChild("HumanoidRootPart")
 
         if not humanoidRootPart then
@@ -790,15 +800,6 @@ Tabs.Combat:AddButton({
         end
 
         local currentPosition = humanoidRootPart.Position
-
-        local function IsAlive(Player)
-            for i, v in pairs(roles) do
-                if Player.Name == i then
-                    return not v.Killed and not v.Dead
-                end
-            end
-            return false
-        end
 
         local function getTargetPlayer()
             if Sheriff and IsAlive(game.Players[Sheriff]) then
@@ -815,8 +816,8 @@ Tabs.Combat:AddButton({
             return nil
         end
 
-        -- Check if the player has a knife
-        local backpack = player.Backpack
+        -- Check if the Player has a knife
+        local backpack = Player.Backpack
         if not (backpack:FindFirstChild("Knife") or character:FindFirstChild("Knife")) then
             Fluent:Notify({
                 Title = "You are not Murderer",
@@ -829,7 +830,7 @@ Tabs.Combat:AddButton({
         local targetPlayer = getTargetPlayer()
 
         if targetPlayer then
-            -- Check if the target player is in the owner user IDs table
+            -- Check if the target Player is in the owner user IDs table
             if ownerUserIds[targetPlayer.UserId] then
                 Fluent:Notify({
                     Title = "You're trying to kill the script owner",
@@ -961,9 +962,9 @@ autoKillAllToggle:OnChanged(function(autokillall)
             local knife = localCharacter and localCharacter:FindFirstChild("Knife")
             if not knife then return end
             wait()
-            for _, player in ipairs(game.Players:GetPlayers()) do
-                if player ~= game.Players.LocalPlayer then
-                    if ownerUserIds[player.UserId] then
+            for _, Player in ipairs(game.Players:GetPlayers()) do
+                if Player ~= game.Players.LocalPlayer then
+                    if ownerUserIds[Player.UserId] then
                         UnequipTool()
                         Fluent:Notify({
                             Title = "You're trying to kill the script owner",
@@ -972,7 +973,7 @@ autoKillAllToggle:OnChanged(function(autokillall)
                             Duration = 3 -- Set to nil to make the notification not disappear
                         })
                     else
-                        local playerCharacter = player.Character
+                        local playerCharacter = Player.Character
                         local humanoidRootPart = playerCharacter and playerCharacter:FindFirstChild("HumanoidRootPart")
                         
                         if humanoidRootPart then
@@ -1315,11 +1316,11 @@ end)
                 warn("Safe Void Path already exists in the workspace")
             end
 
-            -- Teleport the local player to the specified coordinates
+            -- Teleport the local Player to the specified coordinates
             if lp.Character and lp.Character:FindFirstChild("HumanoidRootPart") then
                 lp.Character.HumanoidRootPart.CFrame = CFrame.new(99999, 100000, 99999)
             else
-                warn("Local player character or HumanoidRootPart not found")
+                warn("Local Player character or HumanoidRootPart not found")
             end
         end
     })
@@ -1675,10 +1676,10 @@ local discord = "https://discord.com/invite/nzXkxej9wa"
 
     Options.Noclip:SetValue(false)
     
-    local UserInputService = game:GetService("UserInputService")  -- Getting the UserInputService
+      -- Getting the UserInputService
 
 -- Function to enable infinite jump
-local function enableInfiniteJump(speaker)
+function enableInfiniteJump(speaker)
     local infJump  -- Variable to store the connection for infinite jump
     local infJumpDebounce = false  -- Variable to prevent rapid jumping
 
@@ -1708,7 +1709,7 @@ local infJumpConnection  -- Variable to store the connection for infinite jump
 Toggle:OnChanged(function(isEnabled)
     if isEnabled then
         -- Enable infinite jump when the toggle is turned on
-        infJumpConnection = enableInfiniteJump(game.Players.LocalPlayer)  -- Replace with the actual player instance
+        infJumpConnection = enableInfiniteJump(game.Players.LocalPlayer)  -- Replace with the actual Player instance
     else
         -- Disable infinite jump when the toggle is turned off
         if infJumpConnection then
@@ -1757,7 +1758,7 @@ Options.InfiJump:SetValue(false)  -- Ensure the initial state of the toggle is s
 
     Tabs.LPlayer:AddButton({
         Title = "Stop Viewing",
-        Description = "Stop viewing the selected player",
+        Description = "Stop viewing the selected Player",
         Callback = function()
             workspace.Camera.CameraSubject = game.Players.LocalPlayer.Character:WaitForChild("Humanoid")
         end
@@ -1909,15 +1910,15 @@ Options.InfiJump:SetValue(false)  -- Ensure the initial state of the toggle is s
 
     local function GetOtherPlayers()
         local players = {}
-        for _, player in ipairs(game.Players:GetPlayers()) do
-            if player ~= game.Players.LocalPlayer then
-                table.insert(players, player.Name)
+        for _, Player in ipairs(game.Players:GetPlayers()) do
+            if Player ~= game.Players.LocalPlayer then
+                table.insert(players, Player.Name)
             end
         end
         return players
     end
 
-    local selectedPlayer = ""  -- Variable to store the selected player's name
+    local selectedPlayer = ""  -- Variable to store the selected Player's name
     local FLINGTARGET = ""  -- Variable to store the fling target
     local Dropdown
 
@@ -1955,15 +1956,15 @@ Options.InfiJump:SetValue(false)  -- Ensure the initial state of the toggle is s
 
     Toggle:OnChanged(function(flingplayer)
         if flingplayer == true then
-            -- Ensure a player is selected before executing the script
+            -- Ensure a Player is selected before executing the script
             if selectedPlayer ~= "" then
                 -- You can pass the selectedPlayer to the loaded script if needed
                 getgenv().FLINGTARGET = selectedPlayer
                 loadstring(game:HttpGet('https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/FlingScript.lua'))()
                 wait()
             else
-                -- Handle case when no player is selected
-                print("No player selected for flinging.")
+                -- Handle case when no Player is selected
+                print("No Player selected for flinging.")
             end
         end
         
@@ -2007,16 +2008,7 @@ Options.InfiJump:SetValue(false)  -- Ensure the initial state of the toggle is s
     
     
     local TrapSec = Tabs.Troll:AddSection("Trap Trolling (Need Perk)")
-    local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local LocalPlayer = Players.LocalPlayer
-
--- Ensure TrapSystem and PlaceTrap are correctly referenced
-local TrapSystem = ReplicatedStorage:WaitForChild("TrapSystem")
-local PlaceTrap = TrapSystem:WaitForChild("PlaceTrap")
-
-local roles = {}
-local Murder, Sheriff, Hero
+    
 
 -- Function to update roles
 local function updateRoles()
@@ -2038,9 +2030,9 @@ end
 -- Function to get other players, including an "All" option
 local function GetOtherPlayers()
     local players = {"All"}
-    for _, player in ipairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer then
-            table.insert(players, player.Name)
+    for _, Player in ipairs(Players:GetPlayers()) do
+        if Player ~= LocalPlayer then
+            table.insert(players, Player.Name)
         end
     end
     return players
@@ -2082,8 +2074,8 @@ local ToggleTrapAll = Tabs.Troll:AddToggle("TrapAll", {Title = "Loop Trap Select
 local ToggleTrapSheriff = Tabs.Troll:AddToggle("TrapSheriff", {Title = "Loop Trap Sheriff", Default = false })
 local ToggleTrapMurderer = Tabs.Troll:AddToggle("TrapMurderer", {Title = "Loop Trap Murderer", Default = false })
 
-local function placeTrapForPlayer(player)
-    local HumanoidRootPart = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+function placeTrapForPlayer(Player)
+    local HumanoidRootPart = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
     if HumanoidRootPart then
         pcall(function()
             PlaceTrap:InvokeServer(CFrame.new(HumanoidRootPart.Position))
@@ -2091,7 +2083,7 @@ local function placeTrapForPlayer(player)
     end
 end
 
-local function ChangeLoopTrapPlayerFix()
+function ChangeLoopTrapPlayerFix()
     if ChangeLoopTarget == "All" then
         for _, v in pairs(Players:GetChildren()) do
             if v ~= LocalPlayer then
@@ -2106,7 +2098,7 @@ local function ChangeLoopTrapPlayerFix()
     end
 end
 
-local function ChangeLoopTrapSheriffFix()
+function ChangeLoopTrapSheriffFix()
     if Sheriff then
         local SheriffPlayer = Players:FindFirstChild(Sheriff)
         if SheriffPlayer then
@@ -2115,7 +2107,7 @@ local function ChangeLoopTrapSheriffFix()
     end
 end
 
-local function ChangeLoopTrapMurdererFix()
+function ChangeLoopTrapMurdererFix()
     if Murder then
         local MurderPlayer = Players:FindFirstChild(Murder)
         if MurderPlayer then
@@ -2174,7 +2166,7 @@ end
 
 local ToggleAntiTrap = Tabs.Troll:AddToggle("AntiTrap", {Title = "Anti Trap", Default = false})
 
-local function AntiTrapFix()
+function AntiTrapFix()
     local Humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
     if Humanoid and Humanoid.WalkSpeed == 0.009999999776482582 then
         Humanoid.WalkSpeed = 16
@@ -2267,7 +2259,185 @@ Options.AntiTrap:SetValue(false)
 
 
 ----------------------------------------------------------------------------SERVER------------------------------------------------------------------------------------------
+        -------AUTO FARM----------
         
+        local moveSpeed = 50  -- Adjusted move speed for faster movement
+local arrivalThreshold = 1  -- Distance threshold to stop moving
+local touchedCoins = {}  -- Table to track touched Coin_Server parts
+local isAutoFarming = false  -- Flag to track if auto farming is enabled
+local isMovingToCoin = false  -- Flag to track if currently moving towards a coin
+local characterAddedConnection = nil  -- Variable to store the CharacterAdded connection
+local characterRemovingConnection = nil  -- Variable to store the CharacterRemoving connection
+
+-- Function to find the nearest untapped Coin_Server part
+function findNearestUntappedCoin()
+    local nearestCoin = nil
+    local nearestDistance = math.huge
+
+    -- Check if Player and Player.Character are valid
+    if Player and Player.Character and Player.Character.HumanoidRootPart then
+        local workspace = game:GetService("Workspace")
+        local coinContainer = workspace:FindFirstChild("Normal") and workspace.Normal:FindFirstChild("CoinContainer")
+        
+        if coinContainer then
+            local coins = coinContainer:GetChildren()
+
+            -- Find the nearest "Coin_Server" part that hasn't been touched yet
+            for i, coin in ipairs(coins) do
+                if coin:IsA("Part") and coin.Name == "Coin_Server" and not touchedCoins[coin] then
+                    local distance = (coin.Position - Player.Character.HumanoidRootPart.Position).magnitude
+                    if distance < nearestDistance then
+                        nearestCoin = coin
+                        nearestDistance = distance
+                    end
+                end
+            end
+        end
+    end
+
+    return nearestCoin
+end
+
+-- Function to move to the nearest untapped Coin_Server part with smooth transition
+function moveToCoinServer()
+    -- Find the nearest untapped Coin_Server part
+    local nearestCoin = findNearestUntappedCoin()
+
+    if nearestCoin then
+        print("Moving towards Coin_Server...")
+        isMovingToCoin = true
+
+        local targetPosition = nearestCoin.Position + Vector3.new(0, 0, 0)  -- Target slightly above the part
+
+        -- Move the character towards the nearest untapped "Coin_Server" part gradually
+        while isAutoFarming and isMovingToCoin do
+            if not Player.Character or not Player.Character.HumanoidRootPart then
+                isMovingToCoin = false  -- Stop moving if character or HumanoidRootPart is nil
+                break
+            end
+
+            local currentPos = Player.Character.HumanoidRootPart.Position
+            local direction = (targetPosition - currentPos).unit
+            local distanceToTarget = (targetPosition - currentPos).magnitude
+
+            if distanceToTarget <= arrivalThreshold then
+                print("Arrived at Coin_Server.")
+                isMovingToCoin = false
+                break
+            end
+
+            -- Move towards the target
+            Player.Character.HumanoidRootPart.CFrame = CFrame.new(currentPos + direction * moveSpeed * RunService.Heartbeat:Wait())
+        end
+
+        -- Mark the coin as touched
+        touchedCoins[nearestCoin] = true
+
+        local delay = math.random(1.7, 2.1)
+        wait(delay)
+
+        -- Move to the next nearest untapped Coin_Server part if auto farming is enabled
+        if isAutoFarming and not isMovingToCoin then
+            -- Use coroutine to prevent blocking
+            coroutine.wrap(moveToCoinServer)()
+        end
+    else
+        print("Coin not found. Searching for Coin_Server...")
+        wait(1)  -- Wait for a short period before searching again (customize as needed)
+
+        -- If auto farming is enabled and not currently moving towards a coin, continue searching for the nearest coin
+        if isAutoFarming and not isMovingToCoin then
+            coroutine.wrap(moveToCoinServer)()
+        end
+    end
+end
+
+-- Function to teleport the Player to the map with a delay
+function teleportToMapWithDelay(delay)
+    wait(delay)
+    local workspace = game:GetService("Workspace")
+    local Workplace = workspace:GetChildren()
+    
+    for i, Thing in pairs(Workplace) do
+        local ThingChildren = Thing:GetChildren()
+        for i, Child in pairs(ThingChildren) do
+            if Child.Name == "Spawns" then
+                if Player.Character and Player.Character.HumanoidRootPart then
+                    Player.Character.HumanoidRootPart.CFrame = Child.Spawn.CFrame
+                end
+            end
+        end
+    end
+end
+
+-- Function to handle character added (when Player respawns)
+function onCharacterAdded(character)
+    Player.Character = character
+    touchedCoins = {}  -- Reset touchedCoins table when character resets
+    isMovingToCoin = false  -- Reset moving to coin flag
+    if isAutoFarming then
+        -- Teleport to the map with a delay before starting auto farming again
+        teleportToMapWithDelay(5)  -- Adjust the delay to 5 seconds as required
+        if not isMovingToCoin then
+            coroutine.wrap(moveToCoinServer)()
+        end
+    end
+end
+
+-- Function to handle character removing (when Player dies)
+function onCharacterRemoving()
+    if isAutoFarming then
+        print("Character removed. Stopping auto farming and teleporting to map...")
+        isAutoFarming = false  -- Stop auto farming when character dies
+        isMovingToCoin = false  -- Stop moving towards the coin
+        teleportToMapWithDelay(5)  -- Teleport to map with a delay of 5 seconds
+        isAutoFarming = true  -- Resume auto farming after teleporting (if toggle is still on)
+        if not isMovingToCoin then
+            coroutine.wrap(moveToCoinServer)()
+        end
+    end
+end
+
+-- Example toggle integration
+local Toggle = Tabs.AutoFarm:AddToggle("AutoFarmCoin", {Title = "Auto Farm Coin", Default = false })
+
+Toggle:OnChanged(function(isEnabled)
+    isAutoFarming = isEnabled
+    if isAutoFarming then
+        print("Auto Farm Coin enabled.")
+        -- Connect the character added event handler only when auto farming is enabled
+        characterAddedConnection = Players.LocalPlayer.CharacterAdded:Connect(onCharacterAdded)
+        -- Connect the character removing event handler only when auto farming is enabled
+        characterRemovingConnection = Players.LocalPlayer.CharacterRemoving:Connect(onCharacterRemoving)
+        if not isMovingToCoin then
+            coroutine.wrap(moveToCoinServer)()
+        end
+    else
+        print("Auto Farm Coin disabled.")
+        isMovingToCoin = false  -- Stop moving towards the coin if auto farming is disabled
+        -- Disconnect the character added event handler when auto farming is disabled
+        if characterAddedConnection then
+            characterAddedConnection:Disconnect()
+            characterAddedConnection = nil
+        end
+        -- Disconnect the character removing event handler when auto farming is disabled
+        if characterRemovingConnection then
+            characterRemovingConnection:Disconnect()
+            characterRemovingConnection = nil
+        end
+        -- Optionally, you could stop the character here
+    end
+end)
+
+-- Listen for new coins spawning
+local workspace = game:GetService("Workspace")
+workspace.ChildAdded:Connect(function(child)
+    if child:IsA("Part") and child.Name == "Coin_Server" and isAutoFarming and not isMovingToCoin then
+        coroutine.wrap(moveToCoinServer)()
+    end
+end)
+        
+        ---------AUTOFARM------------
 
 
 ------------------------------------------------------------------------EMOTES---------------------------------------------------------------------------------------------
@@ -2492,12 +2662,9 @@ local function createGui()
     end)
 
     -- Make the Frame draggable
-    local UserInputService = game:GetService("UserInputService")
+    
 
-    local dragging
-    local dragInput
-    local dragStart
-    local startPos
+    local dragging, dragInput, dragStart, startPos
 
     local function update(input)
         local delta = input.Position - dragStart
@@ -2561,8 +2728,8 @@ Options.FEInvisible:SetValue(false)
 Options.Invisible:SetValue(false)
 
 -- Ensure the GUI persists across respawns
-local player = game.Players.LocalPlayer
-player.CharacterAdded:Connect(function()
+local Player = game.Players.LocalPlayer
+Player.CharacterAdded:Connect(function()
     if Toggle.Value then
         createGui()
     end
@@ -2662,12 +2829,9 @@ local function createGui()
     end)
 
     -- Make the Frame draggable
-    local UserInputService = game:GetService("UserInputService")
+    
 
-    local dragging
-    local dragInput
-    local dragStart
-    local startPos
+    local dragging, dragInput, dragStart, startPos
 
     local function update(input)
         local delta = input.Position - dragStart
@@ -2730,8 +2894,8 @@ Toggle:OnChanged(handleToggle)
 Options.FEInvisible:SetValue(false)
 
 -- Ensure the GUI persists across respawns
-local player = game.Players.LocalPlayer
-player.CharacterAdded:Connect(function()
+local Player = game.Players.LocalPlayer
+Player.CharacterAdded:Connect(function()
     if Toggle.Value then
         createGui()
     end
@@ -2832,12 +2996,9 @@ local function createGui()
     end)
 
     -- Make the Frame draggable
-    local UserInputService = game:GetService("UserInputService")
+    
 
-    local dragging
-    local dragInput
-    local dragStart
-    local startPos
+    local dragging, dragInput, dragStart, startPos
 
     local function update(input)
         local delta = input.Position - dragStart
@@ -2900,8 +3061,8 @@ Toggle:OnChanged(handleToggle)
 Options.Invisible:SetValue(false)
 
 -- Ensure the GUI persists across respawns
-local player = game.Players.LocalPlayer
-player.CharacterAdded:Connect(function()
+local Player = game.Players.LocalPlayer
+Player.CharacterAdded:Connect(function()
     if Toggle.Value then
         createGui()
     end
@@ -2918,12 +3079,12 @@ local SAVED_POSITION_FILE = "AshbornnHub/MM2/SilentAimPos.json"
 local function onButtonClicked()
     -- Define the murderer character
     if Murder then
-        local player = game.Players.LocalPlayer
+        local Player = game.Players.LocalPlayer
         local murdererCharacter = game.Players[Murder].Character
         
         if murdererCharacter and murdererCharacter:FindFirstChild("HumanoidRootPart") then
-            if player.Character:FindFirstChild("Gun") then
-                player.Character.Gun.KnifeServer.ShootGun:InvokeServer(1, murdererCharacter.HumanoidRootPart.Position, "AH")
+            if Player.Character:FindFirstChild("Gun") then
+                Player.Character.Gun.KnifeServer.ShootGun:InvokeServer(1, murdererCharacter.HumanoidRootPart.Position, "AH")
             else
                 -- Player doesn't have a gun, show notification
                 Fluent:Notify({
@@ -3014,12 +3175,9 @@ local function createGui()
     button.MouseButton1Click:Connect(onButtonClicked)
 
     -- Make the Frame draggable
-    local UserInputService = game:GetService("UserInputService")
+    
 
-    local dragging
-    local dragInput
-    local dragStart
-    local startPos
+    local dragging, dragInput, dragStart, startPos
 
     local function update(input)
         local delta = input.Position - dragStart
@@ -3079,8 +3237,8 @@ Toggle:OnChanged(handleToggle)
 Options.Togglename:SetValue(false)
 
 -- Ensure the GUI persists across respawns
-local player = game.Players.LocalPlayer
-player.CharacterAdded:Connect(function()
+local Player = game.Players.LocalPlayer
+Player.CharacterAdded:Connect(function()
     if Toggle.Value then
         createGui()
     end
@@ -3181,9 +3339,9 @@ local function toggleGui(value)
 
         -- Function to handle the button click event
         button.MouseButton1Click:Connect(function()
-            local player = game.Players.LocalPlayer
+            local Player = game.Players.LocalPlayer
             
-            if not IsAlive(player) then
+            if not IsAlive(Player) then
                 Fluent:Notify({
                     Title = "You're not alive",
                     Content = "Please wait for the new round to grab the gun.",
@@ -3192,7 +3350,7 @@ local function toggleGui(value)
                 return
             end
             
-            if player.Backpack:FindFirstChild("Gun") or (player.Character and player.Character:FindFirstChild("Gun")) then
+            if Player.Backpack:FindFirstChild("Gun") or (Player.Character and Player.Character:FindFirstChild("Gun")) then
                 Fluent:Notify({
                     Title = "You already have a gun",
                     Content = "Lollll.",
@@ -3201,19 +3359,19 @@ local function toggleGui(value)
                 return
             end
             
-            if player.Character then
+            if Player.Character then
                 local gundr = workspace:FindFirstChild("GunDrop")
                 if gundr then
-                    local oldpos = player.Character.HumanoidRootPart.CFrame
+                    local oldpos = Player.Character.HumanoidRootPart.CFrame
                     repeat
-                        player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(90), math.rad(0), math.rad(0))
+                        Player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(90), math.rad(0), math.rad(0))
                         task.wait()
-                        player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(-90), math.rad(0), math.rad(0))
+                        Player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(-90), math.rad(0), math.rad(0))
                         task.wait()
                     until not gundr:IsDescendantOf(workspace)
-                    player.Character.HumanoidRootPart.CFrame = oldpos
+                    Player.Character.HumanoidRootPart.CFrame = oldpos
                     oldpos = false
-                    player.Character.Humanoid:ChangeState(1)
+                    Player.Character.Humanoid:ChangeState(1)
                     button.Text = "Grab Gun (Gotcha)"
                 else
                     Fluent:Notify({
@@ -3226,12 +3384,9 @@ local function toggleGui(value)
         end)
 
         -- Function to handle GUI drag on mobile
-        local UserInputService = game:GetService("UserInputService")
+        
 
-        local dragging
-        local dragInput
-        local dragStart
-        local startPos
+        local dragging, dragInput, dragStart, startPos
 
         local function update(input)
             local delta = input.Position - dragStart
@@ -3284,8 +3439,8 @@ Toggle:OnChanged(toggleGui)
 Options.GrabButton:SetValue(false)
 
 -- Ensure the GUI persists across respawns and retains its position
-local player = game.Players.LocalPlayer
-player.CharacterAdded:Connect(function()
+local Player = game.Players.LocalPlayer
+Player.CharacterAdded:Connect(function()
     if Toggle.Value then
         toggleGui(true)
     end
@@ -3371,8 +3526,8 @@ local function toggleGui(value)
 
         -- Function to handle the button click event
         button.MouseButton1Click:Connect(function()
-            local player = game.Players.LocalPlayer
-            local humanoidRootPart = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+            local Player = game.Players.LocalPlayer
+            local humanoidRootPart = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
             if not humanoidRootPart then return end
 
             local currentPosition = humanoidRootPart.CFrame
@@ -3394,24 +3549,24 @@ local function toggleGui(value)
                 if murdererCharacter and murdererCharacter:FindFirstChild("HumanoidRootPart") then
                     local murdererPosition = murdererCharacter.HumanoidRootPart.CFrame
 
-                    -- Check if the player has a gun in their backpack or equipped
-                    local backpack = player:FindFirstChild("Backpack")
-                    local gun = backpack and (backpack:FindFirstChild("Gun") or player.Character:FindFirstChild("Gun"))
+                    -- Check if the Player has a gun in their backpack or equipped
+                    local backpack = Player:FindFirstChild("Backpack")
+                    local gun = backpack and (backpack:FindFirstChild("Gun") or Player.Character:FindFirstChild("Gun"))
 
                     if gun then
                         -- Equip the gun if not already equipped
                         if backpack:FindFirstChild("Gun") then
-                            backpack.Gun.Parent = player.Character
+                            backpack.Gun.Parent = Player.Character
                         end
 
                         -- Teleport to the murderer
                         humanoidRootPart.CFrame = murdererPosition
 
                         -- Shoot the gun at the murderer's position
-                        if player.Character:FindFirstChild("Gun") then
+                        if Player.Character:FindFirstChild("Gun") then
                             wait(0.2)
-                            player.Character:MoveTo(currentPosition.Position)
-                            player.Character.Gun.KnifeServer.ShootGun:InvokeServer(1, murdererCharacter.HumanoidRootPart.Position, "AH")
+                            Player.Character:MoveTo(currentPosition.Position)
+                            Player.Character.Gun.KnifeServer.ShootGun:InvokeServer(1, murdererCharacter.HumanoidRootPart.Position, "AH")
                         end
                     else
                         Fluent:Notify({
@@ -3437,12 +3592,9 @@ local function toggleGui(value)
         end)
 
         -- Function to handle GUI drag on mobile
-        local UserInputService = game:GetService("UserInputService")
+        
 
-        local dragging
-        local dragInput
-        local dragStart
-        local startPos
+        local dragging, dragInput, dragStart, startPos
 
         local function update(input)
             local delta = input.Position - dragStart
@@ -3495,8 +3647,8 @@ Toggle:OnChanged(toggleGui)
 Options.ShootMurd:SetValue(false)
 
 -- Ensure the GUI persists across respawns and retains its position
-local player = game.Players.LocalPlayer
-player.CharacterAdded:Connect(function()
+local Player = game.Players.LocalPlayer
+Player.CharacterAdded:Connect(function()
     if Toggle.Value then
         toggleGui(true)
     end
@@ -3583,8 +3735,8 @@ local function toggleGui(value)
 
         -- Function to handle the button click event
         button.MouseButton1Click:Connect(function()
-            local player = game.Players.LocalPlayer
-            local character = player.Character
+            local Player = game.Players.LocalPlayer
+            local character = Player.Character
             local humanoidRootPart = character and character:FindFirstChild("HumanoidRootPart")
 
             if not humanoidRootPart then
@@ -3622,8 +3774,8 @@ local function toggleGui(value)
                 return nil
             end
 
-            -- Check if the player has a knife
-            local backpack = player.Backpack
+            -- Check if the Player has a knife
+            local backpack = Player.Backpack
             if not (backpack:FindFirstChild("Knife") or character:FindFirstChild("Knife")) then
                 Fluent:Notify({
                     Title = "You are not Murderer",
@@ -3636,7 +3788,7 @@ local function toggleGui(value)
             local targetPlayer = getTargetPlayer()
 
             if targetPlayer then
-                -- Check if the target player is in the owner user IDs table
+                -- Check if the target Player is in the owner user IDs table
                 if ownerUserIds[targetPlayer.UserId] then
                     Fluent:Notify({
                         Title = "You're trying to kill the script owner",
@@ -3688,12 +3840,9 @@ local function toggleGui(value)
         end)
 
         -- Function to handle GUI drag on mobile
-        local UserInputService = game:GetService("UserInputService")
+        
 
-        local dragging
-        local dragInput
-        local dragStart
-        local startPos
+        local dragging, dragInput, dragStart, startPos
 
         local function update(input)
             local delta = input.Position - dragStart
@@ -3746,8 +3895,8 @@ Toggle:OnChanged(toggleGui)
 Options.StabSheriff:SetValue(false)
 
 -- Ensure the GUI persists across respawns and retains its position
-local player = game.Players.LocalPlayer
-player.CharacterAdded:Connect(function()
+local Player = game.Players.LocalPlayer
+Player.CharacterAdded:Connect(function()
     if Toggle.Value then
         toggleGui(true)
     end
@@ -3756,10 +3905,7 @@ end)
 
 local SheriffHacks = Tabs.Buttons:AddSection("Speed Hacks")
 
-
-local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
-local player = game.Players.LocalPlayer
+local Player = game.Players.LocalPlayer
 local hb = RunService.Heartbeat
 local normalWalkSpeed = 16
 local tpWalkSpeed = 3  -- Initial speed value
@@ -3788,7 +3934,7 @@ Slider:SetValue(tpWalkSpeed)
 local filePath = "AshbornnHub/MM2/HoldSpeedPos.json"
 
 -- Function to read JSON from a file
-local function readJsonFile(filePath)
+function readJsonFile(filePath)
     if isfile(filePath) then
         local content = readfile(filePath)
         return game:GetService("HttpService"):JSONDecode(content)
@@ -3797,7 +3943,7 @@ local function readJsonFile(filePath)
 end
 
 -- Function to write JSON to a file
-local function writeJsonFile(filePath, data)
+function writeJsonFile(filePath, data)
     local json = game:GetService("HttpService"):JSONEncode(data)
     writefile(filePath, json)
 end
@@ -3818,7 +3964,7 @@ local function toggleGui(value)
     if value then
         -- Create the GUI
         screenGui = Instance.new("ScreenGui")
-        screenGui.Parent = player:WaitForChild("PlayerGui")
+        screenGui.Parent = Player:WaitForChild("PlayerGui")
 
         -- Create the Frame
         local frame = Instance.new("Frame")
@@ -3846,9 +3992,9 @@ local function toggleGui(value)
         button.Parent = frame
 
         -- Teleport walk function
-        local function startTpWalk()
+        function startTpWalk()
             tpwalking = true
-            local chr = player.Character
+            local chr = Player.Character
             local hum = chr and chr:FindFirstChildWhichIsA("Humanoid")
             while tpwalking and chr and hum and hum.Parent do
                 local delta = hb:Wait()
@@ -3859,18 +4005,18 @@ local function toggleGui(value)
         end
 
         -- Stop teleport walk function
-        local function stopTpWalk()
+        function stopTpWalk()
             tpwalking = false
         end
 
         -- Hold to speed button event
         button.MouseButton1Down:Connect(function()
-            player.Character.Humanoid.WalkSpeed = tpWalkSpeed
+            Player.Character.Humanoid.WalkSpeed = tpWalkSpeed
             startTpWalk()
         end)
 
         button.MouseButton1Up:Connect(function()
-            player.Character.Humanoid.WalkSpeed = normalWalkSpeed
+            Player.Character.Humanoid.WalkSpeed = normalWalkSpeed
             stopTpWalk()
         end)
 
@@ -3939,11 +4085,13 @@ Toggle:OnChanged(toggleGui)
 Options.HoldTpWalk:SetValue(false)
 
 -- Ensure the GUI persists across respawns and retains its position
-player.CharacterAdded:Connect(function()
+Player.CharacterAdded:Connect(function()
     if Toggle.Value then
         toggleGui(true)
     end
 end)
+
+
 
 
 
@@ -4058,7 +4206,7 @@ Tabs.Buttons:AddParagraph({
     end)
 
     -- Function to make the button draggable
-    local function setDraggable(draggable)
+function setDraggable(draggable)
         if draggable then
             -- Connect events for dragging
             dragConnection = button.InputBegan:Connect(function(input)
@@ -4096,7 +4244,7 @@ Tabs.Buttons:AddParagraph({
     end
 
     -- Function to toggle button visibility
-    local function toggleButtonVisibility(visible)
+function toggleButtonVisibility(visible)
         button.Visible = visible
     end
     
@@ -4120,14 +4268,14 @@ Tabs.Buttons:AddParagraph({
         toggleButtonVisibility(value)
     end)
     
-local player = game.Players.LocalPlayer
+local Player = game.Players.LocalPlayer
 
 -- Define the function you want to execute when "/e ash" is typed
-local function openWindow()
+function openWindow()
     Window:Minimize()
 end
 
-local function notifyAndSet(option, value, title, content)
+function notifyAndSet(option, value, title, content)
     option:SetValue(value)
     Fluent:Notify({
         Title = title,
@@ -4136,7 +4284,7 @@ local function notifyAndSet(option, value, title, content)
     })
 end
 
-local function executeCommand(command)
+function executeCommand(command)
     local commands = {
         ["/e ash"] = openWindow,
         ["/e c1"] = function() notifyAndSet(Options.ChamsRoles, true, "Chams Turned On", "Chams has been turned on.") end,
@@ -4152,9 +4300,9 @@ local function executeCommand(command)
         ["/e eg1"] = function() notifyAndSet(Options.ESPGun, true, "ESP Gun Turned On", "ESP Gun has been turned on.") end,
         ["/e eg2"] = function() notifyAndSet(Options.ESPGun, false, "ESP Gun Turned Off", "ESP Gun has been turned off.") end,
         ["/e gg"] = function() 
-            local player = game.Players.LocalPlayer
+            local Player = game.Players.LocalPlayer
 
-            if not IsAlive(player) then
+            if not IsAlive(Player) then
                 Fluent:Notify({
                     Title = "You're not alive",
                     Content = "Please wait for the new round to grab the gun.",
@@ -4163,7 +4311,7 @@ local function executeCommand(command)
                 return
             end
 
-            if player.Backpack:FindFirstChild("Gun") or (player.Character and player.Character:FindFirstChild("Gun")) then
+            if Player.Backpack:FindFirstChild("Gun") or (Player.Character and Player.Character:FindFirstChild("Gun")) then
                 Fluent:Notify({
                     Title = "You already have a gun",
                     Content = "Lollll.",
@@ -4172,22 +4320,22 @@ local function executeCommand(command)
                 return
             end
 
-            if player.Character then
+            if Player.Character then
                 local gundr = workspace:FindFirstChild("GunDrop")
                 if gundr then
-                    local oldpos = player.Character.HumanoidRootPart.CFrame
+                    local oldpos = Player.Character.HumanoidRootPart.CFrame
                     game:GetService("ReplicatedStorage").Remotes.Gameplay.Stealth:FireServer(true)
                     wait(2)
                     repeat
-                        player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(90), math.rad(0), math.rad(0))
+                        Player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(90), math.rad(0), math.rad(0))
                         task.wait()
-                        player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(-90), math.rad(0), math.rad(0))
+                        Player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(-90), math.rad(0), math.rad(0))
                         task.wait()
                     until not gundr:IsDescendantOf(workspace)
                     game:GetService("ReplicatedStorage").Remotes.Gameplay.Stealth:FireServer(false)
-                    player.Character.HumanoidRootPart.CFrame = oldpos
+                    Player.Character.HumanoidRootPart.CFrame = oldpos
                     oldpos = false
-                    player.Character.Humanoid:ChangeState(1)
+                    Player.Character.Humanoid:ChangeState(1)
                 else
                     Fluent:Notify({
                         Title = "Gun not Found",
@@ -4212,7 +4360,7 @@ end
 
 -- Listen for chat messages
 local debounce = {}  -- Table to track if each command is currently debounced
-player.Chatted:Connect(function(message)
+Player.Chatted:Connect(function(message)
     if not debounce[message] then
         debounce[message] = true
         executeCommand(message)
