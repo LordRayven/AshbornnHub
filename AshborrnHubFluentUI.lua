@@ -437,13 +437,22 @@ GunHook = hookmetamethod(game, "__namecall", function(self, ...)
                     if targetPlayer and targetPlayer.Character and targetPlayer.Character.PrimaryPart then
                         local Root = targetPlayer.Character.PrimaryPart
                         local Velocity = Root.AssemblyLinearVelocity
-                        -- If the target is moving, predict the position
-                        local Position
+
+                        -- Predict the position based on velocity and accuracy
+                        local Position = Root.Position
+
                         if Velocity.Magnitude > 0 then
-                            Position = Root.Position + (Velocity * Vector3.new(getgenv().GunAccuracy / 200, getgenv().GunAccuracy / 200, getgenv().GunAccuracy / 200))
-                        else
-                            Position = Root.Position
+                            -- Separate horizontal and vertical components
+                            local horizontalVelocity = Vector3.new(Velocity.X, 0, Velocity.Z)
+                            local verticalVelocity = Vector3.new(0, Velocity.Y, 0)
+
+                            -- Predict horizontal position
+                            Position = Position + horizontalVelocity * (getgenv().GunAccuracy / 200)
+
+                            -- Adjust for vertical movement (jumping)
+                            Position = Position + verticalVelocity * (getgenv().GunAccuracy / 200)
                         end
+
                         args[2] = Position
                     end
                 end
