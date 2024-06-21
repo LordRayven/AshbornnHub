@@ -4939,7 +4939,7 @@ end)
     
     -- You can use the SaveManager:LoadAutoloadConfig() to load a config
     -- which has been marked to be one that auto loads!
-    SaveManager:LoadAutoloadConfig()
+    
     
     
 local TimeEnd = tick()
@@ -4949,3 +4949,5 @@ Fluent:Notify({
     Content = "Successfully loaded the script in " .. TotalTime .. "s.",
     Duration = 4
 })
+wait(5)
+    SaveManager:LoadAutoloadConfig()
