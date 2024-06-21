@@ -2855,7 +2855,7 @@ Tabs.AutoFarm:AddButton({
                     task.wait()
                     player.Character.HumanoidRootPart.CFrame = nearestCoin.CFrame * CFrame.Angles(math.rad(-90), math.rad(0), math.rad(0))
                     task.wait()
-                until not nearestCoin:IsDescendantOf(workspace) or tick() - startTime >= 3
+                until not nearestCoin:IsDescendantOf(workspace) or tick() - startTime >= 1.5
                 player.Character.HumanoidRootPart.CFrame = oldPos
                 player.Character.Humanoid:ChangeState(1)
                 Fluent:Notify({
