@@ -2249,13 +2249,76 @@ Tabs.AutoFarm:AddParagraph({
     Title = "IMPORTANT: PLEASE READ",
     Content = "Please be aware that prolonged use of this Autofarm may cause lag during extended gameplay. Additionally, do not toggle the 'Auto Teleport to Rare Eggs' option if the game has not started. because it search for nothing so thats why don't always toggle it."
 })
+local Toggle = Tabs.AutoFarm:AddToggle("RejoinKicked", {Title = "Rejoin on Kick", Default = false })
+
+local connection -- Declare a variable to hold the connection
+
+Toggle:OnChanged(function(value)
+    if value then
+        -- Connect to the ErrorMessageChanged event
+        connection = game:GetService("GuiService").ErrorMessageChanged:Connect(function()
+            wait(0.1)
+            game:GetService("TeleportService"):Teleport(game.PlaceId)
+        end)
+    else
+        -- Disconnect from the event if it was previously connected
+        if connection then
+            connection:Disconnect()
+            connection = nil
+        end
+    end
+end)
+
+Options.RejoinKicked:SetValue(false)
+
+local Toggle = Tabs.AutoFarm:AddToggle("AntiAFK", {Title = "Anti AFK", Default = false })
+
+local antiAfkConnection -- Declare a variable to hold the connection for anti-AFK
+
+Toggle:OnChanged(function(value)
+    if value then
+        -- Connect to the Idled event for anti-AFK
+        local LocalPlayer = game:GetService("Players").LocalPlayer
+        local VirtualUser = game:GetService("VirtualUser")
+        
+        antiAfkConnection = LocalPlayer.Idled:Connect(function()
+            VirtualUser:CaptureController()
+            VirtualUser:ClickButton2(Vector2.new())
+        end)
+    else
+        -- Disconnect from the Idled event if it was previously connected
+        if antiAfkConnection then
+            antiAfkConnection:Disconnect()
+            antiAfkConnection = nil
+        end
+    end
+end)
+
+Options.AntiAFK:SetValue(false)
+
+local moveSpeed = 50
+-- Create a slider for teleport walk speed
+local Slider = Tabs.AutoFarm:AddSlider("TweenSpeed", {
+    Title = "Change AutoFarm Speed",
+    Description = "NOTE: The higher the value can be kick faster.",
+    Default = moveSpeed,
+    Min = 20,
+    Max = 200,
+    Rounding = 0,
+    Callback = function(Value)
+        moveSpeed = Value
+    end
+})
+
+-- Ensure slider initial value is set correctly
+Slider:SetValue(moveSpeed)
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
 
 -- Movement parameters
-local moveSpeed = 50  -- Adjusted move speed for faster movement
+  -- Adjusted move speed for faster movement
 local arrivalThreshold = 1  -- Distance threshold to stop moving
 local touchedCoins = {}  -- Table to track touched Coin_Server parts
 local isAutoFarming = false  -- Flag to track if auto farming is enabled
@@ -2797,6 +2860,9 @@ end
 
 
 
+-- Table to keep track of touched rare eggs
+local touchedRareEggs = {}
+
 -- Function to check if a part has TouchInterest, empty CoinVisual, and ParticleEmitter
 local function hasTouchInterestAndEmptyCoinVisualAndParticleEmitter(part)
     if part:IsA("Part") then
@@ -2823,7 +2889,7 @@ local function findNearestUntappedCoin()
 
                 -- Find the nearest "Coin_Server" part with TouchInterest, empty CoinVisual, and ParticleEmitter
                 for _, coinServer in ipairs(coins) do
-                    if hasTouchInterestAndEmptyCoinVisualAndParticleEmitter(coinServer) then
+                    if hasTouchInterestAndEmptyCoinVisualAndParticleEmitter(coinServer) and not touchedRareEggs[coinServer] then
                         local distance = (coinServer.Position - player.Character.HumanoidRootPart.Position).Magnitude
                         if distance < nearestDistance then
                             nearestCoin = coinServer
@@ -2860,6 +2926,8 @@ local function teleportToNearestCoin()
                 Content = "Successfully teleported to the rare egg.",
                 Duration = 3
             })
+            -- Mark the coin as touched
+            touchedRareEggs[nearestCoin] = true
             return true
         else
             print("[ AshbornnHub ] Rare Egg Not Found.. Searching again....")
@@ -2903,6 +2971,7 @@ Toggle:OnChanged(function(state)
         isTeleporting = false
     end
 end)
+
 
 Options.TPtoRareEgg:SetValue(false)  -- Ensure the toggle starts off
 Tabs.AutoFarm:AddParagraph({
@@ -3061,7 +3130,7 @@ local screenGui
 local savedPosition = UDim2.new(0.5, -0.5, 0.5, -37.5)  -- Default position
 
 -- Function to save the position to file
-local function savePosition()
+function savePositionA()
     if screenGui then
         local positionData = {
             X = savedPosition.X.Scale,
@@ -3079,7 +3148,7 @@ local function savePosition()
 end
 
 -- Function to load the position from file
-local function loadPosition()
+local function loadPositionA()
     local positionData = nil
     local success, data = pcall(function()
         return readfile(SAVED_POSITION_FILE)
@@ -3093,10 +3162,10 @@ local function loadPosition()
 end
 
 -- Attempt to load the saved position
-loadPosition()
+loadPositionA()
 
 -- Function to create the GUI
-local function createGui()
+function createGuiA()
     -- Create a ScreenGui
     screenGui = Instance.new("ScreenGui")
     screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
@@ -3148,7 +3217,7 @@ local function createGui()
 
     local dragging, dragInput, dragStart, startPos
 
-    local function update(input)
+     function updateA(input)
         local delta = input.Position - dragStart
         frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
         savedPosition = frame.Position  -- Save the updated position
@@ -3164,7 +3233,7 @@ local function createGui()
             if input.UserInputState == Enum.UserInputState.End then
                 dragging = false
                 -- Save position when drag ends
-                savePosition()
+                savePositionA()
             end
         end)
     end
@@ -3178,7 +3247,7 @@ end)
 
 UserInputService.InputChanged:Connect(function(input)
     if not LockFrames and input == dragInput and dragging then
-        update(input)
+        updateA(input)
     end
 end)
 
@@ -3190,14 +3259,14 @@ end
 local function handleToggle(value)
     if value then
         -- Create and show the GUI
-        createGui()
+        createGuiA()
     else
         -- Destroy the GUI
         if screenGui then
             screenGui:Destroy()
             screenGui = nil
             -- Save position when GUI is closed
-            savePosition()
+            savePositionA()
         end
     end
 end
@@ -3213,7 +3282,7 @@ Options.Invisible:SetValue(false)
 local Player = game.Players.LocalPlayer
 Player.CharacterAdded:Connect(function()
     if Toggle.Value then
-        createGui()
+        createGuiA()
     end
 end)
 
@@ -3230,7 +3299,7 @@ local screenGui
 local savedPosition = UDim2.new(0.5, -0.5, 0.5, -37.5)  -- Default position
 
 -- Function to save the position to file
-local function savePosition()
+function savePositionB()
     if screenGui then
         local positionData = {
             X = savedPosition.X.Scale,
@@ -3248,7 +3317,7 @@ local function savePosition()
 end
 
 -- Function to load the position from file
-local function loadPosition()
+function loadPositionB()
     local positionData = nil
     local success, data = pcall(function()
         return readfile(SAVED_POSITION_FILE)
@@ -3262,10 +3331,10 @@ local function loadPosition()
 end
 
 -- Attempt to load the saved position
-loadPosition()
+loadPositionB()
 
 -- Function to create the GUI
-local function createGui()
+ function createGuiB()
     -- Create a ScreenGui
     screenGui = Instance.new("ScreenGui")
     screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
@@ -3315,7 +3384,7 @@ local function createGui()
 
     local dragging, dragInput, dragStart, startPos
 
-    local function update(input)
+     function updateB(input)
         local delta = input.Position - dragStart
         frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
         savedPosition = frame.Position  -- Save the updated position
@@ -3331,7 +3400,7 @@ local function createGui()
             if input.UserInputState == Enum.UserInputState.End then
                 dragging = false
                 -- Save position when drag ends
-                savePosition()
+                savePositionB()
             end
         end)
     end
@@ -3345,7 +3414,7 @@ end)
 
 UserInputService.InputChanged:Connect(function(input)
     if not LockFrames and input == dragInput and dragging then
-        update(input)
+        updateB(input)
     end
 end)
 
@@ -3357,14 +3426,14 @@ end
 local function handleToggle(value)
     if value then
         -- Create and show the GUI
-        createGui()
+        createGuiB()
     else
         -- Destroy the GUI
         if screenGui then
             screenGui:Destroy()
             screenGui = nil
             -- Save position when GUI is closed
-            savePosition()
+            savePositionB()
         end
     end
 end
@@ -3379,7 +3448,7 @@ Options.FEInvisible:SetValue(false)
 local Player = game.Players.LocalPlayer
 Player.CharacterAdded:Connect(function()
     if Toggle.Value then
-        createGui()
+        createGuiB()
     end
 end)
 
@@ -3395,7 +3464,7 @@ local screenGui
 local savedPosition = UDim2.new(0.5, 100, 0.5, 37.5)  -- Default position
 
 -- Function to save the position to file
-local function savePosition()
+function savePositionQ()
     if screenGui then
         local positionData = {
             X = savedPosition.X.Scale,
@@ -3413,7 +3482,7 @@ local function savePosition()
 end
 
 -- Function to load the position from file
-local function loadPosition()
+function loadPositionQ()
     local positionData = nil
     local success, data = pcall(function()
         return readfile(SAVED_POSITION_FILE)
@@ -3427,10 +3496,10 @@ local function loadPosition()
 end
 
 -- Attempt to load the saved position
-loadPosition()
+loadPositionQ()
 
 -- Function to create the GUI
-local function createGui()
+ function createGuiQ()
     -- Create a ScreenGui
     screenGui = Instance.new("ScreenGui")
     screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
@@ -3482,7 +3551,7 @@ local function createGui()
 
     local dragging, dragInput, dragStart, startPos
 
-    local function update(input)
+     function updateQ(input)
         local delta = input.Position - dragStart
         frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
         savedPosition = frame.Position  -- Save the updated position
@@ -3498,7 +3567,7 @@ local function createGui()
             if input.UserInputState == Enum.UserInputState.End then
                 dragging = false
                 -- Save position when drag ends
-                savePosition()
+                savePositionQ()
             end
         end)
     end
@@ -3512,7 +3581,7 @@ end)
 
 UserInputService.InputChanged:Connect(function(input)
     if not LockFrames and input == dragInput and dragging then
-        update(input)
+        updateQ(input)
     end
 end)
 
@@ -3524,14 +3593,14 @@ end
 local function handleToggle(value)
     if value then
         -- Create and show the GUI
-        createGui()
+        createGuiQ()
     else
         -- Destroy the GUI
         if screenGui then
             screenGui:Destroy()
             screenGui = nil
             -- Save position when GUI is closed
-            savePosition()
+            savePositionQ()
         end
     end
 end
@@ -3546,7 +3615,7 @@ Options.Invisible:SetValue(false)
 local Player = game.Players.LocalPlayer
 Player.CharacterAdded:Connect(function()
     if Toggle.Value then
-        createGui()
+        createGuiQ()
     end
 end)
 
@@ -3588,7 +3657,7 @@ local screenGui
 local savedPosition = UDim2.new(0.5, -75, 0.5, -37.5)  -- Default position
 
 -- Function to save the position to file
-local function savePosition()
+function savePositionC()
     if screenGui then
         local positionData = {
             X = savedPosition.X.Scale,
@@ -3606,7 +3675,7 @@ local function savePosition()
 end
 
 -- Function to load the position from file
-local function loadPosition()
+function loadPositionC()
     local positionData = nil
     local success, data = pcall(function()
         return readfile(SAVED_POSITION_FILE)
@@ -3620,10 +3689,10 @@ local function loadPosition()
 end
 
 -- Attempt to load the saved position
-loadPosition()
+loadPositionC()
 
 -- Function to create the GUI
-local function createGui()
+ function createGuiC()
     -- Create a ScreenGui
     screenGui = Instance.new("ScreenGui")
     screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
@@ -3661,7 +3730,7 @@ local function createGui()
 
     local dragging, dragInput, dragStart, startPos
 
-    local function update(input)
+     function updateC(input)
         local delta = input.Position - dragStart
         frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
         savedPosition = frame.Position  -- Save the updated position
@@ -3677,7 +3746,7 @@ local function createGui()
             if input.UserInputState == Enum.UserInputState.End then
                 dragging = false
                 -- Save position when drag ends
-                savePosition()
+                savePositionC()
             end
         end)
     end
@@ -3691,7 +3760,7 @@ end)
 
 UserInputService.InputChanged:Connect(function(input)
     if not LockFrames and input == dragInput and dragging then
-        update(input)
+        updateC(input)
     end
 end)
 end
@@ -3700,14 +3769,14 @@ end
 local function handleToggle(value)
     if value then
         -- Create and show the GUI
-        createGui()
+        createGuiC()
     else
         -- Destroy the GUI
         if screenGui then
             screenGui:Destroy()
             screenGui = nil
             -- Save position when GUI is closed
-            savePosition()
+            savePositionC()
         end
     end
 end
@@ -3722,7 +3791,7 @@ Options.Togglename:SetValue(false)
 local Player = game.Players.LocalPlayer
 Player.CharacterAdded:Connect(function()
     if Toggle.Value then
-        createGui()
+        createGuiC()
     end
 end)
 
@@ -3739,7 +3808,7 @@ local screenGui
 local savedPosition = UDim2.new(0.5, 75, 0.5, -37.5)  -- Default position
 
 -- Function to save the position to file
-local function savePosition()
+function savePositionD()
     if screenGui then
         local positionData = {
             X = savedPosition.X.Scale,
@@ -3757,7 +3826,7 @@ local function savePosition()
 end
 
 -- Function to load the position from file
-local function loadPosition()
+local function loadPositionD()
     local positionData = nil
     local success, data = pcall(function()
         return readfile(SAVED_POSITION_FILE)
@@ -3771,7 +3840,7 @@ local function loadPosition()
 end
 
 -- Attempt to load the saved position
-loadPosition()
+loadPositionD()
 
 -- Function to create or destroy the GUI based on toggle state
 local function toggleGui(value)
@@ -3870,7 +3939,7 @@ local function toggleGui(value)
 
         local dragging, dragInput, dragStart, startPos
 
-        local function update(input)
+        function updateD(input)
             local delta = input.Position - dragStart
             frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
             savedPosition = frame.Position  -- Save the updated position
@@ -3886,7 +3955,7 @@ local function toggleGui(value)
             if input.UserInputState == Enum.UserInputState.End then
                 dragging = false
                 -- Save position when drag ends
-                savePosition()
+                savePositionD()
             end
         end)
     end
@@ -3900,7 +3969,7 @@ end)
 
 UserInputService.InputChanged:Connect(function(input)
     if not LockFrames and input == dragInput and dragging then
-        update(input)
+        updateD(input)
     end
 end)
 
@@ -3909,7 +3978,7 @@ end)
         if screenGui then
             screenGui:Destroy()
             screenGui = nil
-            savePosition()  -- Save position when GUI is closed
+            savePositionD()  -- Save position when GUI is closed
         end
     end
 end
@@ -3940,7 +4009,7 @@ local screenGui
 local savedPosition = UDim2.new(0.5, 75, 0.5, 37)  -- Default position
 
 -- Function to save the position to file
-local function savePosition()
+function savePositionE()
     if screenGui then
         local positionData = {
             X = savedPosition.X.Scale,
@@ -3958,7 +4027,7 @@ local function savePosition()
 end
 
 -- Function to load the position from file
-local function loadPosition()
+function loadPositionE()
     local positionData = nil
     local success, data = pcall(function()
         return readfile(SAVED_POSITION_FILE)
@@ -3972,7 +4041,7 @@ local function loadPosition()
 end
 
 -- Attempt to load the saved position
-loadPosition()
+loadPositionE()
 
 -- Function to create or destroy the GUI based on toggle state
 local function toggleGui(value)
@@ -4078,7 +4147,7 @@ local function toggleGui(value)
 
         local dragging, dragInput, dragStart, startPos
 
-        local function update(input)
+        local function updateE(input)
             local delta = input.Position - dragStart
             frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
             savedPosition = frame.Position  -- Save the updated position
@@ -4094,7 +4163,7 @@ local function toggleGui(value)
             if input.UserInputState == Enum.UserInputState.End then
                 dragging = false
                 -- Save position when drag ends
-                savePosition()
+                savePositionE()
             end
         end)
     end
@@ -4108,7 +4177,7 @@ end)
 
 UserInputService.InputChanged:Connect(function(input)
     if not LockFrames and input == dragInput and dragging then
-        update(input)
+        updateE(input)
     end
 end)
 
@@ -4117,7 +4186,7 @@ end)
         if screenGui then
             screenGui:Destroy()
             screenGui = nil
-            savePosition()  -- Save position when GUI is closed
+            savePositionE()  -- Save position when GUI is closed
         end
     end
 end
@@ -4149,7 +4218,7 @@ local screenGui
 local savedPosition = UDim2.new(0.5, 75, 0.5, 37)  -- Default position
 
 -- Function to save the position to file
-local function savePosition()
+local function savePositionF()
     if screenGui then
         local positionData = {
             X = savedPosition.X.Scale,
@@ -4167,7 +4236,7 @@ local function savePosition()
 end
 
 -- Function to load the position from file
-local function loadPosition()
+local function loadPositionF()
     local positionData = nil
     local success, data = pcall(function()
         return readfile(SAVED_POSITION_FILE)
@@ -4181,7 +4250,7 @@ local function loadPosition()
 end
 
 -- Attempt to load the saved position
-loadPosition()
+loadPositionF()
 
 -- Function to create or destroy the GUI based on toggle state
 local function toggleGui(value)
@@ -4289,12 +4358,16 @@ local function toggleGui(value)
                         character:MoveTo(currentPosition)
                         if type(Stab) == "function" then
                             Stab()
+                        else
+                            warn("Stab function is nil or not defined")
                         end
                         firetouchinterest(humanoidRootPart, targetCharacter.HumanoidRootPart, 1)
                         firetouchinterest(humanoidRootPart, targetCharacter.HumanoidRootPart, 0)
 
                         -- Force teleport to original position
                         humanoidRootPart.CFrame = CFrame.new(currentPosition)
+                    else
+                        warn("Knife not found in character after equipping")
                     end
                 else
                     Fluent:Notify({
@@ -4313,50 +4386,47 @@ local function toggleGui(value)
         end)
 
         -- Function to handle GUI drag on mobile
-        
-
         local dragging, dragInput, dragStart, startPos
 
-        local function update(input)
+        local function updateF(input)
             local delta = input.Position - dragStart
             frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
             savedPosition = frame.Position  -- Save the updated position
         end
 
         frame.InputBegan:Connect(function(input)
-    if not LockFrames and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
-        dragging = true
-        dragStart = input.Position
-        startPos = frame.Position
+            if not LockFrames and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
+                dragging = true
+                dragStart = input.Position
+                startPos = frame.Position
 
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                dragging = false
-                -- Save position when drag ends
-                savePosition()
+                input.Changed:Connect(function()
+                    if input.UserInputState == Enum.UserInputState.End then
+                        dragging = false
+                        -- Save position when drag ends
+                        savePositionF()
+                    end
+                end)
             end
         end)
-    end
-end)
 
-frame.InputChanged:Connect(function(input)
-    if not LockFrames and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-        dragInput = input
-    end
-end)
+        frame.InputChanged:Connect(function(input)
+            if not LockFrames and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+                dragInput = input
+            end
+        end)
 
-UserInputService.InputChanged:Connect(function(input)
-    if not LockFrames and input == dragInput and dragging then
-        update(input)
-    end
-end)
-
+        UserInputService.InputChanged:Connect(function(input)
+            if not LockFrames and input == dragInput and dragging then
+                updateF(input)
+            end
+        end)
     else
         -- Destroy the GUI if it exists
         if screenGui then
             screenGui:Destroy()
             screenGui = nil
-            savePosition()  -- Save position when GUI is closed
+            savePositionF()  -- Save position when GUI is closed
         end
     end
 end
@@ -4371,6 +4441,7 @@ Options.StabSheriff:SetValue(false)
 local Player = game.Players.LocalPlayer
 Player.CharacterAdded:Connect(function()
     if Toggle.Value then
+        wait(1)  -- Delay to ensure the character is fully loaded
         toggleGui(true)
     end
 end)
@@ -4379,7 +4450,8 @@ end)
 local SheriffHacks = Tabs.Buttons:AddSection("Speed Hacks")
 
 local Player = game.Players.LocalPlayer
-local hb = RunService.Heartbeat
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 local normalWalkSpeed = 16
 local tpWalkSpeed = 3  -- Initial speed value
 local tpwalking = false
@@ -4407,7 +4479,7 @@ Slider:SetValue(tpWalkSpeed)
 local filePath = "AshbornnHub/MM2/HoldSpeedPos.json"
 
 -- Function to read JSON from a file
-function readJsonFile(filePath)
+local function readJsonFile(filePath)
     if isfile(filePath) then
         local content = readfile(filePath)
         return game:GetService("HttpService"):JSONDecode(content)
@@ -4416,7 +4488,7 @@ function readJsonFile(filePath)
 end
 
 -- Function to write JSON to a file
-function writeJsonFile(filePath, data)
+local function writeJsonFile(filePath, data)
     local json = game:GetService("HttpService"):JSONEncode(data)
     writefile(filePath, json)
 end
@@ -4433,7 +4505,7 @@ end
 local screenGui
 
 -- Function to create or destroy the GUI based on toggle state
-function toggleGui(value)
+local function toggleGui(value)
     if value then
         -- Create the GUI
         screenGui = Instance.new("ScreenGui")
@@ -4465,12 +4537,12 @@ function toggleGui(value)
         button.Parent = frame
 
         -- Teleport walk function
-        function startTpWalk()
+        local function startTpWalk()
             tpwalking = true
             local chr = Player.Character
             local hum = chr and chr:FindFirstChildWhichIsA("Humanoid")
             while tpwalking and chr and hum and hum.Parent do
-                local delta = hb:Wait()
+                local delta = RunService.Heartbeat:Wait()
                 if hum.MoveDirection.Magnitude > 0 then
                     chr:TranslateBy(hum.MoveDirection * tpWalkSpeed * delta * 10)
                 end
@@ -4478,7 +4550,7 @@ function toggleGui(value)
         end
 
         -- Stop teleport walk function
-        function stopTpWalk()
+        local function stopTpWalk()
             tpwalking = false
         end
 
@@ -4496,7 +4568,7 @@ function toggleGui(value)
         -- Function to handle GUI drag on mobile
         local dragging, dragInput, dragStart, startPos
 
-        local function update(input)
+        local function updateG(input)
             local delta = input.Position - dragStart
             frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
             savedPosition = frame.Position  -- Save the updated position
@@ -4512,33 +4584,30 @@ function toggleGui(value)
         end
 
         frame.InputBegan:Connect(function(input)
-    if not LockFrames and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
-        dragging = true
-        dragStart = input.Position
-        startPos = frame.Position
+            if not LockFrames and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
+                dragging = true
+                dragStart = input.Position
+                startPos = frame.Position
 
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                dragging = false
-                -- Save position when drag ends
-                savePosition()
+                input.Changed:Connect(function()
+                    if input.UserInputState == Enum.UserInputState.End then
+                        dragging = false
+                    end
+                end)
             end
         end)
-    end
-end)
 
-frame.InputChanged:Connect(function(input)
-    if not LockFrames and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-        dragInput = input
-    end
-end)
+        frame.InputChanged:Connect(function(input)
+            if not LockFrames and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+                dragInput = input
+            end
+        end)
 
-UserInputService.InputChanged:Connect(function(input)
-    if not LockFrames and input == dragInput and dragging then
-        update(input)
-    end
-end)
-
+        UserInputService.InputChanged:Connect(function(input)
+            if not LockFrames and input == dragInput and dragging then
+                updateG(input)
+            end
+        end)
     else
         -- Destroy the GUI if it exists
         if screenGui then
@@ -4557,6 +4626,7 @@ Options.HoldTpWalk:SetValue(false)
 -- Ensure the GUI persists across respawns and retains its position
 Player.CharacterAdded:Connect(function()
     if Toggle.Value then
+        wait(1)  -- Delay to ensure the character is fully loaded
         toggleGui(true)
     end
 end)
