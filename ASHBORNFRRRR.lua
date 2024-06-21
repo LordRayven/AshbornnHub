@@ -2298,7 +2298,7 @@ local function moveToCoinServer()
     local nearestCoin = findNearestUntappedCoin()
 
     if nearestCoin then
-        print("Moving towards Coin_Server...")
+        print("Moving towards Coin or Eggs.")
         isMovingToCoin = true
 
         local targetPosition = nearestCoin.Position + Vector3.new(0, 0, 0)  -- Target slightly above the part
@@ -2315,7 +2315,7 @@ local function moveToCoinServer()
             local distanceToTarget = (targetPosition - currentPos).magnitude
 
             if distanceToTarget <= arrivalThreshold then
-                print("Arrived at Coin_Server.")
+                print("Arrived at Coin or Eggs")
                 isMovingToCoin = false
                 break
             end
@@ -2393,7 +2393,7 @@ local function onCharacterRemoving()
 end
 
 -- Example toggle integration
-local Toggle = Tabs.AutoFarm:AddToggle("AutoFarmCoin", {Title = "Auto Farm Coin and Eggs", Default = false })
+local Toggle = Tabs.AutoFarm:AddToggle("AutoFarmCoinEggs", {Title = "Auto Farm Coin and Eggs", Default = false })
 
 Toggle:OnChanged(function(isEnabled)
     isAutoFarming = isEnabled
@@ -2470,7 +2470,7 @@ local function moveToCoinServer()
     local nearestCoin = findNearestUntappedCoin()
 
     if nearestCoin then
-        print("Moving towards Coin_Server...")
+        print("Moving towards to Coin")
         isMovingToCoin = true
 
         local targetPosition = nearestCoin.Position
@@ -2487,7 +2487,7 @@ local function moveToCoinServer()
             local distanceToTarget = (targetPosition - currentPos).Magnitude
 
             if distanceToTarget <= arrivalThreshold then
-                print("Arrived at Coin_Server.")
+                print("Arrived at Coin")
                 isMovingToCoin = false
                 break
             end
@@ -2508,7 +2508,7 @@ local function moveToCoinServer()
             coroutine.wrap(moveToCoinServer)()
         end
     else
-        print("Coin_Server with MainCoin child not found. Searching for Coin_Server...")
+        print("[ AshbornnHub ] Coin not Found.. Searching again...")
         wait(1)  -- Wait for a short period before searching again (customize as needed)
 
         -- If auto farming is enabled and not currently moving towards a coin, continue searching for the nearest coin
@@ -2649,7 +2649,7 @@ local function moveToCoinServer()
     local nearestCoin = findNearestUntappedCoin()
 
     if nearestCoin then
-        print("Moving towards Coin_Server...")
+        print("Moving towards to the Eggs")
         isMovingToCoin = true
 
         local targetPosition = nearestCoin.Position
@@ -2666,7 +2666,7 @@ local function moveToCoinServer()
             local distanceToTarget = (targetPosition - currentPos).Magnitude
 
             if distanceToTarget <= arrivalThreshold then
-                print("Arrived at Coin_Server.")
+                print("Arrived at the Egg")
                 isMovingToCoin = false
                 break
             end
@@ -2687,7 +2687,7 @@ local function moveToCoinServer()
             coroutine.wrap(moveToCoinServer)()
         end
     else
-        print("Coin_Server with TouchInterest and empty CoinVisual not found. Searching for Coin_Server...")
+        print("[ AshbornnHub ] Searching for eggs..")
         wait(1)  -- Wait for a short period before searching again (customize as needed)
 
         -- If auto farming is enabled and not currently moving towards a coin, continue searching for the nearest coin
@@ -2744,7 +2744,7 @@ local function onCharacterRemoving()
 end
 
 -- Example toggle integration
-local Toggle = Tabs.AutoFarm:AddToggle("AutoFarmCoin", {Title = "Auto Farm Eggs Only ", Default = false })
+local Toggle = Tabs.AutoFarm:AddToggle("AutoFarmEggs", {Title = "Auto Farm Eggs Only ", Default = false })
 
 Toggle:OnChanged(function(isEnabled)
     isAutoFarming = isEnabled
@@ -2797,6 +2797,17 @@ end
 
 
 
+-- Function to check if a part has TouchInterest, empty CoinVisual, and ParticleEmitter
+local function hasTouchInterestAndEmptyCoinVisualAndParticleEmitter(part)
+    if part:IsA("Part") then
+        local touchInterest = part:FindFirstChild("TouchInterest")
+        local coinVisual = part:FindFirstChild("CoinVisual")
+        local particleEmitter = part:FindFirstChild("ParticleEmitter")
+        return touchInterest ~= nil and coinVisual ~= nil and #coinVisual:GetChildren() == 0 and particleEmitter ~= nil
+    end
+    return false
+end
+
 -- Function to find the nearest untapped Coin_Server part with TouchInterest, empty CoinVisual, and ParticleEmitter
 local function findNearestUntappedCoin()
     local nearestCoin = nil
@@ -2812,7 +2823,7 @@ local function findNearestUntappedCoin()
 
                 -- Find the nearest "Coin_Server" part with TouchInterest, empty CoinVisual, and ParticleEmitter
                 for _, coinServer in ipairs(coins) do
-                    if hasTouchInterestAndEmptyCoinVisualAndParticleEmitter(coinServer) and not touchedCoins[coinServer] then
+                    if hasTouchInterestAndEmptyCoinVisualAndParticleEmitter(coinServer) then
                         local distance = (coinServer.Position - player.Character.HumanoidRootPart.Position).Magnitude
                         if distance < nearestDistance then
                             nearestCoin = coinServer
@@ -2827,100 +2838,41 @@ local function findNearestUntappedCoin()
     return nearestCoin
 end
 
--- Function to teleport to the nearest untapped Coin_Server part with TouchInterest, empty CoinVisual, and ParticleEmitter
-local function teleportToCoinServer()
-    -- Find the nearest untapped Coin_Server part with TouchInterest, empty CoinVisual, and ParticleEmitter
-    local nearestCoin = findNearestUntappedCoin()
+-- Example button integration
+Tabs.AutoFarm:AddButton({
+    Title = "Teleport to Rare Egg",
+    Description = "Teleport to the nearest rare egg if available",
+    Callback = function()
+        local player = game.Players.LocalPlayer
 
-    if nearestCoin then
-        print("Teleporting to Coin_Server...")
-        isMovingToCoin = true
-
-        -- Teleport the character to the nearest untapped "Coin_Server" part
-        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            player.Character.HumanoidRootPart.CFrame = CFrame.new(nearestCoin.Position)
-        end
-
-        -- Mark the coin as touched
-        touchedCoins[nearestCoin] = true
-
-        local delay = math.random(1.7, 2.1)
-        wait(delay)
-
-        -- Move to the next nearest untapped Coin_Server part if auto farming is enabled
-        if isAutoFarming and not isMovingToCoin then
-            -- Use coroutine to prevent blocking
-            coroutine.wrap(teleportToCoinServer)()
-        end
-    else
-        print("Coin_Server with TouchInterest, empty CoinVisual, and ParticleEmitter not found. Searching for Coin_Server...")
-        wait(1)  -- Wait for a short period before searching again (customize as needed)
-
-        -- If auto farming is enabled and not currently moving towards a coin, continue searching for the nearest coin
-        if isAutoFarming and not isMovingToCoin then
-            coroutine.wrap(teleportToCoinServer)()
+        if player.Character then
+            local nearestCoin = findNearestUntappedCoin()
+            if nearestCoin then
+                local oldPos = player.Character.HumanoidRootPart.CFrame
+                local startTime = tick()
+                repeat
+                    player.Character.HumanoidRootPart.CFrame = nearestCoin.CFrame * CFrame.Angles(math.rad(90), math.rad(0), math.rad(0))
+                    task.wait()
+                    player.Character.HumanoidRootPart.CFrame = nearestCoin.CFrame * CFrame.Angles(math.rad(-90), math.rad(0), math.rad(0))
+                    task.wait()
+                until not nearestCoin:IsDescendantOf(workspace) or tick() - startTime >= 3
+                player.Character.HumanoidRootPart.CFrame = oldPos
+                player.Character.Humanoid:ChangeState(1)
+                Fluent:Notify({
+                    Title = "Rare Egg Found",
+                    Content = "Successfully teleported to the rare egg.",
+                    Duration = 3
+                })
+            else
+                Fluent:Notify({
+                    Title = "Rare Egg not Found",
+                    Content = "No rare eggs are currently available.",
+                    Duration = 3
+                })
+            end
         end
     end
-end
-
--- Function to handle character added (when player respawns)
-local function onCharacterAdded(character)
-    player.Character = character
-    touchedCoins = {}  -- Reset touchedCoins table when character resets
-    isMovingToCoin = false  -- Reset moving to coin flag
-    if isAutoFarming then
-        -- Teleport to the nearest untapped Coin_Server with a delay before starting auto farming again
-        teleportToCoinServer()
-    end
-end
-
--- Function to handle character removing (when player dies)
-local function onCharacterRemoving()
-    if isAutoFarming then
-        print("Character removed. Stopping auto farming...")
-        isAutoFarming = false  -- Stop auto farming when character dies
-        isMovingToCoin = false  -- Stop moving towards the coin
-    end
-end
-
--- Example toggle integration
-local Toggle = Tabs.AutoFarm:AddToggle("AutoFarmCoin", {Title = "Auto Teleport to Rare Eggs on spawn", Default = false })
-
-Toggle:OnChanged(function(isEnabled)
-    isAutoFarming = isEnabled
-    if isAutoFarming then
-        print("Auto Farm Coin enabled.")
-        -- Connect the character added event handler only when auto farming is enabled
-        characterAddedConnection = Players.LocalPlayer.CharacterAdded:Connect(onCharacterAdded)
-        -- Connect the character removing event handler only when auto farming is enabled
-        characterRemovingConnection = Players.LocalPlayer.CharacterRemoving:Connect(onCharacterRemoving)
-        if not isMovingToCoin then
-            coroutine.wrap(teleportToCoinServer)()
-        end
-    else
-        print("Auto Farm Coin disabled.")
-        isMovingToCoin = false  -- Stop moving towards the coin if auto farming is disabled
-        -- Disconnect the character added event handler when auto farming is disabled
-        if characterAddedConnection then
-            characterAddedConnection:Disconnect()
-            characterAddedConnection = nil
-        end
-        -- Disconnect the character removing event handler when auto farming is disabled
-        if characterRemovingConnection then
-            characterRemovingConnection:Disconnect()
-            characterRemovingConnection = nil
-        end
-        -- Optionally, you could stop the character here
-    end
-end)
-
--- Listen for new Coin_Server parts spawning
-local workspace = game:GetService("Workspace")
-workspace.ChildAdded:Connect(function(child)
-    if child:IsA("Part") and child.Name == "Coin_Server" and isAutoFarming and not isMovingToCoin then
-        coroutine.wrap(teleportToCoinServer)()
-    end
-end)
+})
 
 
 ---------------------------------------------------------------------------------AUTOFARM------------------------------------------------------------------------------------------------
