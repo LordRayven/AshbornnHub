@@ -2959,7 +2959,7 @@ Toggle:OnChanged(function(state)
                     local found = teleportToNearestCoin()
                     if found then
                         isTeleporting = false
-                        Options.TPtoRareEgg:SetValue(false)  -- Reset the toggle to off after teleportation
+                          -- Reset the toggle to off after teleportation
                     else
                         task.wait(2)  -- Wait for 2 seconds before searching again
                     end
