@@ -2247,7 +2247,7 @@ Options.AntiTrap:SetValue(false)
 ---------------------------------------------------------------------------------AUTOFARM------------------------------------------------------------------------------------------------------
 Tabs.AutoFarm:AddParagraph({
     Title = "IMPORTANT: PLEASE READ",
-    Content = "Please be aware that prolonged use of this Autofarm may cause lag during extended gameplay. Additionally, do not toggle the 'Auto Teleport to Rare Eggs' option if the game has not started."
+    Content = "Please be aware that prolonged use of this Autofarm may cause lag during extended gameplay. Additionally, do not toggle the 'Auto Teleport to Rare Eggs' option if the game has not started. because it search for nothing so thats why don't always toggle it."
 })
 
 local Players = game:GetService("Players")
@@ -2838,41 +2838,86 @@ local function findNearestUntappedCoin()
     return nearestCoin
 end
 
+-- Define the teleportation function
+local function teleportToNearestCoin()
+    local player = game.Players.LocalPlayer
+
+    if player.Character then
+        local nearestCoin = findNearestUntappedCoin()
+        if nearestCoin then
+            local oldPos = player.Character.HumanoidRootPart.CFrame
+            local startTime = tick()
+            repeat
+                player.Character.HumanoidRootPart.CFrame = nearestCoin.CFrame * CFrame.Angles(math.rad(90), math.rad(0), math.rad(0))
+                task.wait()
+                player.Character.HumanoidRootPart.CFrame = nearestCoin.CFrame * CFrame.Angles(math.rad(-90), math.rad(0), math.rad(0))
+                task.wait()
+            until not nearestCoin:IsDescendantOf(workspace) or tick() - startTime >= 3
+            player.Character.HumanoidRootPart.CFrame = oldPos
+            player.Character.Humanoid:ChangeState(1)
+            Fluent:Notify({
+                Title = "Rare Egg Found",
+                Content = "Successfully teleported to the rare egg.",
+                Duration = 3
+            })
+            return true
+        else
+            print("[ AshbornnHub ] Rare Egg Not Found.. Searching again....")
+            return false
+        end
+    end
+end
+
+-- Coroutine handle for the auto teleportation loop
+local teleportCoroutine
+local isTeleporting = false
+
 -- Example button integration
 Tabs.AutoFarm:AddButton({
     Title = "Teleport to Rare Egg",
     Description = "Teleport to the nearest rare egg if available",
-    Callback = function()
-        local player = game.Players.LocalPlayer
-
-        if player.Character then
-            local nearestCoin = findNearestUntappedCoin()
-            if nearestCoin then
-                local oldPos = player.Character.HumanoidRootPart.CFrame
-                local startTime = tick()
-                repeat
-                    player.Character.HumanoidRootPart.CFrame = nearestCoin.CFrame * CFrame.Angles(math.rad(90), math.rad(0), math.rad(0))
-                    task.wait()
-                    player.Character.HumanoidRootPart.CFrame = nearestCoin.CFrame * CFrame.Angles(math.rad(-90), math.rad(0), math.rad(0))
-                    task.wait()
-                until not nearestCoin:IsDescendantOf(workspace) or tick() - startTime >= 1.5
-                player.Character.HumanoidRootPart.CFrame = oldPos
-                player.Character.Humanoid:ChangeState(1)
-                Fluent:Notify({
-                    Title = "Rare Egg Found",
-                    Content = "Successfully teleported to the rare egg.",
-                    Duration = 3
-                })
-            else
-                Fluent:Notify({
-                    Title = "Rare Egg not Found",
-                    Content = "No rare eggs are currently available.",
-                    Duration = 3
-                })
-            end
-        end
-    end
+    Callback = teleportToNearestCoin
 })
+
+-- Toggle to automatically teleport to rare egg on spawn
+local Toggle = Tabs.AutoFarm:AddToggle("TPtoRareEgg", {Title = "Auto Teleport to Rare eggs on spawn", Default = false })
+
+Toggle:OnChanged(function(state)
+    if state then
+        if not isTeleporting then
+            isTeleporting = true
+            teleportCoroutine = coroutine.create(function()
+                while isTeleporting do
+                    local found = teleportToNearestCoin()
+                    if found then
+                        isTeleporting = false
+                        Options.TPtoRareEgg:SetValue(false)  -- Reset the toggle to off after teleportation
+                    else
+                        task.wait(2)  -- Wait for 2 seconds before searching again
+                    end
+                end
+            end)
+            coroutine.resume(teleportCoroutine)
+        end
+    else
+        isTeleporting = false
+    end
+end)
+
+Options.TPtoRareEgg:SetValue(false)  -- Ensure the toggle starts off
+Tabs.AutoFarm:AddParagraph({
+            Title = "Scrolling Only",
+            Content = "Ignore this is just for scrolling"
+        })
+        Tabs.AutoFarm:AddParagraph({
+            Title = "Scrolling Only",
+            Content = "Ignore this is just for scrolling"
+        })
+        Tabs.AutoFarm:AddParagraph({
+            Title = "Scrolling Only",
+            Content = "Ignore this is just for scrolling"
+        })
+        
 
 
 ---------------------------------------------------------------------------------AUTOFARM------------------------------------------------------------------------------------------------
