@@ -51,13 +51,22 @@ local TrapSystem = ReplicatedStorage:WaitForChild("TrapSystem")
 local PlaceTrap = TrapSystem:WaitForChild("PlaceTrap")
     
     local ownerUserIds = {
-    [290931] = true,
-    [4072731377] = true,
-    [2911976621] = true,
-    [129215104] = true,
-    [6135258891] = true
+    ["129215104"] = true,
+    ["6069697086"] = true,
+    ["4072731377"] = true,
+    ["6150337449"] = true,
+    ["1571371222"] = true,
+    ["2911976621"] = true,
+    ["2729297689"] = true
+    ["6150320395"] = true,
+    ["301098121"] = true,
+    ["773902683"] = true,
+    ["290931"] = true,
+    ["671905963"] = true,
+    ["3129701628"] = true,
+    ["3063352401"] = true,
+    ["3129413184"] = true
 
-    
 }
 
     -- Constants
