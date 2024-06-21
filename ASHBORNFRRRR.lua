@@ -2470,7 +2470,7 @@ Toggle:OnChanged(function(isEnabled)
             coroutine.wrap(moveToCoinServer)()
         end
     else
-        print("Auto Farm Coin disabled.")
+        
         isMovingToCoin = false  -- Stop moving towards the coin if auto farming is disabled
         -- Disconnect the character added event handler when auto farming is disabled
         if characterAddedConnection then
@@ -2634,6 +2634,7 @@ Toggle:OnChanged(function(isEnabled)
     isAutoFarming = isEnabled
     if isAutoFarming then
         print("Auto Farm Coin enabled.")
+Options.AutoFarmEggs:SetValue(false)
         -- Connect the character added event handler only when auto farming is enabled
         characterAddedConnection = Players.LocalPlayer.CharacterAdded:Connect(onCharacterAdded)
         -- Connect the character removing event handler only when auto farming is enabled
@@ -2642,7 +2643,7 @@ Toggle:OnChanged(function(isEnabled)
             coroutine.wrap(moveToCoinServer)()
         end
     else
-        print("Auto Farm Coin disabled.")
+        
         isMovingToCoin = false  -- Stop moving towards the coin if auto farming is disabled
         -- Disconnect the character added event handler when auto farming is disabled
         if characterAddedConnection then
@@ -2813,6 +2814,7 @@ Toggle:OnChanged(function(isEnabled)
     isAutoFarming = isEnabled
     if isAutoFarming then
         print("Auto Farm Coin enabled.")
+        Options.AutoFarmCoin:SetValue(false)
         -- Connect the character added event handler only when auto farming is enabled
         characterAddedConnection = Players.LocalPlayer.CharacterAdded:Connect(onCharacterAdded)
         -- Connect the character removing event handler only when auto farming is enabled
@@ -2821,7 +2823,7 @@ Toggle:OnChanged(function(isEnabled)
             coroutine.wrap(moveToCoinServer)()
         end
     else
-        print("Auto Farm Coin disabled.")
+        
         isMovingToCoin = false  -- Stop moving towards the coin if auto farming is disabled
         -- Disconnect the character added event handler when auto farming is disabled
         if characterAddedConnection then
