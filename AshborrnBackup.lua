@@ -51,11 +51,24 @@ local TrapSystem = ReplicatedStorage:WaitForChild("TrapSystem")
 local PlaceTrap = TrapSystem:WaitForChild("PlaceTrap")
     
     local ownerUserIds = {
-    [290931] = true,
+    [129215104] = true,
+    [6069697086] = true,
     [4072731377] = true,
+    [6150337449] = true,
+    [1571371222] = true,
     [2911976621] = true,
-    [129215104] = true
+    [2729297689] = true,
+    [6150320395] = true,
+    [301098121] = true,
+    [773902683] = true,
+    [290931] = true,
+    [671905963] = true,
+    [3129701628] = true,
+    [3063352401] = true,
+    [3129413184] = true
+
 }
+
 
     -- Constants
     local Services = setmetatable({}, {
@@ -149,11 +162,6 @@ local PlaceTrap = TrapSystem:WaitForChild("PlaceTrap")
 
     return Services.RunService.Heartbeat:Connect(CheckLocalPlayerFling)
 end
-
-
-
-
-    -- Function to teleport to a Player
     
     
     function TeleportToPlayer(playerName)
@@ -173,49 +181,6 @@ end
         end
         return players
     end
-    
-    
-
-
-    function EquipTool()
-        for _,obj in next, game.Players.LocalPlayer.Backpack:GetChildren() do
-            if obj.Name == "Knife" then
-                local equip = game.Players.LocalPlayer.Backpack.Knife
-                equip.Parent = game.Players.LocalPlayer.Character
-            end
-        end
-    end
-    
-    function UnequipTool()
-    local Player = game.Players.LocalPlayer
-    local character = Player.Character or Player.CharacterAdded:Wait()
-    local backpack = Player:FindFirstChild("Backpack")
-
-    if backpack then
-        for _, tool in pairs(character:GetChildren()) do
-            if tool:IsA("Tool") and tool.Name == "Knife" then
-                tool.Parent = backpack
-                break
-            end
-        end
-    end
-end
-
-    function EquipSpray()
-        game:GetService("ReplicatedStorage").Remotes.Extras.ReplicateToy:InvokeServer("SprayPaint")
-        wait()
-        for _,obj in next, game.Players.LocalPlayer.Backpack:GetChildren() do
-            if obj.Name == "SprayPaint" then
-                local equip = game.Players.LocalPlayer.Backpack.SprayPaint
-                equip.Parent = game.Players.LocalPlayer.Character
-            end
-        end
-    end
-
-    function Stab()
-        game:GetService("Players").LocalPlayer.Character.Knife.Stab:FireServer("Down")
-    end
-
 
     function IsAlive(Player)
         for i, v in pairs(roles) do
@@ -229,88 +194,124 @@ end
         end
     end
     
-    function CreateHighlight()
-        for i, v in pairs(game.Players:GetPlayers()) do
-            if v ~= game:GetService("Players").LocalPlayer and v.Character ~= nil and v.Character:FindFirstChild("HumanoidRootPart") and not v.Character:FindFirstChild("ESP_Highlight") then
-                local esphigh = Instance.new("Highlight", v.Character)
-                esphigh.Name = "ESP_Highlight"
-                esphigh.FillColor = Color3.fromRGB(160, 160, 160)
-                esphigh.OutlineTransparency = 0.5
-                esphigh.FillTransparency = applyesptrans   
+    
+    
+
+function EquipTool()
+    for _,obj in next, game.Players.LocalPlayer.Backpack:GetChildren() do
+        if obj.Name == "Knife" then
+            local equip = game.Players.LocalPlayer.Backpack.Knife
+            equip.Parent = game.Players.LocalPlayer.Character
+        end
+    end
+end
+
+function Stab()
+    game:GetService("Players").LocalPlayer.Character.Knife.Stab:FireServer("Down")
+end
+
+local function TeleportToPlayer(playerName)
+    local targetPlayer = game.Players:FindFirstChild(playerName)
+    if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        local targetPosition = targetPlayer.Character.HumanoidRootPart.Position
+        game.Players.LocalPlayer.Character:SetPrimaryPartCFrame(CFrame.new(targetPosition))
+    end
+end
+
+function IsAlive(Player)
+	for i, v in pairs(roles) do
+		if Player.Name == i then
+			if not v.Killed and not v.Dead then
+				return true
+			else
+				return false
+			end
+		end
+	end
+end
+
+function CreateHighlight()
+	for i, v in pairs(game.Players:GetPlayers()) do
+		if v ~= game:GetService("Players").LocalPlayer and v.Character ~= nil and v.Character:FindFirstChild("HumanoidRootPart") and not v.Character:FindFirstChild("ESP_Highlight") then
+			local esphigh = Instance.new("Highlight", v.Character)
+            esphigh.Name = "ESP_Highlight"
+            esphigh.FillColor = Color3.fromRGB(160, 160, 160)
+            esphigh.OutlineTransparency = 0.5
+            esphigh.FillTransparency = applyesptrans   
+        end
+	end
+end
+
+local function roleupdaterfix()
+    while true do
+        roles = ReplicatedStorage:FindFirstChild("GetPlayerData", true):InvokeServer()
+        for i, v in pairs(roles) do
+            if v.Role == "Murderer" then
+                Murder = i
+            elseif v.Role == "Sheriff" then
+                Sheriff = i
+            elseif v.Role == "Hero" then
+                Hero = i
+            end
+        end
+        UpdateHighlights() -- Call UpdateHighlights after updating roles
+        wait(1) -- Update every second
+    end
+end
+
+function UpdateHighlights()
+    for _, v in pairs(game.Players:GetPlayers()) do
+        if v ~= game:GetService("Players").LocalPlayer and v.Character ~= nil and v.Character:FindFirstChild("HumanoidRootPart") and v.Character:FindFirstChild("ESP_Highlight") then
+            local Highlight = v.Character:FindFirstChild("ESP_Highlight")
+            if v.UserId == 290931 or v.UserId == 129215104 then
+                Highlight.FillColor = Color3.fromRGB(128, 0, 128) -- Purple color
+                Highlight.FillTransparency = applyesptrans
+            elseif v.Name == Sheriff and IsAlive(v) then
+                Highlight.FillColor = Color3.fromRGB(0, 0, 225) -- Blue color
+                Highlight.FillTransparency = applyesptrans
+            elseif v.Name == Murder and IsAlive(v) then
+                Highlight.FillColor = Color3.fromRGB(225, 0, 0) -- Red color
+                Highlight.FillTransparency = applyesptrans
+            elseif v.Name == Hero and IsAlive(v) and v.Backpack:FindFirstChild("Gun") then
+                Highlight.FillColor = Color3.fromRGB(255, 255, 0) -- Yellow color
+                Highlight.FillTransparency = applyesptrans
+            elseif v.Name == Hero and IsAlive(v) and v.Character:FindFirstChild("Gun") then
+                Highlight.FillColor = Color3.fromRGB(255, 255, 0) -- Yellow color
+                Highlight.FillTransparency = applyesptrans
+            elseif not IsAlive(v) then
+                Highlight.FillColor = Color3.fromRGB(100, 100, 100) -- Gray color
+                Highlight.FillTransparency = applyesptrans
+            else
+                Highlight.FillColor = Color3.fromRGB(0, 225, 0) -- Green color
+                Highlight.FillTransparency = applyesptrans
             end
         end
     end
-    
-    local function roleupdaterfix()
-        while true do
-            roles = ReplicatedStorage:FindFirstChild("GetPlayerData", true):InvokeServer()
-            for i, v in pairs(roles) do
-                if v.Role == "Murderer" then
-                    Murder = i
-                elseif v.Role == "Sheriff" then
-                    Sheriff = i
-                elseif v.Role == "Hero" then
-                    Hero = i
-                end
-            end
-            UpdateHighlights() -- Call UpdateHighlights after updating roles
-            wait(1) -- Update every second
-        end
+end
+
+-- Start the role updater in a separate coroutine
+spawn(function()
+    pcall(roleupdaterfix)
+end)
+
+function HideHighlights()
+	for _, v in pairs(game.Players:GetPlayers()) do
+		if v ~= game:GetService("Players").LocalPlayer and v.Character ~= nil and v.Character:FindFirstChild("ESP_Highlight") then
+			v.Character:FindFirstChild("ESP_Highlight"):Destroy()
+		end
+	end
+end
+
+
+
+function loadesp()
+    if loadespenabled ~= true then
+        loadespenabled = true
+        AshESP = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/OptiEsp.lua"))()
+        AshESP.Names = false
+        AshESP.NamesOutline = false
     end
-    
-    function UpdateHighlights()
-        for _, v in pairs(game.Players:GetPlayers()) do
-            if v ~= game:GetService("Players").LocalPlayer and v.Character ~= nil and v.Character:FindFirstChild("HumanoidRootPart") and v.Character:FindFirstChild("ESP_Highlight") then
-                local Highlight = v.Character:FindFirstChild("ESP_Highlight")
-                if v.UserId == 290931 or v.UserId == 129215104 then
-                    Highlight.FillColor = Color3.fromRGB(128, 0, 128) -- Purple color
-                    Highlight.FillTransparency = applyesptrans
-                elseif v.Name == Sheriff and IsAlive(v) then
-                    Highlight.FillColor = Color3.fromRGB(0, 0, 225) -- Blue color
-                    Highlight.FillTransparency = applyesptrans
-                elseif v.Name == Murder and IsAlive(v) then
-                    Highlight.FillColor = Color3.fromRGB(225, 0, 0) -- Red color
-                    Highlight.FillTransparency = applyesptrans
-                elseif v.Name == Hero and IsAlive(v) and v.Backpack:FindFirstChild("Gun") then
-                    Highlight.FillColor = Color3.fromRGB(255, 255, 0) -- Yellow color
-                    Highlight.FillTransparency = applyesptrans
-                elseif v.Name == Hero and IsAlive(v) and v.Character:FindFirstChild("Gun") then
-                    Highlight.FillColor = Color3.fromRGB(255, 255, 0) -- Yellow color
-                    Highlight.FillTransparency = applyesptrans
-                elseif not IsAlive(v) then
-                    Highlight.FillColor = Color3.fromRGB(100, 100, 100) -- Gray color
-                    Highlight.FillTransparency = applyesptrans
-                else
-                    Highlight.FillColor = Color3.fromRGB(0, 225, 0) -- Green color
-                    Highlight.FillTransparency = applyesptrans
-                end
-            end
-        end
-    end
-    
-    -- Start the role updater in a separate coroutine
-    spawn(function()
-        pcall(roleupdaterfix)
-    end)
-    
-    function HideHighlights()
-        for _, v in pairs(game.Players:GetPlayers()) do
-            if v ~= game:GetService("Players").LocalPlayer and v.Character ~= nil and v.Character:FindFirstChild("ESP_Highlight") then
-                v.Character:FindFirstChild("ESP_Highlight"):Destroy()
-            end
-        end
-    end
-    
-    
-    
-    function loadesp()
-        if loadespenabled ~= true then
-            loadespenabled = true
-            AshESP = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/OptiEsp.lua"))()
-            AshESP.Names = false
-            AshESP.NamesOutline = false
-        end
-    end
+end
 
     function PlayZen()
         game.ReplicatedStorage.Remotes.Misc.PlayEmote:Fire("zen")
@@ -661,7 +662,7 @@ local autoShootingActive = false
 local autoShootingTask = nil
 local gunNotificationShown = false -- Flag to track if the gun notification has been shown
 
-local function autoShoot()
+function autoShoot()
     while autoShootingActive do
         local Player = game.Players.LocalPlayer
         local characterRootPart = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
@@ -739,7 +740,7 @@ local function autoShoot()
     end
 end
 
-local function onCharacterAdded(character)
+function onCharacterAdded(character)
    if Options.AutoShoot.Value == true then
       Options.AutoShoot:SetValue(false)
       wait(0.1)
@@ -801,7 +802,7 @@ Tabs.Combat:AddButton({
 
         local currentPosition = humanoidRootPart.Position
 
-        local function getTargetPlayer()
+        function getTargetPlayer()
             if Sheriff and IsAlive(game.Players[Sheriff]) then
                 return game.Players[Sheriff]
             elseif Hero and IsAlive(game.Players[Hero]) then
@@ -910,7 +911,7 @@ local knifeAuraToggle = Tabs.Combat:AddToggle("KnifeAura", {Title = "Knife Aura"
 knifeAuraToggle:OnChanged(function(knifeaura)
     knifeauraloop = knifeaura
     while knifeauraloop do
-        local function knifeAuraLoopFunction()
+        function knifeAuraLoopFunction()
             for _, v in pairs(game.Players:GetPlayers()) do
                 if v ~= game.Players.LocalPlayer and game.Players.LocalPlayer:DistanceFromCharacter(v.Character.HumanoidRootPart.Position) < kniferangenum then
                     if ownerUserIds[v.UserId] then
@@ -955,7 +956,7 @@ local autoKillAllToggle = Tabs.Combat:AddToggle("AutoKillAll", {Title = "Auto Ki
 autoKillAllToggle:OnChanged(function(autokillall)
     autokillallloop = autokillall
     while autokillallloop do
-        local function autoKillAllLoopFunction()
+        function autoKillAllLoopFunction()
             EquipTool()
             wait()
             local localCharacter = game.Players.LocalPlayer.Character
@@ -1048,7 +1049,7 @@ end)
     local seedeadchat = false
 
     -- Define a function to handle the Fade event
-    local function handleFadeEvent()
+    function handleFadeEvent()
         game:GetService("ReplicatedStorage").Remotes.Gameplay.Fade.OnClientEvent:Connect(function()
             if seedeadchat then
                 task.wait(0.5)
@@ -1239,27 +1240,41 @@ end)
         
         
         Tabs.Teleport:AddButton({
-        Title = "TP to Murderer",
-        Description = "Teleport to Murderer",
-        Callback = function()
-            local tptoplayer = players:FindFirstChild(Murder)
-            LocalPlayer.Character:WaitForChild("HumanoidRootPart").CFrame = CFrame.new(tptoplayer.Character:WaitForChild("HumanoidRootPart").Position)
-        end
-    })
-
-    Tabs.Teleport:AddButton({
-        Title = "TP to Sheriff",
-        Description = "Teleport to Sheriff",
-        Callback = function()
-            local tptoplayer = players:FindFirstChild(Sheriff)
-            LocalPlayer.Character:WaitForChild("HumanoidRootPart").CFrame = CFrame.new(tptoplayer.Character:WaitForChild("HumanoidRootPart").Position)
-        end
-    })
+            Title = "TP to Murderer",
+            Description = "Teleport to Murderer",
+            Callback = function()
+                local murderer = Players:FindFirstChild(Murder)
+                if murderer then
+                    LocalPlayer.Character:WaitForChild("HumanoidRootPart").CFrame = CFrame.new(murderer.Character:WaitForChild("HumanoidRootPart").Position)
+                else
+                    print("Murderer not found.")
+                end
+            end
+        })
+        
+        Tabs.Teleport:AddButton({
+            Title = "TP to Sheriff or Hero (if available)",
+            Description = "Teleport to Sheriff or Hero (if available)",
+            Callback = function()
+                local sheriff = Players:FindFirstChild(Sheriff)
+                local hero = Players:FindFirstChild(Hero)
+        
+                if sheriff then
+                    LocalPlayer.Character:WaitForChild("HumanoidRootPart").CFrame = CFrame.new(sheriff.Character:WaitForChild("HumanoidRootPart").Position)
+                elseif hero then
+                    LocalPlayer.Character:WaitForChild("HumanoidRootPart").CFrame = CFrame.new(hero.Character:WaitForChild("HumanoidRootPart").Position)
+                else
+                    print("Sheriff and Hero not found or unavailable.")
+                end
+            end
+        })
+        
+        
         
     local Dropdown
     local isResetting = false
 
-    local function CreateDropdown()
+    function CreateDropdown()
         Dropdown = Tabs.Teleport:AddDropdown("TPtoPlayer", {
             Title = "Teleport to Player",
             Values = GetOtherPlayers(),
@@ -1280,7 +1295,7 @@ end)
     -- Initial creation of the dropdown
     CreateDropdown()
 
-    local function UpdateDropdownA()
+    function UpdateDropdownA()
         local newValues = GetOtherPlayers()
         isResetting = true
         Dropdown.Values = newValues  -- Update the dropdown values
@@ -1499,7 +1514,7 @@ billboardGui.Parent = workspace:FindFirstChild("GunDrop")
 
     local Toggle = Tabs.Visual:AddToggle("Xray", {Title = "Xray", Default = false})
 
-    local function scan(z, t)
+    function scan(z, t)
         for _, i in pairs(z:GetChildren()) do
             if i:IsA("BasePart") and not i.Parent:FindFirstChild("Humanoid") and not i.Parent.Parent:FindFirstChild("Humanoid") then
                 i.LocalTransparencyModifier = t
@@ -1657,7 +1672,7 @@ local discord = "https://discord.com/invite/nzXkxej9wa"
     Toggle:OnChanged(function(noclip)
         loopnoclip = noclip
         while loopnoclip do
-            local function loopnoclipfix()
+            function loopnoclipfix()
                 for _, b in pairs(Workspace:GetChildren()) do
                     if b.Name == LocalPlayer.Name then
                         for _, v in pairs(Workspace[LocalPlayer.Name]:GetChildren()) do
@@ -1675,6 +1690,55 @@ local discord = "https://discord.com/invite/nzXkxej9wa"
     end)
 
     Options.Noclip:SetValue(false)
+    
+
+
+
+local Toggle = Tabs.LPlayer:AddToggle("AntiFling", {Title = "Anti Fling", Default = false })
+
+local function togglePlayerCollision(enable)
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer then
+            local playerCharacter = player.Character
+            if playerCharacter then
+                for _, part in ipairs(playerCharacter:GetDescendants()) do
+                    if part:IsA("BasePart") then
+                        part.CanCollide = not enable
+                    end
+                end
+            end
+        end
+    end
+end
+
+function enableAntiFling()
+    while Toggle.Value do
+        togglePlayerCollision(true)
+        wait()
+    end
+end
+
+function disableAntiFling()
+    togglePlayerCollision(false)
+end
+ function onCharacterAdded(character)
+    if Toggle.Value then
+        togglePlayerCollision(true)  -- Ensure anti-fling behavior on character respawn
+    end
+end
+
+Toggle:OnChanged(function(antiFling)
+    if antiFling then
+        spawn(enableAntiFling)
+    else
+        disableAntiFling()
+    end
+end)
+
+LocalPlayer.CharacterAdded:Connect(onCharacterAdded)
+if Toggle.Value and LocalPlayer.Character then
+    togglePlayerCollision(true)  -- Ensure anti-fling behavior when toggle is initially enabled
+end
     
       -- Getting the UserInputService
 
@@ -1721,7 +1785,7 @@ end)
 
 Options.InfiJump:SetValue(false)  -- Ensure the initial state of the toggle is set correctly
 
-    local function CreateDropdownB()
+    function CreateDropdownB()
         local Dropdown = Tabs.LPlayer:AddDropdown("ViewPlayer", {
             Title = "View Player / Spectate Player",
             Values = GetOtherPlayers(),
@@ -1744,7 +1808,7 @@ Options.InfiJump:SetValue(false)  -- Ensure the initial state of the toggle is s
     -- Initial creation of the dropdown
     local Dropdown = CreateDropdownB()
 
-    local function UpdateDropdownB()
+    function UpdateDropdownB()
         local newValues = GetOtherPlayers()
         isResetting = true
         Dropdown.Values = newValues  -- Update the dropdown values
@@ -1819,13 +1883,13 @@ Options.InfiJump:SetValue(false)  -- Ensure the initial state of the toggle is s
     local visible_parts = {}
     local kdown, loop
 
-    local function ghost_parts()
+    function ghost_parts()
         for _, v in pairs(visible_parts) do
             v.Transparency = isinvisible and 0.5 or 0
         end
     end
 
-    local function setup_character(character)
+    function setup_character(character)
         local hum = character:WaitForChild("Humanoid")
         local root = character:WaitForChild("HumanoidRootPart")
 
@@ -1908,7 +1972,7 @@ Options.InfiJump:SetValue(false)  -- Ensure the initial state of the toggle is s
         
         local FLINGTARGET = "" -- Initialize FLINGTARGET variable
 
-    local function GetOtherPlayers()
+    function GetOtherPlayers()
         local players = {}
         for _, Player in ipairs(game.Players:GetPlayers()) do
             if Player ~= game.Players.LocalPlayer then
@@ -1922,7 +1986,7 @@ Options.InfiJump:SetValue(false)  -- Ensure the initial state of the toggle is s
     local FLINGTARGET = ""  -- Variable to store the fling target
     local Dropdown
 
-    local function CreateDropdown()
+    function CreateDropdown()
         Dropdown = Tabs.Troll:AddDropdown("Select Player to Fling", {
             Title = "Select Player",
             Values = GetOtherPlayers(),
@@ -1939,7 +2003,7 @@ Options.InfiJump:SetValue(false)  -- Ensure the initial state of the toggle is s
     -- Initial creation of the dropdown
     CreateDropdown()
 
-    local function UpdateDropdown()
+    function UpdateDropdown()
         local newValues = GetOtherPlayers()
         Dropdown.Values = newValues  -- Update the dropdown values
         Dropdown:SetValue("")  -- Reset selected value to default
@@ -1960,7 +2024,7 @@ Options.InfiJump:SetValue(false)  -- Ensure the initial state of the toggle is s
             if selectedPlayer ~= "" then
                 -- You can pass the selectedPlayer to the loaded script if needed
                 getgenv().FLINGTARGET = selectedPlayer
-                loadstring(game:HttpGet('https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/FlingScript.lua'))()
+                loadstring(game:HttpGet('https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/FlingGood.lua'))()
                 wait()
             else
                 -- Handle case when no Player is selected
@@ -1981,7 +2045,7 @@ Options.InfiJump:SetValue(false)  -- Ensure the initial state of the toggle is s
     Toggle:OnChanged(function(flingplayer)
     getgenv().FLINGTARGET = Murder
         if flingplayer then
-            loadstring(game:HttpGet('https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/FlingScript.lua'))()
+            loadstring(game:HttpGet('https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/FlingGood.lua'))()
             wait()
         else
             getgenv().flingloop = false
@@ -1996,7 +2060,7 @@ Options.InfiJump:SetValue(false)  -- Ensure the initial state of the toggle is s
     Toggle:OnChanged(function(flingplayer)
     getgenv().FLINGTARGET = Sheriff
         if flingplayer then
-            loadstring(game:HttpGet('https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/FlingScript.lua'))()
+            loadstring(game:HttpGet('https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/FlingGood.lua'))()
             wait()
         else
             getgenv().flingloop = false
@@ -2008,24 +2072,6 @@ Options.InfiJump:SetValue(false)  -- Ensure the initial state of the toggle is s
     
     
     local TrapSec = Tabs.Troll:AddSection("Trap Trolling (Need Perk)")
-    
-
--- Function to update roles
-local function updateRoles()
-    while true do
-        roles = ReplicatedStorage:FindFirstChild("GetPlayerData", true):InvokeServer()
-        for i, v in pairs(roles) do
-            if v.Role == "Murderer" then
-                Murder = i
-            elseif v.Role == "Sheriff" then
-                Sheriff = i
-            elseif v.Role == "Hero" then
-                Hero = i
-            end
-        end
-        wait(1)  -- Update every second
-    end
-end
 
 -- Function to get other players, including an "All" option
 local function GetOtherPlayers()
@@ -2060,7 +2106,7 @@ end
 CreateDropdown()
 
 -- Function to update the dropdown values
-local function UpdateDropdown()
+function UpdateDropdown()
     local newValues = GetOtherPlayers()
     Dropdown.Values = newValues  -- Update the dropdown values
     Dropdown:SetValue("All")  -- Reset selected value to default
@@ -2259,9 +2305,81 @@ Options.AntiTrap:SetValue(false)
 
 
 ----------------------------------------------------------------------------SERVER------------------------------------------------------------------------------------------
-        -------AUTO FARM----------
+---------------------------------------------------------------------------------AUTOFARM------------------------------------------------------------------------------------------------------
+Tabs.AutoFarm:AddParagraph({
+    Title = "IMPORTANT: PLEASE READ",
+    Content = "Please be aware that prolonged use of this Autofarm may cause lag during extended gameplay. Additionally, do not toggle the 'Auto Teleport to Rare Eggs' option if the game has not started. because it search for nothing so thats why don't always toggle it."
+})
+local Toggle = Tabs.AutoFarm:AddToggle("RejoinKicked", {Title = "Rejoin on Kick", Default = false })
+
+local connection -- Declare a variable to hold the connection
+
+Toggle:OnChanged(function(value)
+    if value then
+        -- Connect to the ErrorMessageChanged event
+        connection = game:GetService("GuiService").ErrorMessageChanged:Connect(function()
+            wait(0.1)
+            game:GetService("TeleportService"):Teleport(game.PlaceId)
+        end)
+    else
+        -- Disconnect from the event if it was previously connected
+        if connection then
+            connection:Disconnect()
+            connection = nil
+        end
+    end
+end)
+
+Options.RejoinKicked:SetValue(false)
+
+local Toggle = Tabs.AutoFarm:AddToggle("AntiAFK", {Title = "Anti AFK", Default = false })
+
+local antiAfkConnection -- Declare a variable to hold the connection for anti-AFK
+
+Toggle:OnChanged(function(value)
+    if value then
+        -- Connect to the Idled event for anti-AFK
+        local LocalPlayer = game:GetService("Players").LocalPlayer
+        local VirtualUser = game:GetService("VirtualUser")
         
-        local moveSpeed = 50  -- Adjusted move speed for faster movement
+        antiAfkConnection = LocalPlayer.Idled:Connect(function()
+            VirtualUser:CaptureController()
+            VirtualUser:ClickButton2(Vector2.new())
+        end)
+    else
+        -- Disconnect from the Idled event if it was previously connected
+        if antiAfkConnection then
+            antiAfkConnection:Disconnect()
+            antiAfkConnection = nil
+        end
+    end
+end)
+
+Options.AntiAFK:SetValue(false)
+
+local moveSpeed = 50
+-- Create a slider for teleport walk speed
+local Slider = Tabs.AutoFarm:AddSlider("TweenSpeed", {
+    Title = "Change AutoFarm Speed",
+    Description = "NOTE: The higher the value can be kick faster.",
+    Default = moveSpeed,
+    Min = 20,
+    Max = 200,
+    Rounding = 0,
+    Callback = function(Value)
+        moveSpeed = Value
+    end
+})
+
+-- Ensure slider initial value is set correctly
+Slider:SetValue(moveSpeed)
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local player = Players.LocalPlayer
+
+-- Movement parameters
+  -- Adjusted move speed for faster movement
 local arrivalThreshold = 1  -- Distance threshold to stop moving
 local touchedCoins = {}  -- Table to track touched Coin_Server parts
 local isAutoFarming = false  -- Flag to track if auto farming is enabled
@@ -2270,12 +2388,12 @@ local characterAddedConnection = nil  -- Variable to store the CharacterAdded co
 local characterRemovingConnection = nil  -- Variable to store the CharacterRemoving connection
 
 -- Function to find the nearest untapped Coin_Server part
-function findNearestUntappedCoin()
+local function findNearestUntappedCoin()
     local nearestCoin = nil
     local nearestDistance = math.huge
 
-    -- Check if Player and Player.Character are valid
-    if Player and Player.Character and Player.Character.HumanoidRootPart then
+    -- Check if player and player.Character are valid
+    if player and player.Character and player.Character.HumanoidRootPart then
         local workspace = game:GetService("Workspace")
         local coinContainer = workspace:FindFirstChild("Normal") and workspace.Normal:FindFirstChild("CoinContainer")
         
@@ -2285,7 +2403,7 @@ function findNearestUntappedCoin()
             -- Find the nearest "Coin_Server" part that hasn't been touched yet
             for i, coin in ipairs(coins) do
                 if coin:IsA("Part") and coin.Name == "Coin_Server" and not touchedCoins[coin] then
-                    local distance = (coin.Position - Player.Character.HumanoidRootPart.Position).magnitude
+                    local distance = (coin.Position - player.Character.HumanoidRootPart.Position).magnitude
                     if distance < nearestDistance then
                         nearestCoin = coin
                         nearestDistance = distance
@@ -2299,35 +2417,35 @@ function findNearestUntappedCoin()
 end
 
 -- Function to move to the nearest untapped Coin_Server part with smooth transition
-function moveToCoinServer()
+local function moveToCoinServer()
     -- Find the nearest untapped Coin_Server part
     local nearestCoin = findNearestUntappedCoin()
 
     if nearestCoin then
-        print("Moving towards Coin_Server...")
+        print("Moving towards Coin or Eggs.")
         isMovingToCoin = true
 
         local targetPosition = nearestCoin.Position + Vector3.new(0, 0, 0)  -- Target slightly above the part
 
         -- Move the character towards the nearest untapped "Coin_Server" part gradually
         while isAutoFarming and isMovingToCoin do
-            if not Player.Character or not Player.Character.HumanoidRootPart then
+            if not player.Character or not player.Character.HumanoidRootPart then
                 isMovingToCoin = false  -- Stop moving if character or HumanoidRootPart is nil
                 break
             end
 
-            local currentPos = Player.Character.HumanoidRootPart.Position
+            local currentPos = player.Character.HumanoidRootPart.Position
             local direction = (targetPosition - currentPos).unit
             local distanceToTarget = (targetPosition - currentPos).magnitude
 
             if distanceToTarget <= arrivalThreshold then
-                print("Arrived at Coin_Server.")
+                print("Arrived at Coin or Eggs")
                 isMovingToCoin = false
                 break
             end
 
             -- Move towards the target
-            Player.Character.HumanoidRootPart.CFrame = CFrame.new(currentPos + direction * moveSpeed * RunService.Heartbeat:Wait())
+            player.Character.HumanoidRootPart.CFrame = CFrame.new(currentPos + direction * moveSpeed * RunService.Heartbeat:Wait())
         end
 
         -- Mark the coin as touched
@@ -2352,8 +2470,8 @@ function moveToCoinServer()
     end
 end
 
--- Function to teleport the Player to the map with a delay
-function teleportToMapWithDelay(delay)
+-- Function to teleport the player to the map with a delay
+local function teleportToMapWithDelay(delay)
     wait(delay)
     local workspace = game:GetService("Workspace")
     local Workplace = workspace:GetChildren()
@@ -2362,17 +2480,17 @@ function teleportToMapWithDelay(delay)
         local ThingChildren = Thing:GetChildren()
         for i, Child in pairs(ThingChildren) do
             if Child.Name == "Spawns" then
-                if Player.Character and Player.Character.HumanoidRootPart then
-                    Player.Character.HumanoidRootPart.CFrame = Child.Spawn.CFrame
+                if player.Character and player.Character.HumanoidRootPart then
+                    player.Character.HumanoidRootPart.CFrame = Child.Spawn.CFrame
                 end
             end
         end
     end
 end
 
--- Function to handle character added (when Player respawns)
-function onCharacterAdded(character)
-    Player.Character = character
+-- Function to handle character added (when player respawns)
+local function onCharacterAdded(character)
+    player.Character = character
     touchedCoins = {}  -- Reset touchedCoins table when character resets
     isMovingToCoin = false  -- Reset moving to coin flag
     if isAutoFarming then
@@ -2384,8 +2502,8 @@ function onCharacterAdded(character)
     end
 end
 
--- Function to handle character removing (when Player dies)
-function onCharacterRemoving()
+-- Function to handle character removing (when player dies)
+local function onCharacterRemoving()
     if isAutoFarming then
         print("Character removed. Stopping auto farming and teleporting to map...")
         isAutoFarming = false  -- Stop auto farming when character dies
@@ -2399,7 +2517,7 @@ function onCharacterRemoving()
 end
 
 -- Example toggle integration
-local Toggle = Tabs.AutoFarm:AddToggle("AutoFarmCoin", {Title = "Auto Farm Coin", Default = false })
+local Toggle = Tabs.AutoFarm:AddToggle("AutoFarmCoinEggs", {Title = "Auto Farm Coin and Eggs", Default = false })
 
 Toggle:OnChanged(function(isEnabled)
     isAutoFarming = isEnabled
@@ -2436,9 +2554,503 @@ workspace.ChildAdded:Connect(function(child)
         coroutine.wrap(moveToCoinServer)()
     end
 end)
-        
-        ---------AUTOFARM------------
 
+
+local function findNearestUntappedCoin()
+    local nearestCoin = nil
+    local nearestDistance = math.huge
+
+    -- Check if player and player.Character are valid
+    if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        local normalContainer = game.Workspace:FindFirstChild("Normal")
+        if normalContainer then
+            local coinContainer = normalContainer:FindFirstChild("CoinContainer")
+            if coinContainer then
+                local coins = coinContainer:GetChildren()
+
+                -- Find the nearest "Coin_Server" part that has "MainCoin" child and hasn't been touched yet
+                for _, coinServer in ipairs(coins) do
+                    if coinServer:IsA("Part") and coinServer.Name == "Coin_Server" then
+                        local coinVisual = coinServer:FindFirstChild("CoinVisual")
+                        if coinVisual and coinVisual:FindFirstChild("MainCoin") and not touchedCoins[coinVisual.MainCoin] then
+                            local distance = (coinVisual.MainCoin.Position - player.Character.HumanoidRootPart.Position).Magnitude
+                            if distance < nearestDistance then
+                                nearestCoin = coinVisual.MainCoin
+                                nearestDistance = distance
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    return nearestCoin
+end
+
+-- Function to move to the nearest untapped Coin_Server part with smooth transition
+local function moveToCoinServer()
+    -- Find the nearest untapped Coin_Server part with MainCoin child
+    local nearestCoin = findNearestUntappedCoin()
+
+    if nearestCoin then
+        print("Moving towards to Coin")
+        isMovingToCoin = true
+
+        local targetPosition = nearestCoin.Position
+
+        -- Move the character towards the nearest untapped "Coin_Server" part gradually
+        while isAutoFarming and isMovingToCoin do
+            if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then
+                isMovingToCoin = false  -- Stop moving if character or HumanoidRootPart is nil
+                break
+            end
+
+            local currentPos = player.Character.HumanoidRootPart.Position
+            local direction = (targetPosition - currentPos).Unit
+            local distanceToTarget = (targetPosition - currentPos).Magnitude
+
+            if distanceToTarget <= arrivalThreshold then
+                print("Arrived at Coin")
+                isMovingToCoin = false
+                break
+            end
+
+            -- Move towards the target
+            player.Character.HumanoidRootPart.CFrame = CFrame.new(currentPos + direction * moveSpeed * RunService.Heartbeat:Wait())
+        end
+
+        -- Mark the coin as touched
+        touchedCoins[nearestCoin] = true
+
+        local delay = math.random(1.7, 2.1)
+        wait(delay)
+
+        -- Move to the next nearest untapped Coin_Server part if auto farming is enabled
+        if isAutoFarming and not isMovingToCoin then
+            -- Use coroutine to prevent blocking
+            coroutine.wrap(moveToCoinServer)()
+        end
+    else
+        print("[ AshbornnHub ] Coin not Found.. Searching again...")
+        wait(1)  -- Wait for a short period before searching again (customize as needed)
+
+        -- If auto farming is enabled and not currently moving towards a coin, continue searching for the nearest coin
+        if isAutoFarming and not isMovingToCoin then
+            coroutine.wrap(moveToCoinServer)()
+        end
+    end
+end
+
+-- Function to teleport the player to the map with a delay
+local function teleportToMapWithDelay(delay)
+    wait(delay)
+    local workspace = game:GetService("Workspace")
+    local Workplace = workspace:GetChildren()
+    
+    for _, Thing in pairs(Workplace) do
+        local ThingChildren = Thing:GetChildren()
+        for _, Child in pairs(ThingChildren) do
+            if Child.Name == "Spawns" then
+                if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                    player.Character.HumanoidRootPart.CFrame = Child.Spawn.CFrame
+                end
+            end
+        end
+    end
+end
+
+-- Function to handle character added (when player respawns)
+local function onCharacterAdded(character)
+    player.Character = character
+    touchedCoins = {}  -- Reset touchedCoins table when character resets
+    isMovingToCoin = false  -- Reset moving to coin flag
+    if isAutoFarming then
+        -- Teleport to the map with a delay before starting auto farming again
+        teleportToMapWithDelay(5)  -- Adjust the delay to 5 seconds as required
+        if not isMovingToCoin then
+            coroutine.wrap(moveToCoinServer)()
+        end
+    end
+end
+
+-- Function to handle character removing (when player dies)
+local function onCharacterRemoving()
+    if isAutoFarming then
+        print("Character removed. Stopping auto farming and teleporting to map...")
+        isAutoFarming = false  -- Stop auto farming when character dies
+        isMovingToCoin = false  -- Stop moving towards the coin
+        teleportToMapWithDelay(5)  -- Teleport to map with a delay of 5 seconds
+        isAutoFarming = true  -- Resume auto farming after teleporting (if toggle is still on)
+        if not isMovingToCoin then
+            coroutine.wrap(moveToCoinServer)()
+        end
+    end
+end
+
+-- Example toggle integration
+local Toggle = Tabs.AutoFarm:AddToggle("AutoFarmCoin", {Title = "Auto Farm Coin Only", Default = false })
+
+Toggle:OnChanged(function(isEnabled)
+    isAutoFarming = isEnabled
+    if isAutoFarming then
+        print("Auto Farm Coin enabled.")
+        -- Connect the character added event handler only when auto farming is enabled
+        characterAddedConnection = Players.LocalPlayer.CharacterAdded:Connect(onCharacterAdded)
+        -- Connect the character removing event handler only when auto farming is enabled
+        characterRemovingConnection = Players.LocalPlayer.CharacterRemoving:Connect(onCharacterRemoving)
+        if not isMovingToCoin then
+            coroutine.wrap(moveToCoinServer)()
+        end
+    else
+        print("Auto Farm Coin disabled.")
+        isMovingToCoin = false  -- Stop moving towards the coin if auto farming is disabled
+        -- Disconnect the character added event handler when auto farming is disabled
+        if characterAddedConnection then
+            characterAddedConnection:Disconnect()
+            characterAddedConnection = nil
+        end
+        -- Disconnect the character removing event handler when auto farming is disabled
+        if characterRemovingConnection then
+            characterRemovingConnection:Disconnect()
+            characterRemovingConnection = nil
+        end
+        -- Optionally, you could stop the character here
+    end
+end)
+
+-- Listen for new Coin_Server parts spawning
+local workspace = game:GetService("Workspace")
+workspace.ChildAdded:Connect(function(child)
+    if child:IsA("Part") and child.Name == "Coin_Server" and child:FindFirstChild("CoinVisual") and child.CoinVisual:FindFirstChild("MainCoin") and isAutoFarming and not isMovingToCoin then
+        coroutine.wrap(moveToCoinServer)()
+    end
+end)
+
+-- Function to check if a part has TouchInterest and an empty CoinVisual
+local function hasTouchInterestAndEmptyCoinVisual(part)
+    if part:IsA("Part") then
+        local touchInterest = part:FindFirstChild("TouchInterest")
+        local coinVisual = part:FindFirstChild("CoinVisual")
+        return touchInterest ~= nil and coinVisual ~= nil and #coinVisual:GetChildren() == 0
+    end
+    return false
+end
+
+-- Function to find the nearest untapped Coin_Server part with TouchInterest and empty CoinVisual
+local function findNearestUntappedCoin()
+    local nearestCoin = nil
+    local nearestDistance = math.huge
+
+    -- Check if player and player.Character are valid
+    if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        local normalContainer = game.Workspace:FindFirstChild("Normal")
+        if normalContainer then
+            local coinContainer = normalContainer:FindFirstChild("CoinContainer")
+            if coinContainer then
+                local coins = coinContainer:GetChildren()
+
+                -- Find the nearest "Coin_Server" part with TouchInterest and empty CoinVisual
+                for _, coinServer in ipairs(coins) do
+                    if hasTouchInterestAndEmptyCoinVisual(coinServer) and not touchedCoins[coinServer] then
+                        local distance = (coinServer.Position - player.Character.HumanoidRootPart.Position).Magnitude
+                        if distance < nearestDistance then
+                            nearestCoin = coinServer
+                            nearestDistance = distance
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    return nearestCoin
+end
+
+-- Function to move to the nearest untapped Coin_Server part with smooth transition
+local function moveToCoinServer()
+    -- Find the nearest untapped Coin_Server part with TouchInterest and empty CoinVisual
+    local nearestCoin = findNearestUntappedCoin()
+
+    if nearestCoin then
+        print("Moving towards to the Eggs")
+        isMovingToCoin = true
+
+        local targetPosition = nearestCoin.Position
+
+        -- Move the character towards the nearest untapped "Coin_Server" part gradually
+        while isAutoFarming and isMovingToCoin do
+            if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then
+                isMovingToCoin = false  -- Stop moving if character or HumanoidRootPart is nil
+                break
+            end
+
+            local currentPos = player.Character.HumanoidRootPart.Position
+            local direction = (targetPosition - currentPos).Unit
+            local distanceToTarget = (targetPosition - currentPos).Magnitude
+
+            if distanceToTarget <= arrivalThreshold then
+                print("Arrived at the Egg")
+                isMovingToCoin = false
+                break
+            end
+
+            -- Move towards the target
+            player.Character.HumanoidRootPart.CFrame = CFrame.new(currentPos + direction * moveSpeed * RunService.Heartbeat:Wait())
+        end
+
+        -- Mark the coin as touched
+        touchedCoins[nearestCoin] = true
+
+        local delay = math.random(1.7, 2.1)
+        wait(delay)
+
+        -- Move to the next nearest untapped Coin_Server part if auto farming is enabled
+        if isAutoFarming and not isMovingToCoin then
+            -- Use coroutine to prevent blocking
+            coroutine.wrap(moveToCoinServer)()
+        end
+    else
+        print("[ AshbornnHub ] Searching for eggs..")
+        wait(1)  -- Wait for a short period before searching again (customize as needed)
+
+        -- If auto farming is enabled and not currently moving towards a coin, continue searching for the nearest coin
+        if isAutoFarming and not isMovingToCoin then
+            coroutine.wrap(moveToCoinServer)()
+        end
+    end
+end
+
+-- Function to teleport the player to the map with a delay
+local function teleportToMapWithDelay(delay)
+    wait(delay)
+    local workspace = game:GetService("Workspace")
+    local Workplace = workspace:GetChildren()
+    
+    for _, Thing in pairs(Workplace) do
+        local ThingChildren = Thing:GetChildren()
+        for _, Child in pairs(ThingChildren) do
+            if Child.Name == "Spawns" then
+                if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                    player.Character.HumanoidRootPart.CFrame = Child.Spawn.CFrame
+                end
+            end
+        end
+    end
+end
+
+-- Function to handle character added (when player respawns)
+local function onCharacterAdded(character)
+    player.Character = character
+    touchedCoins = {}  -- Reset touchedCoins table when character resets
+    isMovingToCoin = false  -- Reset moving to coin flag
+    if isAutoFarming then
+        -- Teleport to the map with a delay before starting auto farming again
+        teleportToMapWithDelay(5)  -- Adjust the delay to 5 seconds as required
+        if not isMovingToCoin then
+            coroutine.wrap(moveToCoinServer)()
+        end
+    end
+end
+
+-- Function to handle character removing (when player dies)
+local function onCharacterRemoving()
+    if isAutoFarming then
+        print("Character removed. Stopping auto farming and teleporting to map...")
+        isAutoFarming = false  -- Stop auto farming when character dies
+        isMovingToCoin = false  -- Stop moving towards the coin
+        teleportToMapWithDelay(5)  -- Teleport to map with a delay of 5 seconds
+        isAutoFarming = true  -- Resume auto farming after teleporting (if toggle is still on)
+        if not isMovingToCoin then
+            coroutine.wrap(moveToCoinServer)()
+        end
+    end
+end
+
+-- Example toggle integration
+local Toggle = Tabs.AutoFarm:AddToggle("AutoFarmEggs", {Title = "Auto Farm Eggs Only ", Default = false })
+
+Toggle:OnChanged(function(isEnabled)
+    isAutoFarming = isEnabled
+    if isAutoFarming then
+        print("Auto Farm Coin enabled.")
+        -- Connect the character added event handler only when auto farming is enabled
+        characterAddedConnection = Players.LocalPlayer.CharacterAdded:Connect(onCharacterAdded)
+        -- Connect the character removing event handler only when auto farming is enabled
+        characterRemovingConnection = Players.LocalPlayer.CharacterRemoving:Connect(onCharacterRemoving)
+        if not isMovingToCoin then
+            coroutine.wrap(moveToCoinServer)()
+        end
+    else
+        print("Auto Farm Coin disabled.")
+        isMovingToCoin = false  -- Stop moving towards the coin if auto farming is disabled
+        -- Disconnect the character added event handler when auto farming is disabled
+        if characterAddedConnection then
+            characterAddedConnection:Disconnect()
+            characterAddedConnection = nil
+        end
+        -- Disconnect the character removing event handler when auto farming is disabled
+        if characterRemovingConnection then
+            characterRemovingConnection:Disconnect()
+            characterRemovingConnection = nil
+        end
+        -- Optionally, you could stop the character here
+    end
+end)
+
+-- Listen for new Coin_Server parts spawning
+local workspace = game:GetService("Workspace")
+workspace.ChildAdded:Connect(function(child)
+    if child:IsA("Part") and child.Name == "Coin_Server" and isAutoFarming and not isMovingToCoin then
+        coroutine.wrap(moveToCoinServer)()
+    end
+end)
+
+
+-- Function to check if a part has TouchInterest, an empty CoinVisual, and ParticleEmitter
+local function hasTouchInterestAndEmptyCoinVisualAndParticleEmitter(part)
+    if part:IsA("Part") then
+        local touchInterest = part:FindFirstChild("TouchInterest")
+        local coinVisual = part:FindFirstChild("CoinVisual")
+        local particleEmitter = part:FindFirstChild("ParticleEmitter")
+        return touchInterest ~= nil and coinVisual ~= nil and #coinVisual:GetChildren() == 0 and particleEmitter ~= nil
+    end
+    return false
+end
+
+
+
+
+-- Table to keep track of touched rare eggs
+local touchedRareEggs = {}
+
+-- Function to check if a part has TouchInterest, empty CoinVisual, and ParticleEmitter
+local function hasTouchInterestAndEmptyCoinVisualAndParticleEmitter(part)
+    if part:IsA("Part") then
+        local touchInterest = part:FindFirstChild("TouchInterest")
+        local coinVisual = part:FindFirstChild("CoinVisual")
+        local particleEmitter = part:FindFirstChild("ParticleEmitter")
+        return touchInterest ~= nil and coinVisual ~= nil and #coinVisual:GetChildren() == 0 and particleEmitter ~= nil
+    end
+    return false
+end
+
+-- Function to find the nearest untapped Coin_Server part with TouchInterest, empty CoinVisual, and ParticleEmitter
+local function findNearestUntappedCoin()
+    local nearestCoin = nil
+    local nearestDistance = math.huge
+
+    -- Check if player and player.Character are valid
+    if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        local normalContainer = game.Workspace:FindFirstChild("Normal")
+        if normalContainer then
+            local coinContainer = normalContainer:FindFirstChild("CoinContainer")
+            if coinContainer then
+                local coins = coinContainer:GetChildren()
+
+                -- Find the nearest "Coin_Server" part with TouchInterest, empty CoinVisual, and ParticleEmitter
+                for _, coinServer in ipairs(coins) do
+                    if hasTouchInterestAndEmptyCoinVisualAndParticleEmitter(coinServer) and not touchedRareEggs[coinServer] then
+                        local distance = (coinServer.Position - player.Character.HumanoidRootPart.Position).Magnitude
+                        if distance < nearestDistance then
+                            nearestCoin = coinServer
+                            nearestDistance = distance
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    return nearestCoin
+end
+
+-- Define the teleportation function
+local function teleportToNearestCoin()
+    local player = game.Players.LocalPlayer
+
+    if player.Character then
+        local nearestCoin = findNearestUntappedCoin()
+        if nearestCoin then
+            local oldPos = player.Character.HumanoidRootPart.CFrame
+            local startTime = tick()
+            repeat
+                player.Character.HumanoidRootPart.CFrame = nearestCoin.CFrame * CFrame.Angles(math.rad(90), math.rad(0), math.rad(0))
+                task.wait()
+                player.Character.HumanoidRootPart.CFrame = nearestCoin.CFrame * CFrame.Angles(math.rad(-90), math.rad(0), math.rad(0))
+                task.wait()
+            until not nearestCoin:IsDescendantOf(workspace) or tick() - startTime >= 3
+            player.Character.HumanoidRootPart.CFrame = oldPos
+            player.Character.Humanoid:ChangeState(1)
+            Fluent:Notify({
+                Title = "Rare Egg Found",
+                Content = "Successfully teleported to the rare egg.",
+                Duration = 3
+            })
+            -- Mark the coin as touched
+            touchedRareEggs[nearestCoin] = true
+            return true
+        else
+            print("[ AshbornnHub ] Rare Egg Not Found.. Searching again....")
+            return false
+        end
+    end
+end
+
+-- Coroutine handle for the auto teleportation loop
+local teleportCoroutine
+local isTeleporting = false
+
+-- Example button integration
+Tabs.AutoFarm:AddButton({
+    Title = "Teleport to Rare Egg",
+    Description = "Teleport to the nearest rare egg if available",
+    Callback = teleportToNearestCoin
+})
+
+-- Toggle to automatically teleport to rare egg on spawn
+local Toggle = Tabs.AutoFarm:AddToggle("TPtoRareEgg", {Title = "Auto Teleport to Rare eggs on spawn", Default = false })
+
+Toggle:OnChanged(function(state)
+    if state then
+        if not isTeleporting then
+            isTeleporting = true
+            teleportCoroutine = coroutine.create(function()
+                while isTeleporting do
+                    local found = teleportToNearestCoin()
+                    if found then
+                        isTeleporting = false
+                          -- Reset the toggle to off after teleportation
+                    else
+                        task.wait(2)  -- Wait for 2 seconds before searching again
+                    end
+                end
+            end)
+            coroutine.resume(teleportCoroutine)
+        end
+    else
+        isTeleporting = false
+    end
+end)
+
+
+Options.TPtoRareEgg:SetValue(false)  -- Ensure the toggle starts off
+Tabs.AutoFarm:AddParagraph({
+            Title = "Scrolling Only",
+            Content = "Ignore this is just for scrolling"
+        })
+        Tabs.AutoFarm:AddParagraph({
+            Title = "Scrolling Only",
+            Content = "Ignore this is just for scrolling"
+        })
+        Tabs.AutoFarm:AddParagraph({
+            Title = "Scrolling Only",
+            Content = "Ignore this is just for scrolling"
+        })
+        
+
+
+---------------------------------------------------------------------------------AUTOFARM------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------EMOTES---------------------------------------------------------------------------------------------
 local AshMotes = false
@@ -2568,27 +3180,34 @@ end)
    
     local ButtonsS = Tabs.Buttons:AddSection("Button Shortcuts")
 
--- Assuming you have a UI library providing Toggle functionality
-local Toggle = Tabs.Buttons:AddToggle("FEInviButtonPerk", {Title = "FE invisible Button + Invisible(Need Ghost Perk) ", Default = false})
-
 -- Constants for file handling
-local SAVED_POSITION_FILE = "AshbornnHub/MM2/PerkFEInviButtPos.json"
+local SAVED_POSITIONS = {
+    FEInviButtonPerk = "AshbornnHub/MM2/PerkFEInviButtPos.json",
+    FEInviButton = "AshbornnHub/MM2/FEInviButPos.json",
+    InviButton = "AshbornnHub/MM2/InviButPos.json"
+}
 
--- Variable to hold the ScreenGui and its position
-local screenGui
-local savedPosition = UDim2.new(0.5, -0.5, 0.5, -37.5)  -- Default position
+local DEFAULT_POSITIONS = {
+    FEInviButtonPerk = UDim2.new(0.5, -0.5, 0.5, -37.5),
+    FEInviButton = UDim2.new(0.5, -0.5, 0.5, -37.5),
+    InviButton = UDim2.new(0.5, 100, 0.5, 37.5)
+}
+
+local screenGuis = {}
+local savedPositions = {}
 
 -- Function to save the position to file
-local function savePosition()
+local function savePosition(buttonType)
+    local screenGui = screenGuis[buttonType]
     if screenGui then
         local positionData = {
-            X = savedPosition.X.Scale,
-            XOffset = savedPosition.X.Offset,
-            Y = savedPosition.Y.Scale,
-            YOffset = savedPosition.Y.Offset
+            X = savedPositions[buttonType].X.Scale,
+            XOffset = savedPositions[buttonType].X.Offset,
+            Y = savedPositions[buttonType].Y.Scale,
+            YOffset = savedPositions[buttonType].Y.Offset
         }
         local success, error = pcall(function()
-            writefile(SAVED_POSITION_FILE, game:GetService("HttpService"):JSONEncode(positionData))
+            writefile(SAVED_POSITIONS[buttonType], game:GetService("HttpService"):JSONEncode(positionData))
         end)
         if not success then
             warn("Failed to save position:", error)
@@ -2597,201 +3216,31 @@ local function savePosition()
 end
 
 -- Function to load the position from file
-local function loadPosition()
-    local positionData = nil
+local function loadPosition(buttonType)
     local success, data = pcall(function()
-        return readfile(SAVED_POSITION_FILE)
+        return readfile(SAVED_POSITIONS[buttonType])
     end)
     if success then
-        positionData = game:GetService("HttpService"):JSONDecode(data)
+        local positionData = game:GetService("HttpService"):JSONDecode(data)
+        if positionData then
+            savedPositions[buttonType] = UDim2.new(positionData.X, positionData.XOffset, positionData.Y, positionData.YOffset)
+            return
+        end
     end
-    if positionData then
-        savedPosition = UDim2.new(positionData.X, positionData.XOffset, positionData.Y, positionData.YOffset)
-    end
+    savedPositions[buttonType] = DEFAULT_POSITIONS[buttonType]
 end
 
--- Attempt to load the saved position
-loadPosition()
-
 -- Function to create the GUI
-local function createGui()
+local function createGui(buttonType, buttonText, toggleOption, remoteEvent)
     -- Create a ScreenGui
-    screenGui = Instance.new("ScreenGui")
+    local screenGui = Instance.new("ScreenGui")
     screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+    screenGuis[buttonType] = screenGui
 
     -- Create a Frame
     local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0, InputWidth.Value, 0, InputHeight.Value) -- Smaller size
-    frame.Position = savedPosition  -- Use saved position
-    frame.AnchorPoint = Vector2.new(0.5, 0.5)
-    frame.BackgroundTransparency = TColorpicker.Transparency 
-    frame.BackgroundColor3 = TColorpicker.Value -- Black background
-    frame.Parent = screenGui
-
-    -- Add UICorner to Frame
-    local uiCornerFrame = Instance.new("UICorner")
-    uiCornerFrame.CornerRadius = UDim.new(0, 15)
-    uiCornerFrame.Parent = frame
-
-    -- Create a Button
-    local button = Instance.new("TextButton")
-    button.Size = UDim2.new(0, 160, 0, 40) -- Adjusted size for longer text
-    button.Position = UDim2.new(0.5, 0, 0.5, 0) -- Centered in the frame
-    button.AnchorPoint = Vector2.new(0.5, 0.5)
-    button.BackgroundTransparency = 1 -- Remove background color
-    button.Text = "(Ghost Perk) +\nFE Invisible is"
-    button.TextSize = InputTSize.Value
-    button.TextColor3 = Color3.fromRGB(255, 255, 255) -- White text color
-    button.Parent = frame
-
-    -- Function to toggle button text based on Options.FEInvisible value
-    local function toggleButtonText()
-        if Options.FEInvisible.Value then
-            button.Text = "(Ghost Perk) +\nFE Invisible is [ON]"
-            game:GetService("ReplicatedStorage").Remotes.Gameplay.Stealth:FireServer(true)
-        else
-            button.Text = "(Ghost Perk) +\nFE Invisible is [OFF]"
-            game:GetService("ReplicatedStorage").Remotes.Gameplay.Stealth:FireServer(false)
-        end
-    end
-
-    -- Connect the button click event to the toggle function
-    button.MouseButton1Click:Connect(function()
-        Options.FEInvisible:SetValue(not Options.FEInvisible.Value)
-        toggleButtonText()
-    end)
-
-    -- Make the Frame draggable
-    
-
-    local dragging, dragInput, dragStart, startPos
-
-    local function update(input)
-        local delta = input.Position - dragStart
-        frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-        savedPosition = frame.Position  -- Save the updated position
-    end
-
-    frame.InputBegan:Connect(function(input)
-    if not LockFrames and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
-        dragging = true
-        dragStart = input.Position
-        startPos = frame.Position
-
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                dragging = false
-                -- Save position when drag ends
-                savePosition()
-            end
-        end)
-    end
-end)
-
-frame.InputChanged:Connect(function(input)
-    if not LockFrames and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-        dragInput = input
-    end
-end)
-
-UserInputService.InputChanged:Connect(function(input)
-    if not LockFrames and input == dragInput and dragging then
-        update(input)
-    end
-end)
-
-    -- Update button text based on Options.FEInvisible initial value
-    toggleButtonText()
-end
-
--- Function to handle GUI creation and destruction
-local function handleToggle(value)
-    if value then
-        -- Create and show the GUI
-        createGui()
-    else
-        -- Destroy the GUI
-        if screenGui then
-            screenGui:Destroy()
-            screenGui = nil
-            -- Save position when GUI is closed
-            savePosition()
-        end
-    end
-end
-
--- Handle the toggle state change
-Toggle:OnChanged(handleToggle)
-
--- Set the initial state of the toggle
-Options.FEInvisible:SetValue(false)
-Options.Invisible:SetValue(false)
-
--- Ensure the GUI persists across respawns
-local Player = game.Players.LocalPlayer
-Player.CharacterAdded:Connect(function()
-    if Toggle.Value then
-        createGui()
-    end
-end)
-
-
-
--- Assuming you have a UI library providing Toggle functionality
-local Toggle = Tabs.Buttons:AddToggle("FEInviButton", {Title = "FE Invisible Button Only", Default = false})
-
--- Constants for file handling
-local SAVED_POSITION_FILE = "AshbornnHub/MM2/FEInviButPos.json"
-
--- Variable to hold the ScreenGui and its position
-local screenGui
-local savedPosition = UDim2.new(0.5, -0.5, 0.5, -37.5)  -- Default position
-
--- Function to save the position to file
-local function savePosition()
-    if screenGui then
-        local positionData = {
-            X = savedPosition.X.Scale,
-            XOffset = savedPosition.X.Offset,
-            Y = savedPosition.Y.Scale,
-            YOffset = savedPosition.Y.Offset
-        }
-        local success, error = pcall(function()
-            writefile(SAVED_POSITION_FILE, game:GetService("HttpService"):JSONEncode(positionData))
-        end)
-        if not success then
-            warn("Failed to save position:", error)
-        end
-    end
-end
-
--- Function to load the position from file
-local function loadPosition()
-    local positionData = nil
-    local success, data = pcall(function()
-        return readfile(SAVED_POSITION_FILE)
-    end)
-    if success then
-        positionData = game:GetService("HttpService"):JSONDecode(data)
-    end
-    if positionData then
-        savedPosition = UDim2.new(positionData.X, positionData.XOffset, positionData.Y, positionData.YOffset)
-    end
-end
-
--- Attempt to load the saved position
-loadPosition()
-
--- Function to create the GUI
-local function createGui()
-    -- Create a ScreenGui
-    screenGui = Instance.new("ScreenGui")
-    screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
-
-    -- Create a Frame
-    local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0, InputWidth.Value, 0, InputHeight.Value) -- Smaller size
-    frame.Position = savedPosition  -- Use saved position
+    frame.Size = UDim2.new(0, InputWidth.Value, 0, InputHeight.Value)
+    frame.Position = savedPositions[buttonType]
     frame.AnchorPoint = Vector2.new(0.5, 0.5)
     frame.BackgroundTransparency = TColorpicker.Transparency
     frame.BackgroundColor3 = TColorpicker.Value
@@ -2804,729 +3253,327 @@ local function createGui()
 
     -- Create a Button
     local button = Instance.new("TextButton")
-    button.Size = UDim2.new(0, 160, 0, 40) -- Adjusted size for longer text
-    button.Position = UDim2.new(0.5, 0, 0.5, 0) -- Centered in the frame
+    button.Size = UDim2.new(0, 160, 0, 40)
+    button.Position = UDim2.new(0.5, 0, 0.5, 0)
     button.AnchorPoint = Vector2.new(0.5, 0.5)
-    button.BackgroundTransparency = 1 -- Remove background color
-    button.Text = "FE Invisible is [OFF]"
+    button.BackgroundTransparency = 1
+    button.Text = buttonText
     button.TextSize = InputTSize.Value
-    button.TextColor3 = Color3.fromRGB(255, 255, 255) -- White text color
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
     button.Parent = frame
 
-    -- Function to toggle button text based on Options.FEInvisible value
+    -- Function to toggle button text based on the toggle option
     local function toggleButtonText()
-        if Options.FEInvisible.Value then
-            button.Text = "FE Invisible is [ON]"
+        if toggleOption.Value then
+            button.Text = buttonText .. " [ON]"
+            game:GetService("ReplicatedStorage").Remotes.Gameplay[remoteEvent]:FireServer(true)
         else
-            button.Text = "FE Invisible is [OFF]"
+            button.Text = buttonText .. " [OFF]"
+            game:GetService("ReplicatedStorage").Remotes.Gameplay[remoteEvent]:FireServer(false)
         end
     end
 
     -- Connect the button click event to the toggle function
     button.MouseButton1Click:Connect(function()
-        Options.FEInvisible:SetValue(not Options.FEInvisible.Value)
+        toggleOption:SetValue(not toggleOption.Value)
         toggleButtonText()
     end)
 
     -- Make the Frame draggable
-    
-
     local dragging, dragInput, dragStart, startPos
 
     local function update(input)
         local delta = input.Position - dragStart
         frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-        savedPosition = frame.Position  -- Save the updated position
+        savedPositions[buttonType] = frame.Position
     end
 
     frame.InputBegan:Connect(function(input)
-    if not LockFrames and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
-        dragging = true
-        dragStart = input.Position
-        startPos = frame.Position
-
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                dragging = false
-                -- Save position when drag ends
-                savePosition()
-            end
-        end)
-    end
-end)
-
-frame.InputChanged:Connect(function(input)
-    if not LockFrames and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-        dragInput = input
-    end
-end)
-
-UserInputService.InputChanged:Connect(function(input)
-    if not LockFrames and input == dragInput and dragging then
-        update(input)
-    end
-end)
-
-    -- Update button text based on Options.FEInvisible initial value
-    toggleButtonText()
-end
-
--- Function to handle GUI creation and destruction
-local function handleToggle(value)
-    if value then
-        -- Create and show the GUI
-        createGui()
-    else
-        -- Destroy the GUI
-        if screenGui then
-            screenGui:Destroy()
-            screenGui = nil
-            -- Save position when GUI is closed
-            savePosition()
-        end
-    end
-end
-
--- Handle the toggle state change
-Toggle:OnChanged(handleToggle)
-
--- Set the initial state of the toggle
-Options.FEInvisible:SetValue(false)
-
--- Ensure the GUI persists across respawns
-local Player = game.Players.LocalPlayer
-Player.CharacterAdded:Connect(function()
-    if Toggle.Value then
-        createGui()
-    end
-end)
-
-
--- Assuming you have a UI library providing Toggle functionality
-local Toggle = Tabs.Buttons:AddToggle("InviButton", {Title = "Invisible Button (Need Ghost Perk)", Default = false})
-
--- Constants for file handling
-local SAVED_POSITION_FILE = "AshbornnHub/MM2/InviButPos.json"
-
--- Variable to hold the ScreenGui and its position
-local screenGui
-local savedPosition = UDim2.new(0.5, 100, 0.5, 37.5)  -- Default position
-
--- Function to save the position to file
-local function savePosition()
-    if screenGui then
-        local positionData = {
-            X = savedPosition.X.Scale,
-            XOffset = savedPosition.X.Offset,
-            Y = savedPosition.Y.Scale,
-            YOffset = savedPosition.Y.Offset
-        }
-        local success, error = pcall(function()
-            writefile(SAVED_POSITION_FILE, game:GetService("HttpService"):JSONEncode(positionData))
-        end)
-        if not success then
-            warn("Failed to save position:", error)
-        end
-    end
-end
-
--- Function to load the position from file
-local function loadPosition()
-    local positionData = nil
-    local success, data = pcall(function()
-        return readfile(SAVED_POSITION_FILE)
-    end)
-    if success then
-        positionData = game:GetService("HttpService"):JSONDecode(data)
-    end
-    if positionData then
-        savedPosition = UDim2.new(positionData.X, positionData.XOffset, positionData.Y, positionData.YOffset)
-    end
-end
-
--- Attempt to load the saved position
-loadPosition()
-
--- Function to create the GUI
-local function createGui()
-    -- Create a ScreenGui
-    screenGui = Instance.new("ScreenGui")
-    screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
-
-    -- Create a Frame
-    local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0, InputWidth.Value, 0, InputHeight.Value) -- Smaller size
-    frame.Position = savedPosition  -- Use saved position
-    frame.AnchorPoint = Vector2.new(0.5, 0.5)
-    frame.BackgroundTransparency = TColorpicker.Transparency
-    frame.BackgroundColor3 = TColorpicker.Value
-    frame.Parent = screenGui
-
-    -- Add UICorner to Frame
-    local uiCornerFrame = Instance.new("UICorner")
-    uiCornerFrame.CornerRadius = UDim.new(0, 15)
-    uiCornerFrame.Parent = frame
-
-    -- Create a Button
-    local button = Instance.new("TextButton")
-    button.Size = UDim2.new(0, 80, 0, 40) -- Smaller size
-    button.Position = UDim2.new(0.5, 0, 0.5, 0) -- Centered in the frame
-    button.AnchorPoint = Vector2.new(0.5, 0.5)
-    button.BackgroundTransparency = 1 -- Remove background color
-    button.Text = "Invisible is"
-    button.TextSize = InputTSize.Value
-    button.TextColor3 = Color3.fromRGB(255, 255, 255) -- White text color
-    button.Parent = frame
-
-    -- Function to toggle button text based on Options.Invisible value
-    local function toggleButtonText()
-        if Options.Invisible.Value then
-            button.Text = "Invisible is [ON]"
-            game:GetService("ReplicatedStorage").Remotes.Gameplay.Stealth:FireServer(true)
-        else
-            button.Text = "Invisible is [OFF]"
-            game:GetService("ReplicatedStorage").Remotes.Gameplay.Stealth:FireServer(false)
-        end
-    end
-
-    -- Connect the button click event to the toggle function
-    button.MouseButton1Click:Connect(function()
-        Options.Invisible:SetValue(not Options.Invisible.Value)
-        toggleButtonText()
-    end)
-
-    -- Make the Frame draggable
-    
-
-    local dragging, dragInput, dragStart, startPos
-
-    local function update(input)
-        local delta = input.Position - dragStart
-        frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-        savedPosition = frame.Position  -- Save the updated position
-    end
-
-    frame.InputBegan:Connect(function(input)
-    if not LockFrames and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
-        dragging = true
-        dragStart = input.Position
-        startPos = frame.Position
-
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                dragging = false
-                -- Save position when drag ends
-                savePosition()
-            end
-        end)
-    end
-end)
-
-frame.InputChanged:Connect(function(input)
-    if not LockFrames and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-        dragInput = input
-    end
-end)
-
-UserInputService.InputChanged:Connect(function(input)
-    if not LockFrames and input == dragInput and dragging then
-        update(input)
-    end
-end)
-
-    -- Update button text based on Options.Invisible initial value
-    toggleButtonText()
-end
-
--- Function to handle GUI creation and destruction
-local function handleToggle(value)
-    if value then
-        -- Create and show the GUI
-        createGui()
-    else
-        -- Destroy the GUI
-        if screenGui then
-            screenGui:Destroy()
-            screenGui = nil
-            -- Save position when GUI is closed
-            savePosition()
-        end
-    end
-end
-
--- Handle the toggle state change
-Toggle:OnChanged(handleToggle)
-
--- Set the initial state of the toggle
-Options.Invisible:SetValue(false)
-
--- Ensure the GUI persists across respawns
-local Player = game.Players.LocalPlayer
-Player.CharacterAdded:Connect(function()
-    if Toggle.Value then
-        createGui()
-    end
-end)
-
-
--- Assuming you have a UI library providing Toggle functionality
-local Toggle = Tabs.Buttons:AddToggle("Togglename", {Title = "Silent Aim Button", Default = false})
-
--- Constants for file handling
-local SAVED_POSITION_FILE = "AshbornnHub/MM2/SilentAimPos.json"
-
--- Function to call when button is clicked
-local function onButtonClicked()
-    -- Define the murderer character
-    if Murder then
-        local Player = game.Players.LocalPlayer
-        local murdererCharacter = game.Players[Murder].Character
-        
-        if murdererCharacter and murdererCharacter:FindFirstChild("HumanoidRootPart") then
-            if Player.Character:FindFirstChild("Gun") then
-                Player.Character.Gun.KnifeServer.ShootGun:InvokeServer(1, murdererCharacter.HumanoidRootPart.Position, "AH")
-            else
-                -- Player doesn't have a gun, show notification
-                Fluent:Notify({
-                    Title = "You don't have a gun",
-                    Content = "Wait for the sheriff death or grab the gun",
-                    Duration = 3
-                })
-            end
-        else
-            warn("Murderer character or HumanoidRootPart not found!")
-        end
-    else
-        warn("Murderer not defined!")
-    end
-end
-
--- Variable to hold the ScreenGui and its position
-local screenGui
-local savedPosition = UDim2.new(0.5, -75, 0.5, -37.5)  -- Default position
-
--- Function to save the position to file
-local function savePosition()
-    if screenGui then
-        local positionData = {
-            X = savedPosition.X.Scale,
-            XOffset = savedPosition.X.Offset,
-            Y = savedPosition.Y.Scale,
-            YOffset = savedPosition.Y.Offset
-        }
-        local success, error = pcall(function()
-            writefile(SAVED_POSITION_FILE, game:GetService("HttpService"):JSONEncode(positionData))
-        end)
-        if not success then
-            warn("Failed to save position:", error)
-        end
-    end
-end
-
--- Function to load the position from file
-local function loadPosition()
-    local positionData = nil
-    local success, data = pcall(function()
-        return readfile(SAVED_POSITION_FILE)
-    end)
-    if success then
-        positionData = game:GetService("HttpService"):JSONDecode(data)
-    end
-    if positionData then
-        savedPosition = UDim2.new(positionData.X, positionData.XOffset, positionData.Y, positionData.YOffset)
-    end
-end
-
--- Attempt to load the saved position
-loadPosition()
-
--- Function to create the GUI
-local function createGui()
-    -- Create a ScreenGui
-    screenGui = Instance.new("ScreenGui")
-    screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
-
-    -- Create a Frame
-    local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0, InputWidth.Value, 0, InputHeight.Value) -- Smaller size
-    frame.Position = savedPosition  -- Use saved position
-    frame.AnchorPoint = Vector2.new(0.5, 0.5)
-    frame.BackgroundTransparency = TColorpicker.Transparency
-    frame.BackgroundColor3 = TColorpicker.Value
-    frame.Parent = screenGui
-
-    -- Add UICorner to Frame
-    local uiCornerFrame = Instance.new("UICorner")
-    uiCornerFrame.CornerRadius = UDim.new(0, 15)
-    uiCornerFrame.Parent = frame
-
-    -- Create a Button
-    local button = Instance.new("TextButton")
-    button.Size = UDim2.new(0, 80, 0, 40) -- Smaller size
-    button.Position = UDim2.new(0.5, 0, 0.5, 0) -- Centered in the frame
-    button.AnchorPoint = Vector2.new(0.5, 0.5)
-    button.BackgroundTransparency = 1 -- Remove background color
-    button.Text = "Shoot"
-    button.TextSize = InputTSize.Value
-    button.TextColor3 = Color3.fromRGB(255, 255, 255) -- White text color
-    button.Parent = frame
-
-    -- Connect the button click event to the function
-    button.MouseButton1Click:Connect(onButtonClicked)
-
-    -- Make the Frame draggable
-    
-
-    local dragging, dragInput, dragStart, startPos
-
-    local function update(input)
-        local delta = input.Position - dragStart
-        frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-        savedPosition = frame.Position  -- Save the updated position
-    end
-
-    frame.InputBegan:Connect(function(input)
-    if not LockFrames and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
-        dragging = true
-        dragStart = input.Position
-        startPos = frame.Position
-
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                dragging = false
-                -- Save position when drag ends
-                savePosition()
-            end
-        end)
-    end
-end)
-
-frame.InputChanged:Connect(function(input)
-    if not LockFrames and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-        dragInput = input
-    end
-end)
-
-UserInputService.InputChanged:Connect(function(input)
-    if not LockFrames and input == dragInput and dragging then
-        update(input)
-    end
-end)
-end
-
--- Function to handle GUI creation and destruction
-local function handleToggle(value)
-    if value then
-        -- Create and show the GUI
-        createGui()
-    else
-        -- Destroy the GUI
-        if screenGui then
-            screenGui:Destroy()
-            screenGui = nil
-            -- Save position when GUI is closed
-            savePosition()
-        end
-    end
-end
-
--- Handle the toggle state change
-Toggle:OnChanged(handleToggle)
-
--- Set the initial state of the toggle
-Options.Togglename:SetValue(false)
-
--- Ensure the GUI persists across respawns
-local Player = game.Players.LocalPlayer
-Player.CharacterAdded:Connect(function()
-    if Toggle.Value then
-        createGui()
-    end
-end)
-
-
-
--- Create the toggle
-local Toggle = Tabs.Buttons:AddToggle("GrabButton", {Title = "Grab Gun Button", Default = false })
-
--- Constants for file handling
-local SAVED_POSITION_FILE = "AshbornnHub/MM2/GrabGunButtonPos.json"
-
--- Create a ScreenGui
-local screenGui
-local savedPosition = UDim2.new(0.5, 75, 0.5, -37.5)  -- Default position
-
--- Function to save the position to file
-local function savePosition()
-    if screenGui then
-        local positionData = {
-            X = savedPosition.X.Scale,
-            XOffset = savedPosition.X.Offset,
-            Y = savedPosition.Y.Scale,
-            YOffset = savedPosition.Y.Offset
-        }
-        local success, error = pcall(function()
-            writefile(SAVED_POSITION_FILE, game:GetService("HttpService"):JSONEncode(positionData))
-        end)
-        if not success then
-            warn("Failed to save position:", error)
-        end
-    end
-end
-
--- Function to load the position from file
-local function loadPosition()
-    local positionData = nil
-    local success, data = pcall(function()
-        return readfile(SAVED_POSITION_FILE)
-    end)
-    if success then
-        positionData = game:GetService("HttpService"):JSONDecode(data)
-    end
-    if positionData then
-        savedPosition = UDim2.new(positionData.X, positionData.XOffset, positionData.Y, positionData.YOffset)
-    end
-end
-
--- Attempt to load the saved position
-loadPosition()
-
--- Function to create or destroy the GUI based on toggle state
-local function toggleGui(value)
-    if value then
-        -- Create the GUI
-        screenGui = Instance.new("ScreenGui")
-        screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
-
-        -- Create the Frame
-        local frame = Instance.new("Frame")
-        frame.Size = UDim2.new(0, InputWidth.Value, 0, InputHeight.Value) -- Smaller size
-        frame.Position = savedPosition  -- Use saved position
-        frame.AnchorPoint = Vector2.new(0.5, 0.5)
-        frame.BackgroundColor3 = TColorpicker.Value
-        frame.Parent = screenGui
-        frame.BackgroundTransparency = TColorpicker.Transparency
-
-        -- Add UICorner to Frame
-        local uiCornerFrame = Instance.new("UICorner")
-        uiCornerFrame.CornerRadius = UDim.new(0, 15)
-        uiCornerFrame.Parent = frame
-
-        -- Create the Button
-        local button = Instance.new("TextButton")
-        button.Size = UDim2.new(0, 80, 0, 40) -- Smaller size
-        button.Position = UDim2.new(0.5, 0, 0.5, 0) -- Centered in the frame
-        button.AnchorPoint = Vector2.new(0.5, 0.5)
-        button.BackgroundTransparency = 1 -- Remove background color
-        button.Text = "Grab Gun"
-        button.TextSize = InputTSize.Value
-        button.TextColor3 = Color3.fromRGB(255, 255, 255) -- White text color
-        button.Parent = frame
-
-        -- Function to update the button text based on gun availability
-        local function updateButtonText()
-            local gunReady = workspace:FindFirstChild("GunDrop")
-            if gunReady then
-                button.Text = "Grab Gun (Ready)"
-            else
-                button.Text = "Grab Gun"
-            end
-        end
-
-        -- Connect the function to update the button text
-        workspace.ChildAdded:Connect(updateButtonText)
-        workspace.ChildRemoved:Connect(updateButtonText)
-
-        -- Function to handle the button click event
-        button.MouseButton1Click:Connect(function()
-            local Player = game.Players.LocalPlayer
-            
-            if not IsAlive(Player) then
-                Fluent:Notify({
-                    Title = "You're not alive",
-                    Content = "Please wait for the new round to grab the gun.",
-                    Duration = 3
-                })
-                return
-            end
-            
-            if Player.Backpack:FindFirstChild("Gun") or (Player.Character and Player.Character:FindFirstChild("Gun")) then
-                Fluent:Notify({
-                    Title = "You already have a gun",
-                    Content = "Lollll.",
-                    Duration = 3
-                })
-                return
-            end
-            
-            if Player.Character then
-                local gundr = workspace:FindFirstChild("GunDrop")
-                if gundr then
-                    local oldpos = Player.Character.HumanoidRootPart.CFrame
-                    repeat
-                        Player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(90), math.rad(0), math.rad(0))
-                        task.wait()
-                        Player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(-90), math.rad(0), math.rad(0))
-                        task.wait()
-                    until not gundr:IsDescendantOf(workspace)
-                    Player.Character.HumanoidRootPart.CFrame = oldpos
-                    oldpos = false
-                    Player.Character.Humanoid:ChangeState(1)
-                    button.Text = "Grab Gun (Gotcha)"
-                else
-                    Fluent:Notify({
-                        Title = "Gun not Found",
-                        Content = "Wait for the Sheriff's death to grab the gun.",
-                        Duration = 3
-                    })
+        if not LockFrames and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
+            dragging = true
+            dragStart = input.Position
+            startPos = frame.Position
+
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                    savePosition(buttonType)
                 end
-            end
-        end)
-
-        -- Function to handle GUI drag on mobile
-        
-
-        local dragging, dragInput, dragStart, startPos
-
-        local function update(input)
-            local delta = input.Position - dragStart
-            frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-            savedPosition = frame.Position  -- Save the updated position
+            end)
         end
+    end)
 
-        frame.InputBegan:Connect(function(input)
-    if not LockFrames and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
-        dragging = true
-        dragStart = input.Position
-        startPos = frame.Position
+    frame.InputChanged:Connect(function(input)
+        if not LockFrames and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            dragInput = input
+        end
+    end)
 
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                dragging = false
-                -- Save position when drag ends
-                savePosition()
-            end
-        end)
-    end
-end)
+    UserInputService.InputChanged:Connect(function(input)
+        if not LockFrames and input == dragInput and dragging then
+            update(input)
+        end
+    end)
 
-frame.InputChanged:Connect(function(input)
-    if not LockFrames and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-        dragInput = input
-    end
-end)
+    -- Update button text based on the initial value of the toggle option
+    toggleButtonText()
+end
 
-UserInputService.InputChanged:Connect(function(input)
-    if not LockFrames and input == dragInput and dragging then
-        update(input)
-    end
-end)
-
+-- Function to handle GUI creation and destruction
+local function handleToggle(buttonType, value, buttonText, toggleOption, remoteEvent)
+    if value then
+        createGui(buttonType, buttonText, toggleOption, remoteEvent)
     else
-        -- Destroy the GUI if it exists
-        if screenGui then
-            screenGui:Destroy()
-            screenGui = nil
-            savePosition()  -- Save position when GUI is closed
+        if screenGuis[buttonType] then
+            screenGuis[buttonType]:Destroy()
+            screenGuis[buttonType] = nil
+            savePosition(buttonType)
         end
     end
 end
 
--- Connect the toggle's OnChanged event to the function
-Toggle:OnChanged(toggleGui)
+-- Load saved positions
+for buttonType in pairs(SAVED_POSITIONS) do
+    loadPosition(buttonType)
+end
 
--- Set the initial state of the toggle
-Options.GrabButton:SetValue(false)
+-- Define Toggle and Option mappings
+local toggles = {
+    FEInviButtonPerk = Tabs.Buttons:AddToggle("FEInviButtonPerk", {Title = "FE invisible Button + Invisible(Need Ghost Perk)", Default = false}),
+    FEInviButton = Tabs.Buttons:AddToggle("FEInviButton", {Title = "FE Invisible Button Only", Default = false}),
+    InviButton = Tabs.Buttons:AddToggle("InviButton", {Title = "Invisible Button (Need Ghost Perk)", Default = false})
+}
 
--- Ensure the GUI persists across respawns and retains its position
+local toggleOptions = {
+    FEInviButtonPerk = Options.FEInvisible,
+    FEInviButton = Options.FEInvisible,
+    InviButton = Options.Invisible
+}
+
+-- Connect toggle state changes to handleToggle
+for buttonType, toggle in pairs(toggles) do
+    local buttonText, remoteEvent
+    if buttonType == "FEInviButtonPerk" then
+        buttonText = "(Ghost Perk) +\nFE Invisible is"
+        remoteEvent = "Stealth"
+    elseif buttonType == "FEInviButton" then
+        buttonText = "FE Invisible is"
+        remoteEvent = "Stealth"
+    elseif buttonType == "InviButton" then
+        buttonText = "Invisible is"
+        remoteEvent = "Stealth"
+    end
+    toggle:OnChanged(function(value)
+        handleToggle(buttonType, value, buttonText, toggleOptions[buttonType], remoteEvent)
+    end)
+end
+
+-- Set the initial state of the toggles
+Options.FEInvisible:SetValue(false)
+Options.Invisible:SetValue(false)
+
+-- Ensure the GUI persists across respawns
 local Player = game.Players.LocalPlayer
 Player.CharacterAdded:Connect(function()
-    if Toggle.Value then
-        toggleGui(true)
+    for buttonType, toggle in pairs(toggles) do
+        if toggle.Value then
+            local buttonText, remoteEvent
+            if buttonType == "FEInviButtonPerk" then
+                buttonText = "(Ghost Perk) +\nFE Invisible is"
+                remoteEvent = "Stealth"
+            elseif buttonType == "FEInviButton" then
+                buttonText = "FE Invisible is"
+                remoteEvent = "Stealth"
+            elseif buttonType == "InviButton" then
+                buttonText = "Invisible is"
+                remoteEvent = "Stealth"
+            end
+            createGui(buttonType, buttonText, toggleOptions[buttonType], remoteEvent)
+        end
     end
 end)
 
 
--- Create the toggle
-local Toggle = Tabs.Buttons:AddToggle("ShootMurd", {Title = "TP Shoot Murd", Default = false })
 
--- Constants for file handling
-local SAVED_POSITION_FILE = "AshbornnHub/MM2/ShootMurdButtonPos.json"
+-- Function to handle GUI creation and destruction
+local function setupGui(toggleName, buttonTitle, buttonAction)
+    local SAVED_POSITION_FILE = "AshbornnHub/MM2/" .. toggleName .. "ButtonPos.json"
+    local screenGui
+    local savedPosition = UDim2.new(0.5, 75, 0.5, 37)  -- Default position
 
--- Create a ScreenGui
-local screenGui
-local savedPosition = UDim2.new(0.5, 75, 0.5, 37)  -- Default position
-
--- Function to save the position to file
-local function savePosition()
-    if screenGui then
-        local positionData = {
-            X = savedPosition.X.Scale,
-            XOffset = savedPosition.X.Offset,
-            Y = savedPosition.Y.Scale,
-            YOffset = savedPosition.Y.Offset
-        }
-        local success, error = pcall(function()
-            writefile(SAVED_POSITION_FILE, game:GetService("HttpService"):JSONEncode(positionData))
-        end)
-        if not success then
-            warn("Failed to save position:", error)
+    -- Function to save the position to file
+    local function savePosition()
+        if screenGui then
+            local positionData = {
+                X = savedPosition.X.Scale,
+                XOffset = savedPosition.X.Offset,
+                Y = savedPosition.Y.Scale,
+                YOffset = savedPosition.Y.Offset
+            }
+            local success, errorMsg = pcall(function()
+                writefile(SAVED_POSITION_FILE, game:GetService("HttpService"):JSONEncode(positionData))
+            end)
+            if not success then
+                warn("Failed to save position:", errorMsg)
+            end
         end
     end
-end
 
--- Function to load the position from file
-local function loadPosition()
-    local positionData = nil
-    local success, data = pcall(function()
-        return readfile(SAVED_POSITION_FILE)
+    -- Function to load the position from file
+    local function loadPosition()
+        local positionData
+        local success, data = pcall(function()
+            return readfile(SAVED_POSITION_FILE)
+        end)
+        if success then
+            positionData = game:GetService("HttpService"):JSONDecode(data)
+        end
+        if positionData then
+            savedPosition = UDim2.new(positionData.X, positionData.XOffset, positionData.Y, positionData.YOffset)
+        end
+    end
+
+    -- Attempt to load the saved position
+    loadPosition()
+
+    -- Function to create or destroy the GUI based on toggle state
+    local function toggleGui(value)
+        if value then
+            -- Create the GUI
+            screenGui = Instance.new("ScreenGui")
+            screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+            -- Create the Frame
+            local frame = Instance.new("Frame")
+            frame.Size = UDim2.new(0, InputWidth.Value, 0, InputHeight.Value)  -- Adjusted size
+            frame.Position = savedPosition
+            frame.AnchorPoint = Vector2.new(0.5, 0.5)
+            frame.BackgroundColor3 = TColorpicker.Value  -- Adjusted color
+            frame.Parent = screenGui
+            frame.BackgroundTransparency = TColorpicker.Transparency
+
+            -- Add UICorner to Frame
+            local uiCornerFrame = Instance.new("UICorner")
+            uiCornerFrame.CornerRadius = UDim.new(0, 15)
+            uiCornerFrame.Parent = frame
+
+            -- Create the Button
+            local button = Instance.new("TextButton")
+            button.Size = UDim2.new(0, 80, 0, 40)
+            button.Position = UDim2.new(0.5, 0, 0.5, 0)
+            button.AnchorPoint = Vector2.new(0.5, 0.5)
+            button.BackgroundTransparency = 1
+            button.Text = buttonTitle
+            button.TextSize =  InputTSize.Value
+            button.TextColor3 = Color3.new(1, 1, 1)
+            button.Parent = frame
+
+            -- Function to handle the button click event
+            button.MouseButton1Click:Connect(buttonAction)
+
+            -- Function to handle GUI drag
+            local dragging
+            local dragStart, startPos
+
+            local function update(input)
+                local delta = input.Position - dragStart
+                frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+                savedPosition = frame.Position
+            end
+
+            frame.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    dragging = true
+                    dragStart = input.Position
+                    startPos = frame.Position
+
+                    input.Changed:Connect(function()
+                        if input.UserInputState == Enum.UserInputState.End then
+                            dragging = false
+                            savePosition()
+                        end
+                    end)
+                end
+            end)
+
+            game:GetService("UserInputService").InputChanged:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseMovement and dragging then
+                    update(input)
+                end
+            end)
+
+        else
+            -- Destroy the GUI if it exists
+            if screenGui then
+                screenGui:Destroy()
+                screenGui = nil
+                savePosition()
+            end
+        end
+    end
+
+    -- Create the toggle
+    local Toggle = Tabs.Buttons:AddToggle(toggleName, { Title = buttonTitle, Default = false })
+
+    -- Connect the toggle's OnChanged event to the function
+    Toggle:OnChanged(toggleGui)
+
+    -- Ensure the GUI persists across respawns and retains its position
+    game.Players.LocalPlayer.CharacterAdded:Connect(function()
+        if Toggle.Value then
+            toggleGui(true)
+        end
     end)
-    if success then
-        positionData = game:GetService("HttpService"):JSONDecode(data)
-    end
-    if positionData then
-        savedPosition = UDim2.new(positionData.X, positionData.XOffset, positionData.Y, positionData.YOffset)
-    end
 end
 
--- Attempt to load the saved position
-loadPosition()
+-- Setup each GUI with respective actions
+setupGui("GrabGun", "Grab Gun Button", function()
+    local Player = game.Players.LocalPlayer
 
--- Function to create or destroy the GUI based on toggle state
-local function toggleGui(value)
-    if value then
-        -- Create the GUI
-        screenGui = Instance.new("ScreenGui")
-        screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+        if not IsAlive(Player) then
+            Fluent:Notify({
+                Title = "You're not alive",
+                Content = "Please wait for the new round to grab the gun.",
+                Duration = 3
+            })
+            return
+        end
 
-        -- Create the Frame
-        local frame = Instance.new("Frame")
-        frame.Size = UDim2.new(0, InputWidth.Value, 0, InputHeight.Value) -- Smaller size
-        frame.Position = savedPosition  -- Use saved position
-        frame.AnchorPoint = Vector2.new(0.5, 0.5)
-        frame.BackgroundColor3 = TColorpicker.Value
-        frame.Parent = screenGui
-        frame.BackgroundTransparency = TColorpicker.Transparency
+        if Player.Backpack:FindFirstChild("Gun") or (Player.Character and Player.Character:FindFirstChild("Gun")) then
+            Fluent:Notify({
+                Title = "You already have a gun",
+                Content = "Lollll.",
+                Duration = 3
+            })
+            return
+        end
 
-        -- Add UICorner to Frame
-        local uiCornerFrame = Instance.new("UICorner")
-        uiCornerFrame.CornerRadius = UDim.new(0, 15)
-        uiCornerFrame.Parent = frame
+        if Player.Character then
+            local gundr = workspace:FindFirstChild("GunDrop")
+            if gundr then
+                local oldpos = Player.Character.HumanoidRootPart.CFrame
+                repeat
+                    Player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(90), math.rad(0), math.rad(0))
+                    task.wait()
+                    Player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(-90), math.rad(0), math.rad(0))
+                    task.wait()
+                until not gundr:IsDescendantOf(workspace)
+                Player.Character.HumanoidRootPart.CFrame = oldpos
+                oldpos = false
+                Player.Character.Humanoid:ChangeState(1)
+                button.Text = "Grab Gun (Gotcha)"
+            else
+                Fluent:Notify({
+                    Title = "Gun not Found",
+                    Content = "Wait for the Sheriff's death to grab the gun.",
+                    Duration = 3
+                })
+            end
+        end
+end)
 
-        -- Create the Button
-        local button = Instance.new("TextButton")
-        button.Size = UDim2.new(0, 80, 0, 40) -- Smaller size
-        button.Position = UDim2.new(0.5, 0, 0.5, 0) -- Centered in the frame
-        button.AnchorPoint = Vector2.new(0.5, 0.5)
-        button.BackgroundTransparency = 1 -- Remove background color
-        button.Text = "TP Shoot Murd"
-        button.TextSize = InputTSize.Value
-        button.TextColor3 = Color3.fromRGB(255, 255, 255) -- White text color
-        button.Parent = frame
-
-        -- Function to handle the button click event
-        button.MouseButton1Click:Connect(function()
-            local Player = game.Players.LocalPlayer
+setupGui("ShootMurd", "TP Shoot Murd", function()
+    local Player = game.Players.LocalPlayer
             local humanoidRootPart = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
             if not humanoidRootPart then return end
 
@@ -3589,153 +3636,10 @@ local function toggleGui(value)
                     Duration = 3
                 })
             end
-        end)
-
-        -- Function to handle GUI drag on mobile
-        
-
-        local dragging, dragInput, dragStart, startPos
-
-        local function update(input)
-            local delta = input.Position - dragStart
-            frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-            savedPosition = frame.Position  -- Save the updated position
-        end
-
-        frame.InputBegan:Connect(function(input)
-    if not LockFrames and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
-        dragging = true
-        dragStart = input.Position
-        startPos = frame.Position
-
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                dragging = false
-                -- Save position when drag ends
-                savePosition()
-            end
-        end)
-    end
 end)
 
-frame.InputChanged:Connect(function(input)
-    if not LockFrames and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-        dragInput = input
-    end
-end)
-
-UserInputService.InputChanged:Connect(function(input)
-    if not LockFrames and input == dragInput and dragging then
-        update(input)
-    end
-end)
-
-    else
-        -- Destroy the GUI if it exists
-        if screenGui then
-            screenGui:Destroy()
-            screenGui = nil
-            savePosition()  -- Save position when GUI is closed
-        end
-    end
-end
-
--- Connect the toggle's OnChanged event to the function
-Toggle:OnChanged(toggleGui)
-
--- Set the initial state of the toggle
-Options.ShootMurd:SetValue(false)
-
--- Ensure the GUI persists across respawns and retains its position
-local Player = game.Players.LocalPlayer
-Player.CharacterAdded:Connect(function()
-    if Toggle.Value then
-        toggleGui(true)
-    end
-end)
-
-
-
--- Create the toggle
-local Toggle = Tabs.Buttons:AddToggle("StabSheriff", {Title = "TP Stab Sheriff/Hero", Default = false })
-
--- Constants for file handling
-local SAVED_POSITION_FILE = "AshbornnHub/MM2/StabSheriffButtonPos.json"
-
--- Create a ScreenGui
-local screenGui
-local savedPosition = UDim2.new(0.5, 75, 0.5, 37)  -- Default position
-
--- Function to save the position to file
-local function savePosition()
-    if screenGui then
-        local positionData = {
-            X = savedPosition.X.Scale,
-            XOffset = savedPosition.X.Offset,
-            Y = savedPosition.Y.Scale,
-            YOffset = savedPosition.Y.Offset
-        }
-        local success, error = pcall(function()
-            writefile(SAVED_POSITION_FILE, game:GetService("HttpService"):JSONEncode(positionData))
-        end)
-        if not success then
-            warn("Failed to save position:", error)
-        end
-    end
-end
-
--- Function to load the position from file
-local function loadPosition()
-    local positionData = nil
-    local success, data = pcall(function()
-        return readfile(SAVED_POSITION_FILE)
-    end)
-    if success then
-        positionData = game:GetService("HttpService"):JSONDecode(data)
-    end
-    if positionData then
-        savedPosition = UDim2.new(positionData.X, positionData.XOffset, positionData.Y, positionData.YOffset)
-    end
-end
-
--- Attempt to load the saved position
-loadPosition()
-
--- Function to create or destroy the GUI based on toggle state
-local function toggleGui(value)
-    if value then
-        -- Create the GUI
-        screenGui = Instance.new("ScreenGui")
-        screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
-
-        -- Create the Frame
-        local frame = Instance.new("Frame")
-        frame.Size = UDim2.new(0, InputWidth.Value, 0, InputHeight.Value) -- Smaller size
-        frame.Position = savedPosition  -- Use saved position
-        frame.AnchorPoint = Vector2.new(0.5, 0.5)
-        frame.BackgroundTransparency = TColorpicker.Transparency
-        frame.BackgroundColor3 = TColorpicker.Value
-        frame.Parent = screenGui
-
-        -- Add UICorner to Frame
-        local uiCornerFrame = Instance.new("UICorner")
-        uiCornerFrame.CornerRadius = UDim.new(0, 15)
-        uiCornerFrame.Parent = frame
-
-        -- Create the Button
-        local button = Instance.new("TextButton")
-        button.Size = UDim2.new(0, 80, 0, 40) -- Smaller size
-        button.Position = UDim2.new(0.5, 0, 0.5, 0) -- Centered in the frame
-        button.AnchorPoint = Vector2.new(0.5, 0.5)
-        button.BackgroundTransparency = 1 -- Remove background color
-        button.Text = "TP Stab Sheriff/Hero"
-        button.TextSize = InputTSize.Value
-        button.TextColor3 = Color3.fromRGB(255, 255, 255) -- White text color
-        button.Parent = frame
-
-        -- Function to handle the button click event
-        button.MouseButton1Click:Connect(function()
-            local Player = game.Players.LocalPlayer
+setupGui("StabSheriff", "TP Stab Sheriff/Hero", function()
+    local Player = game.Players.LocalPlayer
             local character = Player.Character
             local humanoidRootPart = character and character:FindFirstChild("HumanoidRootPart")
 
@@ -3749,15 +3653,6 @@ local function toggleGui(value)
             end
 
             local currentPosition = humanoidRootPart.Position
-
-            local function IsAlive(Player)
-                for i, v in pairs(roles) do
-                    if Player.Name == i then
-                        return not v.Killed and not v.Dead
-                    end
-                end
-                return false
-            end
 
             local function getTargetPlayer()
                 if Sheriff and IsAlive(game.Players[Sheriff]) then
@@ -3816,12 +3711,16 @@ local function toggleGui(value)
                         character:MoveTo(currentPosition)
                         if type(Stab) == "function" then
                             Stab()
+                        else
+                            warn("Stab function is nil or not defined")
                         end
                         firetouchinterest(humanoidRootPart, targetCharacter.HumanoidRootPart, 1)
                         firetouchinterest(humanoidRootPart, targetCharacter.HumanoidRootPart, 0)
 
                         -- Force teleport to original position
                         humanoidRootPart.CFrame = CFrame.new(currentPosition)
+                    else
+                        warn("Knife not found in character after equipping")
                     end
                 else
                     Fluent:Notify({
@@ -3837,76 +3736,20 @@ local function toggleGui(value)
                     Duration = 3
                 })
             end
-        end)
-
-        -- Function to handle GUI drag on mobile
-        
-
-        local dragging, dragInput, dragStart, startPos
-
-        local function update(input)
-            local delta = input.Position - dragStart
-            frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-            savedPosition = frame.Position  -- Save the updated position
-        end
-
-        frame.InputBegan:Connect(function(input)
-    if not LockFrames and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
-        dragging = true
-        dragStart = input.Position
-        startPos = frame.Position
-
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                dragging = false
-                -- Save position when drag ends
-                savePosition()
-            end
-        end)
-    end
+end)
+setupGui("Stabniggers", "Teleport and Kill Niggers ", function()
+print("KILL NIGGERS")
 end)
 
-frame.InputChanged:Connect(function(input)
-    if not LockFrames and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-        dragInput = input
-    end
-end)
 
-UserInputService.InputChanged:Connect(function(input)
-    if not LockFrames and input == dragInput and dragging then
-        update(input)
-    end
-end)
 
-    else
-        -- Destroy the GUI if it exists
-        if screenGui then
-            screenGui:Destroy()
-            screenGui = nil
-            savePosition()  -- Save position when GUI is closed
-        end
-    end
-end
-
--- Connect the toggle's OnChanged event to the function
-Toggle:OnChanged(toggleGui)
-
--- Set the initial state of the toggle
-Options.StabSheriff:SetValue(false)
-
--- Ensure the GUI persists across respawns and retains its position
-local Player = game.Players.LocalPlayer
-Player.CharacterAdded:Connect(function()
-    if Toggle.Value then
-        toggleGui(true)
-    end
-end)
 
 
 local SheriffHacks = Tabs.Buttons:AddSection("Speed Hacks")
 
 local Player = game.Players.LocalPlayer
-local hb = RunService.Heartbeat
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 local normalWalkSpeed = 16
 local tpWalkSpeed = 3  -- Initial speed value
 local tpwalking = false
@@ -3934,7 +3777,7 @@ Slider:SetValue(tpWalkSpeed)
 local filePath = "AshbornnHub/MM2/HoldSpeedPos.json"
 
 -- Function to read JSON from a file
-function readJsonFile(filePath)
+local function readJsonFile(filePath)
     if isfile(filePath) then
         local content = readfile(filePath)
         return game:GetService("HttpService"):JSONDecode(content)
@@ -3943,7 +3786,7 @@ function readJsonFile(filePath)
 end
 
 -- Function to write JSON to a file
-function writeJsonFile(filePath, data)
+local function writeJsonFile(filePath, data)
     local json = game:GetService("HttpService"):JSONEncode(data)
     writefile(filePath, json)
 end
@@ -3960,7 +3803,7 @@ end
 local screenGui
 
 -- Function to create or destroy the GUI based on toggle state
-local function toggleGui(value)
+function toggleGuiG(value)
     if value then
         -- Create the GUI
         screenGui = Instance.new("ScreenGui")
@@ -3992,12 +3835,12 @@ local function toggleGui(value)
         button.Parent = frame
 
         -- Teleport walk function
-        function startTpWalk()
+        local function startTpWalk()
             tpwalking = true
             local chr = Player.Character
             local hum = chr and chr:FindFirstChildWhichIsA("Humanoid")
             while tpwalking and chr and hum and hum.Parent do
-                local delta = hb:Wait()
+                local delta = RunService.Heartbeat:Wait()
                 if hum.MoveDirection.Magnitude > 0 then
                     chr:TranslateBy(hum.MoveDirection * tpWalkSpeed * delta * 10)
                 end
@@ -4005,7 +3848,7 @@ local function toggleGui(value)
         end
 
         -- Stop teleport walk function
-        function stopTpWalk()
+        local function stopTpWalk()
             tpwalking = false
         end
 
@@ -4021,12 +3864,9 @@ local function toggleGui(value)
         end)
 
         -- Function to handle GUI drag on mobile
-        local dragging
-        local dragInput
-        local dragStart
-        local startPos
+        local dragging, dragInput, dragStart, startPos
 
-        local function update(input)
+        local function updateG(input)
             local delta = input.Position - dragStart
             frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
             savedPosition = frame.Position  -- Save the updated position
@@ -4042,33 +3882,30 @@ local function toggleGui(value)
         end
 
         frame.InputBegan:Connect(function(input)
-    if not LockFrames and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
-        dragging = true
-        dragStart = input.Position
-        startPos = frame.Position
+            if not LockFrames and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
+                dragging = true
+                dragStart = input.Position
+                startPos = frame.Position
 
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                dragging = false
-                -- Save position when drag ends
-                savePosition()
+                input.Changed:Connect(function()
+                    if input.UserInputState == Enum.UserInputState.End then
+                        dragging = false
+                    end
+                end)
             end
         end)
-    end
-end)
 
-frame.InputChanged:Connect(function(input)
-    if not LockFrames and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-        dragInput = input
-    end
-end)
+        frame.InputChanged:Connect(function(input)
+            if not LockFrames and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+                dragInput = input
+            end
+        end)
 
-UserInputService.InputChanged:Connect(function(input)
-    if not LockFrames and input == dragInput and dragging then
-        update(input)
-    end
-end)
-
+        UserInputService.InputChanged:Connect(function(input)
+            if not LockFrames and input == dragInput and dragging then
+                updateG(input)
+            end
+        end)
     else
         -- Destroy the GUI if it exists
         if screenGui then
@@ -4079,7 +3916,7 @@ end)
 end
 
 -- Connect the toggle's OnChanged event to the function
-Toggle:OnChanged(toggleGui)
+Toggle:OnChanged(toggleGuiG)
 
 -- Set the initial state of the toggle
 Options.HoldTpWalk:SetValue(false)
@@ -4087,10 +3924,10 @@ Options.HoldTpWalk:SetValue(false)
 -- Ensure the GUI persists across respawns and retains its position
 Player.CharacterAdded:Connect(function()
     if Toggle.Value then
-        toggleGui(true)
+        wait(1)  -- Delay to ensure the character is fully loaded
+        toggleGuiG(true)
     end
 end)
-
 
 
 
@@ -4396,10 +4233,10 @@ end)
 
     Window:SelectTab(1)
 
-    
+    SaveManager:LoadAutoloadConfig()
     -- You can use the SaveManager:LoadAutoloadConfig() to load a config
     -- which has been marked to be one that auto loads!
-    SaveManager:LoadAutoloadConfig()
+    
     
     
 local TimeEnd = tick()
