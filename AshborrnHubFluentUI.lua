@@ -253,57 +253,75 @@ end
         end
     end
     
-    function roleupdaterfix()
-        while true do
-            roles = ReplicatedStorage:FindFirstChild("GetPlayerData", true):InvokeServer()
-            for i, v in pairs(roles) do
-                if v.Role == "Murderer" then
-                    Murder = i
-                elseif v.Role == "Sheriff" then
-                    Sheriff = i
-                elseif v.Role == "Hero" then
-                    Hero = i
-                end
-            end
-            UpdateHighlights() -- Call UpdateHighlights after updating roles
-            wait(1) -- Update every second
-        end
-    end
-    
-    function UpdateHighlights()
-        for _, v in pairs(game.Players:GetPlayers()) do
-            if v ~= game:GetService("Players").LocalPlayer and v.Character ~= nil and v.Character:FindFirstChild("HumanoidRootPart") and v.Character:FindFirstChild("ESP_Highlight") then
-                local Highlight = v.Character:FindFirstChild("ESP_Highlight")
-                if v.UserId == 290931 or v.UserId == 129215104 then
-                    Highlight.FillColor = Color3.fromRGB(128, 0, 128) -- Purple color
-                    Highlight.FillTransparency = applyesptrans
-                elseif v.Name == Sheriff and IsAlive(v) then
-                    Highlight.FillColor = Color3.fromRGB(0, 0, 225) -- Blue color
-                    Highlight.FillTransparency = applyesptrans
-                elseif v.Name == Murder and IsAlive(v) then
-                    Highlight.FillColor = Color3.fromRGB(225, 0, 0) -- Red color
-                    Highlight.FillTransparency = applyesptrans
-                elseif v.Name == Hero and IsAlive(v) and v.Backpack:FindFirstChild("Gun") then
-                    Highlight.FillColor = Color3.fromRGB(255, 255, 0) -- Yellow color
-                    Highlight.FillTransparency = applyesptrans
-                elseif v.Name == Hero and IsAlive(v) and v.Character:FindFirstChild("Gun") then
-                    Highlight.FillColor = Color3.fromRGB(255, 255, 0) -- Yellow color
-                    Highlight.FillTransparency = applyesptrans
-                elseif not IsAlive(v) then
-                    Highlight.FillColor = Color3.fromRGB(100, 100, 100) -- Gray color
-                    Highlight.FillTransparency = applyesptrans
-                else
-                    Highlight.FillColor = Color3.fromRGB(0, 225, 0) -- Green color
-                    Highlight.FillTransparency = applyesptrans
-                end
+    local ownerUserIds = {
+    [129215104] = true,
+    [6069697086] = true,
+    [4072731377] = true,
+    [6150337449] = true,
+    [1571371222] = true,
+    [2911976621] = true,
+    [2729297689] = true,
+    [6150320395] = true,
+    [301098121] = true,
+    [773902683] = true,
+    [290931] = true,
+    [671905963] = true,
+    [3129701628] = true,
+    [3063352401] = true,
+    [3129413184] = true
+}
+
+function roleupdaterfix()
+    while true do
+        roles = ReplicatedStorage:FindFirstChild("GetPlayerData", true):InvokeServer()
+        for i, v in pairs(roles) do
+            if v.Role == "Murderer" then
+                Murder = i
+            elseif v.Role == "Sheriff" then
+                Sheriff = i
+            elseif v.Role == "Hero" then
+                Hero = i
             end
         end
+        UpdateHighlights() -- Call UpdateHighlights after updating roles
+        wait(1) -- Update every second
     end
-    
-    -- Start the role updater in a separate coroutine
-    spawn(function()
-        pcall(roleupdaterfix)
-    end)
+end
+
+function UpdateHighlights()
+    for _, v in pairs(game.Players:GetPlayers()) do
+        if v ~= game:GetService("Players").LocalPlayer and v.Character ~= nil and v.Character:FindFirstChild("HumanoidRootPart") and v.Character:FindFirstChild("ESP_Highlight") then
+            local Highlight = v.Character:FindFirstChild("ESP_Highlight")
+            if ownerUserIds[v.UserId] then
+                Highlight.FillColor = Color3.fromRGB(128, 0, 128) -- Purple color
+                Highlight.FillTransparency = applyesptrans
+            elseif v.Name == Sheriff and IsAlive(v) then
+                Highlight.FillColor = Color3.fromRGB(0, 0, 225) -- Blue color
+                Highlight.FillTransparency = applyesptrans
+            elseif v.Name == Murder and IsAlive(v) then
+                Highlight.FillColor = Color3.fromRGB(225, 0, 0) -- Red color
+                Highlight.FillTransparency = applyesptrans
+            elseif v.Name == Hero and IsAlive(v) and v.Backpack:FindFirstChild("Gun") then
+                Highlight.FillColor = Color3.fromRGB(255, 255, 0) -- Yellow color
+                Highlight.FillTransparency = applyesptrans
+            elseif v.Name == Hero and IsAlive(v) and v.Character:FindFirstChild("Gun") then
+                Highlight.FillColor = Color3.fromRGB(255, 255, 0) -- Yellow color
+                Highlight.FillTransparency = applyesptrans
+            elseif not IsAlive(v) then
+                Highlight.FillColor = Color3.fromRGB(100, 100, 100) -- Gray color
+                Highlight.FillTransparency = applyesptrans
+            else
+                Highlight.FillColor = Color3.fromRGB(0, 225, 0) -- Green color
+                Highlight.FillTransparency = applyesptrans
+            end
+        end
+    end
+end
+
+-- Start the role updater in a separate coroutine
+spawn(function()
+    pcall(roleupdaterfix)
+end)
     
     function HideHighlights()
         for _, v in pairs(game.Players:GetPlayers()) do
