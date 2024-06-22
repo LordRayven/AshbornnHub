@@ -1821,6 +1821,57 @@ Options.InfiJump:SetValue(false)  -- Ensure the initial state of the toggle is s
     game.Players.PlayerRemoving:Connect(UpdateDropdownB)
 
     Tabs.LPlayer:AddButton({
+        Title = "View Murderer",
+        Description = "Change Camera View to Murderer",
+        Callback = function()
+            local Players = game:GetService("Players")
+            local camera = workspace.Camera
+    
+            if Murder and Players:FindFirstChild(Murder) then
+                camera.CameraSubject = Players[Murder].Character:WaitForChild("Humanoid")
+            else
+                Fluent:Notify({
+                    Title = "No Valid Target",
+                    Content = "Murderer not found",
+                    Duration = 3
+                })
+            end
+        end
+    })
+    
+
+   
+
+
+-- Create the button to view the Sheriff, Hero, or GunDrop
+Tabs.LPlayer:AddButton({
+    Title = "View Sheriff/Hero",
+    Description = "Change Camera View to Sheriff, Hero, or GunDrop",
+    Callback = function()
+        local Players = game:GetService("Players")
+        local camera = workspace.Camera
+
+        local SheriffExists = Sheriff and Players:FindFirstChild(Sheriff) and IsAlive(Players[Sheriff])
+        local HeroExists = Hero and Players:FindFirstChild(Hero) and IsAlive(Players[Hero])
+        local GunDropObject = workspace:FindFirstChild("GunDrop")
+
+        if SheriffExists then
+            camera.CameraSubject = Players[Sheriff].Character:WaitForChild("Humanoid")
+        elseif HeroExists then
+            camera.CameraSubject = Players[Hero].Character:WaitForChild("Humanoid")
+        elseif GunDropObject then
+            camera.CameraSubject = GunDropObject
+        else
+            Fluent:Notify({
+                Title = "No Valid Target",
+                Content = "Sheriff, Hero, or GunDrop not found",
+                Duration = 3
+            })
+        end
+    end
+})
+
+    Tabs.LPlayer:AddButton({
         Title = "Stop Viewing",
         Description = "Stop viewing the selected Player",
         Callback = function()
