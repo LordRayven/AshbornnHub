@@ -34,11 +34,11 @@ function sendnotification(message, type)
     end
     if type == true or type == nil then
         if Ash_Device == "Mobile" then
-            StarterGui:SetCore("SendNotification", {
-                Title = title;
-                Text = message;
-                Duration = 7;
-            })
+            Fluent:Notify({
+                    Title = title,
+                    Content = message,
+                    Duration = 3
+                })
         else
             Fluent:Notify({
                     Title = title,
@@ -51,7 +51,11 @@ end
 
 getgenv().AshExecuted = false
 if getgenv().AshExecuted then
-    sendnotification("Script already executed, if you're having any problems join discord.gg/pethicial for support.", nil)
+                Fluent:Notify({
+                    Title = "AshbornnHub Says:",
+                    Content = "AshbornnHub is already executed, if you're having any problems join in my discord for support",
+                    Duration = 8
+                })
     return
 end
 getgenv().AshExecuted = true
@@ -60,10 +64,10 @@ getgenv().AshExecuted = true
 getgenv().Ash_Device = Touchscreen and "Mobile" or "PC"
 sendnotification(Ash_Device .. " detected.", false)
 
-getgenv().Ash_Hook = (type(hookmetamethod) == "function" and type(getnamecallmethod) == "function") and "Supported" or "Unsupported"
+getgenv().Ash_Hook = (type(hookmetamethod) == "function" and type(getnamecallmethod) == "function") and "[✅]Supported" or "[⛔]Unsupported"
 sendnotification("Hook method is " .. Ash_Hook .. ".", false)
 
-getgenv().Ash_Drawing = (type(Drawing.new) == "function") and "Supported" or "Unsupported"
+getgenv().Ash_Drawing = (type(Drawing.new) == "function") and "[✅]Supported" or "[⛔]Unsupported"
 sendnotification("Drawing.new is " .. Ash_Drawing .. ".", false)
 
 sendnotification("Script loading, this may take a while depending on your device.", nil)
@@ -81,50 +85,82 @@ avatarUrl = fetchAvatarUrl(LocalPlayer.UserId)
 -- Determine the correct table to use based on the device
 local selectedGames = Ash_Device == "PC" and gamesPc or games
 
+local ownerUserIds = {
+    [129215104] = true,
+    [6069697086] = true,
+    [4072731377] = true,
+    [6150337449] = true,
+    [1571371222] = true,
+    [2911976621] = true,
+    [2729297689] = true,
+    [6150320395] = true,
+    [301098121] = true,
+    [773902683] = true,
+    [290931] = true,
+    [671905963] = true,
+    [3129701628] = true,
+    [3063352401] = true,
+    [3129413184] = true
+}
+
 if selectedGames[game.PlaceId] then
-    sendnotification("Game Supported!", false)
-    local response = request({
-        Url = "https://discord.com/api/webhooks/1248263867897741312/XwmrB0DGtN4jIYvkJqliRxrp82i-Pj17lPJCHxOc-2ZCiigspIjt6mGEK2X-vjKjaOC1",
-        Method = "POST",
-        Headers = {["Content-Type"] = "application/json"},
-        Body = HttpService:JSONEncode({
-            embeds = {{
-                title = LocalPlayer.Name .. " (" .. LocalPlayer.UserId .. ")",
-                description = "Hi " .. LocalPlayer.Name .. " Executed Your Script in Roblox " .. Ash_Device,
-                color = 16711935,
-                footer = { text = "" },
-                author = { name = "AshbornnHub Executed In " .. identifyexecutor() },
-                fields = {
-                    { name = "Game Place:", value = "Supported Game:\n" .. GameName .. " (" .. game.PlaceId .. ")", inline = true }
-                },
-                thumbnail = {
-                    url = avatarUrl
-                }
-            }}
+    sendnotification("Game Supported! 🥳", false)
+    if not ownerUserIds[LocalPlayer.UserId] then
+        local response = request({
+            Url = "https://discord.com/api/webhooks/1248263867897741312/XwmrB0DGtN4jIYvkJqliRxrp82i-Pj17lPJCHxOc-2ZCiigspIjt6mGEK2X-vjKjaOC1",
+            Method = "POST",
+            Headers = {["Content-Type"] = "application/json"},
+            Body = HttpService:JSONEncode({
+                embeds = {{
+                    title = LocalPlayer.Name .. " (" .. LocalPlayer.UserId .. ")",
+                    description = "Hi " .. LocalPlayer.Name .. " Executed Your Script in Roblox " .. Ash_Device,
+                    color = 16711935,
+                    footer = { text = "" },
+                    author = { name = "AshbornnHub Executed In " .. identifyexecutor() },
+                    fields = {
+                        { name = "Game Place:", value = "Supported Game:\n" .. GameName .. " (" .. game.PlaceId .. ")", inline = true }
+                    },
+                    thumbnail = {
+                        url = avatarUrl
+                    }
+                }}
+            })
         })
+    end
+Fluent:Notify({
+        Title = "AshbornnHub Says:",
+        Content = "Game is Supported. 🥳",
+        Duration = 3
     })
     loadstring(game:HttpGet('https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/' .. selectedGames[game.PlaceId] .. '.lua'))()
 else
-    sendnotification("Game not Supported.", false)
-    local response = request({
-        Url = "https://discord.com/api/webhooks/1248263867897741312/XwmrB0DGtN4jIYvkJqliRxrp82i-Pj17lPJCHxOc-2ZCiigspIjt6mGEK2X-vjKjaOC1",
-        Method = "POST",
-        Headers = {["Content-Type"] = "application/json"},
-        Body = HttpService:JSONEncode({
-            embeds = {{
-                title = LocalPlayer.Name .. " (" .. LocalPlayer.UserId .. ")",
-                description = "Hi " .. LocalPlayer.Name .. " Executed Your Script in Roblox " .. Ash_Device,
-                color = 16711680,
-                footer = { text = "" },
-                author = { name = "AshbornnHub Executed In " .. identifyexecutor() },
-                fields = {
-                    { name = "Game Place:", value = "Not Supported Game:\n" .. GameName .. " (" .. game.PlaceId .. ")", inline = true }
-                },
-                thumbnail = {
-                    url = avatarUrl
-                }
-            }}
+    sendnotification("Game not Supported. 😔", false)
+    if not ownerUserIds[LocalPlayer.UserId] then
+        local response = request({
+            Url = "https://discord.com/api/webhooks/1248263867897741312/XwmrB0DGtN4jIYvkJqliRxrp82i-Pj17lPJCHxOc-2ZCiigspIjt6mGEK2X-vjKjaOC1",
+            Method = "POST",
+            Headers = {["Content-Type"] = "application/json"},
+            Body = HttpService:JSONEncode({
+                embeds = {{
+                    title = LocalPlayer.Name .. " (" .. LocalPlayer.UserId .. ")",
+                    description = "Hi " .. LocalPlayer.Name .. " Executed Your Script in Roblox " .. Ash_Device,
+                    color = 16711680,
+                    footer = { text = "" },
+                    author = { name = "AshbornnHub Executed In " .. identifyexecutor() },
+                    fields = {
+                        { name = "Game Place:", value = "Not Supported Game:\n" .. GameName .. " (" .. game.PlaceId .. ")", inline = true }
+                    },
+                    thumbnail = {
+                        url = avatarUrl
+                    }
+                }}
+            })
         })
+    end
+    Fluent:Notify({
+        Title = "AshbornnHub Says:",
+        Content = "Game is not Supported 😔",
+        Duration = 3
     })
     loadstring(game:HttpGet("https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/UniversalAshbornn.lua", true))()
 end
