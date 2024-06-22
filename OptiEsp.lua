@@ -20,6 +20,7 @@ local premiums = {
 
 local monarchs = {
     [129215104] = true,
+    [6135258891] = true,
     [290931] = true
 }
 
