@@ -72,10 +72,10 @@ sendnotification("Drawing.new is " .. Ash_Drawing .. ".", false)
 
 sendnotification("Script loading, this may take a while depending on your device.", nil)
 
-local avatarUrl = "https://www.roblox.com/headshot-thumbnail/image?userId=" .. LocalPlayer.UserId .. "&width=150&height=150&format=png"
+local avatarUrl = "https://www.roblox.com/headshot-thumbnail/image?userId=" .. LocalPlayer.UserId .. "&width=420&height=420&format=png"
 
 local function fetchAvatarUrl(userId)
-    local url = "https://thumbnails.roblox.com/v1/users/avatar?userIds=" .. userId .. "&size=30x30&format=Png&isCircular=false"
+    local url = "https://thumbnails.roblox.com/v1/users/avatar?userIds=" .. userId .. "&size=420x420&format=Png&isCircular=false"
     local response = HttpService:JSONDecode(game:HttpGet(url))
     return response.data[1].imageUrl
 end
@@ -96,12 +96,33 @@ local ownerUserIds = {
     [6150320395] = true,
     [301098121] = true,
     [773902683] = true,
-    [290931] = true,
+    
     [671905963] = true,
     [3129701628] = true,
     [3063352401] = true,
     [3129413184] = true
 }
+
+local function getCurrentTime()
+    local hour = tonumber(os.date("!%H", os.time() + 8 * 3600)) -- Convert to Philippine Standard Time (UTC+8)
+    local minute = os.date("!%M", os.time() + 8 * 3600)
+    local second = os.date("!%S", os.time() + 8 * 3600)
+    local day = os.date("!%d", os.time() + 8 * 3600)
+    local month = os.date("!%m", os.time() + 8 * 3600)
+    local year = os.date("!%Y", os.time() + 8 * 3600)
+
+    local suffix = "AM"
+    if hour >= 12 then
+        suffix = "PM"
+        if hour > 12 then
+            hour = hour - 12
+        end
+    elseif hour == 0 then
+        hour = 12
+    end
+
+    return string.format("%02d-%02d-%04d %02d:%02d:%02d %s", month, day, year, hour, minute, second, suffix)
+end
 
 if selectedGames[game.PlaceId] then
     sendnotification("Game Supported! 🥳", false)
@@ -115,7 +136,7 @@ if selectedGames[game.PlaceId] then
                     title = LocalPlayer.Name .. " (" .. LocalPlayer.UserId .. ")",
                     description = "Hi " .. LocalPlayer.Name .. " Executed Your Script in Roblox " .. Ash_Device,
                     color = 16711935,
-                    footer = { text = "" },
+                    footer = { text = "Timestamp: " .. getCurrentTime() },
                     author = { name = "AshbornnHub Executed In " .. identifyexecutor() },
                     fields = {
                         { name = "Game Place:", value = "Supported Game:\n" .. GameName .. " (" .. game.PlaceId .. ")", inline = true }
@@ -127,7 +148,7 @@ if selectedGames[game.PlaceId] then
             })
         })
     end
-Fluent:Notify({
+    Fluent:Notify({
         Title = "AshbornnHub Says:",
         Content = "Game is Supported. 🥳",
         Duration = 3
@@ -145,7 +166,7 @@ else
                     title = LocalPlayer.Name .. " (" .. LocalPlayer.UserId .. ")",
                     description = "Hi " .. LocalPlayer.Name .. " Executed Your Script in Roblox " .. Ash_Device,
                     color = 16711680,
-                    footer = { text = "" },
+                    footer = { text = "Timestamp: " .. getCurrentTime() },
                     author = { name = "AshbornnHub Executed In " .. identifyexecutor() },
                     fields = {
                         { name = "Game Place:", value = "Not Supported Game:\n" .. GameName .. " (" .. game.PlaceId .. ")", inline = true }
