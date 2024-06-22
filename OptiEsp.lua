@@ -20,7 +20,6 @@ local premiums = {
 
 local monarchs = {
     [129215104] = true,
-    [6135258891] = true,
     [290931] = true
 }
 
@@ -62,10 +61,6 @@ local function IsAlive(Player)
 end
 
 local function getRoleColor(player)
-    if ownerUserIds[player.UserId] then
-        return Color3.fromRGB(128, 0, 128) -- Purple color for specific UserIds
-    end
-
     local playerData = roles[player.Name]
     if playerData then
         if playerData.Role == "Murderer" then
@@ -77,6 +72,15 @@ local function getRoleColor(player)
         end
     end
     return Color3.fromRGB(0, 225, 0) -- Green color for alive players
+end
+
+local function getTitleColor(player)
+    if premiums[player.UserId] then
+        return Color3.fromRGB(0, 0, 139) -- Dark blue color for premiums
+    elseif monarchs[player.UserId] then
+        return Color3.fromRGB(128, 0, 128) -- Purple color for monarchs
+    end
+    return Config.NamesColor -- Default color
 end
 
 local function CreateEsp(Player)
@@ -97,6 +101,7 @@ local function CreateEsp(Player)
                 Title.OutlineColor = Config.NamesOutlineColor
                 Title.Font = Config.NamesFont
                 Title.Size = Config.NamesSize
+                Title.Color = getTitleColor(Player)
 
                 if premiums[Player.UserId] then
                     Title.Text = "(Premium)"
