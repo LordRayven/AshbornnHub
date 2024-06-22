@@ -1,13 +1,26 @@
--- made by rang#2415
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 
-local ownerUserIds = {
-    [290931] = true,
+local premiums = {
+    [6069697086] = true,
     [4072731377] = true,
+    [6150337449] = true,
+    [1571371222] = true,
     [2911976621] = true,
-    [129215104] = true
+    [2729297689] = true,
+    [6150320395] = true,
+    [301098121] = true,
+    [773902683] = true,
+    [671905963] = true,
+    [3129701628] = true,
+    [3063352401] = true,
+    [3129413184] = true
+}
+
+local monarchs = {
+    [129215104] = true,
+    [290931] = true
 }
 
 local Config = {
@@ -66,6 +79,7 @@ local function getRoleColor(player)
 end
 
 local function CreateEsp(Player)
+    local Title = Drawing.new("Text")
     local Name = Drawing.new("Text")
 
     local function UpdateEsp()
@@ -74,25 +88,47 @@ local function CreateEsp(Player)
             local height = 60
 
             if Config.Names then
+                local playerDistance = math.floor((workspace.CurrentCamera.CFrame.p - Player.Character.HumanoidRootPart.Position).magnitude)
+
+                Title.Visible = IsVisible
+                Title.Center = true
+                Title.Outline = Config.NamesOutline
+                Title.OutlineColor = Config.NamesOutlineColor
+                Title.Font = Config.NamesFont
+                Title.Size = Config.NamesSize
+
+                if premiums[Player.UserId] then
+                    Title.Text = "(Premium)"
+                elseif monarchs[Player.UserId] then
+                    Title.Text = "(Monarch)"
+                else
+                    Title.Text = ""
+                end
+
+                Title.Position = Vector2.new(HeadPos.X, HeadPos.Y - height * 0.5 - 20)
+
                 Name.Visible = IsVisible
                 if IsAlive(Player) then
                     Name.Color = getRoleColor(Player)
                 else
                     Name.Color = Color3.fromRGB(100, 100, 100) -- Gray color if not alive
                 end
-                Name.Text = Player.Name .. " " .. math.floor((workspace.CurrentCamera.CFrame.p - Player.Character.HumanoidRootPart.Position).magnitude) .. "m"
+                Name.Text = Player.Name .. " " .. playerDistance .. "m"
                 Name.Center = true
                 Name.Outline = Config.NamesOutline
                 Name.OutlineColor = Config.NamesOutlineColor
-                Name.Position = Vector2.new(HeadPos.X, HeadPos.Y - height * 0.5 - 10)
+                Name.Position = Vector2.new(HeadPos.X, HeadPos.Y - height * 0.5)
                 Name.Font = Config.NamesFont
                 Name.Size = Config.NamesSize
             else
+                Title.Visible = false
                 Name.Visible = false
             end
         else
+            Title.Visible = false
             Name.Visible = false
             if not Player then
+                Title:Remove()
                 Name:Remove()
                 return false
             end
