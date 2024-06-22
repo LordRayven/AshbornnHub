@@ -1706,6 +1706,55 @@ local discord = "https://discord.com/invite/nzXkxej9wa"
 
     Options.Noclip:SetValue(false)
     
+
+
+
+local Toggle = Tabs.LPlayer:AddToggle("AntiFling", {Title = "Anti Fling", Default = false })
+
+local function togglePlayerCollision(enable)
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer then
+            local playerCharacter = player.Character
+            if playerCharacter then
+                for _, part in ipairs(playerCharacter:GetDescendants()) do
+                    if part:IsA("BasePart") then
+                        part.CanCollide = not enable
+                    end
+                end
+            end
+        end
+    end
+end
+
+function enableAntiFling()
+    while Toggle.Value do
+        togglePlayerCollision(true)
+        wait()
+    end
+end
+
+function disableAntiFling()
+    togglePlayerCollision(false)
+end
+ function onCharacterAdded(character)
+    if Toggle.Value then
+        togglePlayerCollision(true)  -- Ensure anti-fling behavior on character respawn
+    end
+end
+
+Toggle:OnChanged(function(antiFling)
+    if antiFling then
+        spawn(enableAntiFling)
+    else
+        disableAntiFling()
+    end
+end)
+
+LocalPlayer.CharacterAdded:Connect(onCharacterAdded)
+if Toggle.Value and LocalPlayer.Character then
+    togglePlayerCollision(true)  -- Ensure anti-fling behavior when toggle is initially enabled
+end
+    
       -- Getting the UserInputService
 
 -- Function to enable infinite jump
@@ -1990,7 +2039,7 @@ Options.InfiJump:SetValue(false)  -- Ensure the initial state of the toggle is s
             if selectedPlayer ~= "" then
                 -- You can pass the selectedPlayer to the loaded script if needed
                 getgenv().FLINGTARGET = selectedPlayer
-                loadstring(game:HttpGet('https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/FlingScript.lua'))()
+                loadstring(game:HttpGet('https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/FlingGood.lua'))()
                 wait()
             else
                 -- Handle case when no Player is selected
@@ -2011,7 +2060,7 @@ Options.InfiJump:SetValue(false)  -- Ensure the initial state of the toggle is s
     Toggle:OnChanged(function(flingplayer)
     getgenv().FLINGTARGET = Murder
         if flingplayer then
-            loadstring(game:HttpGet('https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/FlingScript.lua'))()
+            loadstring(game:HttpGet('https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/FlingGood.lua'))()
             wait()
         else
             getgenv().flingloop = false
@@ -2026,7 +2075,7 @@ Options.InfiJump:SetValue(false)  -- Ensure the initial state of the toggle is s
     Toggle:OnChanged(function(flingplayer)
     getgenv().FLINGTARGET = Sheriff
         if flingplayer then
-            loadstring(game:HttpGet('https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/FlingScript.lua'))()
+            loadstring(game:HttpGet('https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/FlingGood.lua'))()
             wait()
         else
             getgenv().flingloop = false
