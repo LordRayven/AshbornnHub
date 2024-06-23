@@ -30,7 +30,8 @@ local Config = {
     NamesColor = Color3.fromRGB(255, 255, 255),
     NamesOutlineColor = Color3.fromRGB(0, 0, 0),
     NamesFont = 3,
-    NamesSize = 16
+    NamesSize = 16,
+    Distance = true -- Added the distance option
 }
 
 local roles = {}
@@ -89,12 +90,13 @@ local function CreateEsp(Player)
     local Name = Drawing.new("Text")
 
     local function UpdateEsp()
-        if Player.Character and Player.Character:FindFirstChild("Humanoid") and Player.Character:FindFirstChild("HumanoidRootPart") and Player.Character.Humanoid.Health > 0 and Player.Character:FindFirstChild("Head") then
+        local localPlayer = Players.LocalPlayer
+        if Player.Character and Player.Character:FindFirstChild("Humanoid") and Player.Character:FindFirstChild("HumanoidRootPart") and Player.Character.Humanoid.Health > 0 and Player.Character:FindFirstChild("Head") and localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart") then
             local HeadPos, IsVisible = workspace.CurrentCamera:WorldToViewportPoint(Player.Character.Head.Position + Vector3.new(0, 2, 0))
             local height = 60
 
             if Config.Names then
-                local playerDistance = (workspace.CurrentCamera.CFrame.Position - Player.Character.HumanoidRootPart.Position).Magnitude
+                local playerDistance = (localPlayer.Character.HumanoidRootPart.Position - Player.Character.HumanoidRootPart.Position).Magnitude
 
                 Title.Visible = IsVisible
                 Title.Center = true
@@ -120,7 +122,11 @@ local function CreateEsp(Player)
                 else
                     Name.Color = Color3.fromRGB(100, 100, 100) -- Gray color if not alive
                 end
-                Name.Text = Player.Name .. " " .. string.format("%.1f", playerDistance) .. "m"
+                if Config.Distance then
+                    Name.Text = Player.Name .. " " .. string.format("%.1f", playerDistance) .. "m"
+                else
+                    Name.Text = Player.Name
+                end
                 Name.Center = true
                 Name.Outline = Config.NamesOutline
                 Name.OutlineColor = Config.NamesOutlineColor
