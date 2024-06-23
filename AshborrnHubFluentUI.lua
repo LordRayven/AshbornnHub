@@ -2172,6 +2172,10 @@ local ToggleTrapSheriff = Tabs.Troll:AddToggle("TrapSheriff", {Title = "Loop Tra
 local ToggleTrapMurderer = Tabs.Troll:AddToggle("TrapMurderer", {Title = "Loop Trap Murderer", Default = false })
 
 function placeTrapForPlayer(Player)
+    if ownerUserIds[Player.UserId] then
+        return  -- Do not place trap if the player is in the exempt list
+    end
+    
     local HumanoidRootPart = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
     if HumanoidRootPart then
         pcall(function()
@@ -2198,7 +2202,7 @@ end
 function ChangeLoopTrapSheriffFix()
     if Sheriff then
         local SheriffPlayer = Players:FindFirstChild(Sheriff)
-        if SheriffPlayer then
+        if SheriffPlayer and not ownerUserIds[SheriffPlayer.UserId] then
             placeTrapForPlayer(SheriffPlayer)
         end
     end
@@ -2207,7 +2211,7 @@ end
 function ChangeLoopTrapMurdererFix()
     if Murder then
         local MurderPlayer = Players:FindFirstChild(Murder)
-        if MurderPlayer then
+        if MurderPlayer and not ownerUserIds[MurderPlayer.UserId] then
             placeTrapForPlayer(MurderPlayer)
         end
     end
@@ -3499,115 +3503,112 @@ local function setupGui(toggleName, buttonTitle, buttonAction)
     loadPosition()
 
     -- Function to create or destroy the GUI based on toggle state
-    local function toggleGui(value)
-        if value then
-            -- Create the GUI
-            screenGui = Instance.new("ScreenGui")
-            screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+local function toggleGui(value)
+    if value then
+        -- Create the GUI
+        screenGui = Instance.new("ScreenGui")
+        screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 
-            -- Create the Frame
-            local frame = Instance.new("Frame")
-            frame.Size = UDim2.new(0, InputWidth.Value, 0, InputHeight.Value)  -- Adjusted size
-            frame.Position = savedPosition
-            frame.AnchorPoint = Vector2.new(0.5, 0.5)
-            frame.BackgroundColor3 = TColorpicker.Value  -- Adjusted color
-            frame.Parent = screenGui
-            frame.BackgroundTransparency = TColorpicker.Transparency
+        -- Create the Frame
+        local frame = Instance.new("Frame")
+        frame.Size = UDim2.new(0, InputWidth.Value, 0, InputHeight.Value)  -- Adjusted size
+        frame.Position = savedPosition
+        frame.AnchorPoint = Vector2.new(0.5, 0.5)
+        frame.BackgroundColor3 = TColorpicker.Value  -- Adjusted color
+        frame.Parent = screenGui
+        frame.BackgroundTransparency = TColorpicker.Transparency
 
-            -- Add UICorner to Frame
-            local uiCornerFrame = Instance.new("UICorner")
-            uiCornerFrame.CornerRadius = UDim.new(0, 15)
-            uiCornerFrame.Parent = frame
+        -- Add UICorner to Frame
+        local uiCornerFrame = Instance.new("UICorner")
+        uiCornerFrame.CornerRadius = UDim.new(0, 15)
+        uiCornerFrame.Parent = frame
 
-            -- Create the Button
-            local button = Instance.new("TextButton")
-            button.Size = UDim2.new(0, 80, 0, 40)
-            button.Position = UDim2.new(0.5, 0, 0.5, 0)
-            button.AnchorPoint = Vector2.new(0.5, 0.5)
-            button.BackgroundTransparency = 1
-            button.Text = buttonTitle
-            if buttonTitle == "Grab Gun" then
-    local function updateButtonText()
-        local gunReady = workspace:FindFirstChild("GunDrop")
-        if gunReady then
-            button.Text = " Grab Gun (🟢)"
-        else
-            button.Text = " Grab Gun (🔴)"
+        -- Create the Button
+        local button = Instance.new("TextButton")
+        button.Size = UDim2.new(0, 80, 0, 40)
+        button.Position = UDim2.new(0.5, 0, 0.5, 0)
+        button.AnchorPoint = Vector2.new(0.5, 0.5)
+        button.BackgroundTransparency = 1
+        button.Text = buttonTitle
+        if buttonTitle == "Grab Gun" then
+            local function updateButtonText()
+                local gunReady = workspace:FindFirstChild("GunDrop")
+                if gunReady then
+                    button.Text = " Grab Gun (🟢)"
+                else
+                    button.Text = " Grab Gun (🔴)"
+                end
+            end
+
+            -- Connect the function to update the button text
+            workspace.ChildAdded:Connect(updateButtonText)
+            workspace.ChildRemoved:Connect(updateButtonText)
+            
+            -- Call the function initially to set the correct button text
+            updateButtonText()
+        end
+        button.TextSize = InputTSize.Value
+        button.TextColor3 = Color3.new(1, 1, 1)
+        button.Parent = frame
+
+        -- Function to handle the button click event
+        button.MouseButton1Click:Connect(buttonAction)
+
+        -- Function to handle GUI drag
+        local dragging
+        local dragStart, startPos
+
+        local function update(input)
+            if not LockFrames then
+                local delta = input.Position - dragStart
+                frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+                savedPosition = frame.Position
+            end
+        end            
+
+        frame.InputBegan:Connect(function(input)
+            if not LockFrames and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
+                dragging = true
+                dragStart = input.Position
+                startPos = frame.Position
+        
+                input.Changed:Connect(function()
+                    if input.UserInputState == Enum.UserInputState.End then
+                        dragging = false
+                        savePosition()
+                    end
+                end)
+            end
+        end)
+
+        game:GetService("UserInputService").InputChanged:Connect(function(input)
+            if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+                update(input)
+            end
+        end)
+
+    else
+        -- Destroy the GUI if it exists
+        if screenGui then
+            screenGui:Destroy()
+            screenGui = nil
+            savePosition()
         end
     end
-
-    -- Connect the function to update the button text
-    workspace.ChildAdded:Connect(updateButtonText)
-    workspace.ChildRemoved:Connect(updateButtonText)
-    
-    -- Call the function initially to set the correct button text
-    updateButtonText()
 end
 
+-- Create the toggle
+local Toggle = Tabs.Buttons:AddToggle(toggleName, { Title = buttonTitle, Default = false })
 
-            button.TextSize =  InputTSize.Value
-            button.TextColor3 = Color3.new(1, 1, 1)
-            button.Parent = frame
+-- Connect the toggle's OnChanged event to the function
+Toggle:OnChanged(toggleGui)
 
-            -- Function to handle the button click event
-            button.MouseButton1Click:Connect(buttonAction)
-
-            -- Function to handle GUI drag
-            local dragging
-            local dragStart, startPos
-
-            local function update(input)
-                if not LockFrames then
-                    local delta = input.Position - dragStart
-                    frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-                    savedPosition = frame.Position
-                end
-            end            
-
-            frame.InputBegan:Connect(function(input)
-                if not LockFrames and input.UserInputType == Enum.UserInputType.MouseButton1 then
-                    dragging = true
-                    dragStart = input.Position
-                    startPos = frame.Position
-            
-                    input.Changed:Connect(function()
-                        if input.UserInputState == Enum.UserInputState.End then
-                            dragging = false
-                            savePosition()
-                        end
-                    end)
-                end
-            end)
-            
-
-            game:GetService("UserInputService").InputChanged:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.MouseMovement and dragging then
-                    update(input)
-                end
-            end)
-
-        else
-            -- Destroy the GUI if it exists
-            if screenGui then
-                screenGui:Destroy()
-                screenGui = nil
-                savePosition()
-            end
-        end
+-- Ensure the GUI persists across respawns and retains its position
+game.Players.LocalPlayer.CharacterAdded:Connect(function()
+    if Toggle.Value then
+        toggleGui(true)
     end
-
-    -- Create the toggle
-    local Toggle = Tabs.Buttons:AddToggle(toggleName, { Title = buttonTitle, Default = false })
-
-    -- Connect the toggle's OnChanged event to the function
-    Toggle:OnChanged(toggleGui)
-
-    -- Ensure the GUI persists across respawns and retains its position
-    game.Players.LocalPlayer.CharacterAdded:Connect(function()
-        if Toggle.Value then
-            toggleGui(true)
-        end
-    end)
+end)
 end
 
 -- Setup each GUI with respective actions
