@@ -31,7 +31,7 @@ local Config = {
     NamesOutlineColor = Color3.fromRGB(0, 0, 0),
     NamesFont = 3,
     NamesSize = 16,
-    Distance = true -- Added the distance option
+    Distance = true -- Option to display distance
 }
 
 local roles = {}
@@ -96,7 +96,7 @@ local function CreateEsp(Player)
             local height = 60
 
             if Config.Names then
-                local playerDistance = (localPlayer.Character.HumanoidRootPart.Position - Player.Character.HumanoidRootPart.Position).Magnitude
+                local playerDistance = Config.Distance and (localPlayer.Character.HumanoidRootPart.Position - Player.Character.HumanoidRootPart.Position).Magnitude or nil
 
                 Title.Visible = IsVisible
                 Title.Center = true
@@ -122,11 +122,7 @@ local function CreateEsp(Player)
                 else
                     Name.Color = Color3.fromRGB(100, 100, 100) -- Gray color if not alive
                 end
-                if Config.Distance then
-                    Name.Text = Player.Name .. " " .. string.format("%.1f", playerDistance) .. "m"
-                else
-                    Name.Text = Player.Name
-                end
+                Name.Text = Config.Distance and Player.Name .. " " .. string.format("%.1f", playerDistance) .. "m" or Player.Name
                 Name.Center = true
                 Name.Outline = Config.NamesOutline
                 Name.OutlineColor = Config.NamesOutlineColor
