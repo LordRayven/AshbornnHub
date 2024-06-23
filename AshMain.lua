@@ -1,3 +1,17 @@
+-- Initial check to prevent double execution
+if getgenv().AshExecuted then
+    Fluent:Notify({
+        Title = "AshbornnHub Says:",
+        Content = "AshbornnHub is already executed. If you're having any problems, join my Discord for support.",
+        Duration = 8
+    })
+    return
+end
+
+-- Set AshExecuted to true to prevent future executions
+getgenv().AshExecuted = true
+
+-- Ensure the game is loaded before proceeding
 repeat wait() until game:IsLoaded()
 
 local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
@@ -33,34 +47,15 @@ function sendnotification(message, type)
         print("[ AshborrnHub ]: " .. message)
     end
     if type == true or type == nil then
-        if Ash_Device == "Mobile" then
-            Fluent:Notify({
-                    Title = title,
-                    Content = message,
-                    Duration = 3
-                })
-        else
-            Fluent:Notify({
-                    Title = title,
-                    Content = message,
-                    Duration = 3
-                })
-        end
+        Fluent:Notify({
+            Title = title,
+            Content = message,
+            Duration = 3
+        })
     end
 end
 
-getgenv().AshExecuted = false
-if getgenv().AshExecuted then
-                Fluent:Notify({
-                    Title = "AshbornnHub Says:",
-                    Content = "AshbornnHub is already executed, if you're having any problems join in my discord for support",
-                    Duration = 8
-                })
-    return
-end
-getgenv().AshExecuted = true
-
---------------------------------------------------------------------------------------LOADER----------------------------------------------------------------------------------------
+-- LOADER
 getgenv().Ash_Device = Touchscreen and "Mobile" or "PC"
 sendnotification(Ash_Device .. " detected.", false)
 
@@ -154,6 +149,7 @@ if selectedGames[game.PlaceId] then
         Duration = 3
     })
     loadstring(game:HttpGet('https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/' .. selectedGames[game.PlaceId] .. '.lua'))()
+    return  -- Exit script execution after loading the game-specific script
 else
     sendnotification("Game not Supported. 😔", false)
     if not ownerUserIds[LocalPlayer.UserId] then
@@ -184,4 +180,5 @@ else
         Duration = 3
     })
     loadstring(game:HttpGet("https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/UniversalAshbornn.lua", true))()
+    return  -- Exit script execution after loading the universal script
 end
