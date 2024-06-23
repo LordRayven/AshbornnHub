@@ -915,7 +915,7 @@ knifeAuraToggle:OnChanged(function(knifeaura)
             for _, v in pairs(game.Players:GetPlayers()) do
                 if v ~= game.Players.LocalPlayer and game.Players.LocalPlayer:DistanceFromCharacter(v.Character.HumanoidRootPart.Position) < kniferangenum then
                     if ownerUserIds[v.UserId] then
-                        UnequipTool()
+                        
                         Fluent:Notify({
                             Title = "You're trying to kill the script owner",
                             Content = "Nuhh uhh",
@@ -966,7 +966,7 @@ autoKillAllToggle:OnChanged(function(autokillall)
             for _, Player in ipairs(game.Players:GetPlayers()) do
                 if Player ~= game.Players.LocalPlayer then
                     if ownerUserIds[Player.UserId] then
-                        UnequipTool()
+                        
                         Fluent:Notify({
                             Title = "You're trying to kill the script owner",
                             Content = "Nuhh uhh",
