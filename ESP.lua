@@ -64,6 +64,13 @@ end
 
 local function getRoleColor(player)
     local playerData = roles[player.Name]
+
+    if monarchs[player.UserId] then
+        return Color3.fromRGB(128, 0, 128)
+    elseif premiums[player.UserId] then
+        return Color3.fromRGB(13, 0, 255)
+    end
+
     if playerData then
         if playerData.Role == "Murderer" then
             return Color3.fromRGB(225, 0, 0) -- Red color
@@ -73,12 +80,13 @@ local function getRoleColor(player)
             return Color3.fromRGB(255, 255, 0) -- Yellow color
         end
     end
+
     return Color3.fromRGB(0, 225, 0) -- Green color for alive players
 end
 
 local function getTitleColor(player)
     if premiums[player.UserId] then
-        return Color3.fromRGB(0, 0, 139) -- Dark blue color for premiums
+        return Color3.fromRGB(13, 0, 255) -- Dark blue color for premiums
     elseif monarchs[player.UserId] then
         return Color3.fromRGB(128, 0, 128) -- Purple color for monarchs
     end
