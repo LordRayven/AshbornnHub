@@ -3,7 +3,7 @@ KeySystemUI.New({
     ApplicationName = "AshbornnHub", -- Your Key System Application Name
     Name = "AshbornnHub", -- Your Script name
     Info = "Get Key For AshbornnHub", -- Info text in the GUI, keep empty for default text.
-    DiscordInvite = "", -- Optional.
+    DiscordInvite = "https://discord.com/invite/kqV3wkQVWm", -- Optional.
     AuthType = "clientid" -- Can select verifycation with ClientId or IP ("clientid" or "ip")
 })
 repeat task.wait() until KeySystemUI.Finished() or KeySystemUI.Closed
