@@ -4,74 +4,80 @@ print("[ AshbornnHub ]: Murder Mystery 2 loading...")
 
 local TimeStart = tick()
 -- Place this LocalScript in StarterPlayerScripts
-    
-    
-    local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
-    local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
-    local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
 
-    -------------------FUNCTION-----------------------
-    applyesptrans = 0.5
-    local Players = game:GetService("Players")
-    local Workspace = game:GetService("Workspace")
-    local StarterGui = game:GetService("StarterGui")
-    local LocalPlayer = game.Players.LocalPlayer
-    local Player = game.Players.LocalPlayer
-    local HttpService = game:GetService("HttpService")
-    local ReplicatedStorage = game:GetService('ReplicatedStorage')
-    local N = game:GetService("VirtualInputManager")
-    local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
+local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
+
+-------------------FUNCTION-----------------------
+applyesptrans = 0.5
+local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
+local StarterGui = game:GetService("StarterGui")
+local LocalPlayer = game.Players.LocalPlayer
+local Player = game.Players.LocalPlayer
+local HttpService = game:GetService("HttpService")
+local ReplicatedStorage = game:GetService('ReplicatedStorage')
+local N = game:GetService("VirtualInputManager")
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
 local Humanoid = Character:WaitForChild("Humanoid")
 local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
-    local DefaultChatSystemChatEvents = ReplicatedStorage.DefaultChatSystemChatEvents
-    local SayMessageRequest = DefaultChatSystemChatEvents.SayMessageRequest
+local DefaultChatSystemChatEvents = ReplicatedStorage.DefaultChatSystemChatEvents
+local SayMessageRequest = DefaultChatSystemChatEvents.SayMessageRequest
 
-    local mt = getrawmetatable(game);
-    local old = {};
-    for i, v in next, mt do old[i] = v end;
+local mt = getrawmetatable(game);
+local old = {};
+for i, v in next, mt do old[i] = v end;
+setreadonly(mt,false)
+local defualtwalkspeed = 16
+local defualtjumppower = 50
+local defualtgravity = 196.1999969482422
+newwalkspeed = defualtwalkspeed
+newjumppower = defualtjumppower
+antiafk = true
 
-    setreadonly(mt,false)
-
-
-    local defualtwalkspeed = 16
-    local defualtjumppower = 50
-    local defualtgravity = 196.1999969482422
-    newwalkspeed = defualtwalkspeed
-    newjumppower = defualtjumppower
-    antiafk = true
-    
 local AntiFlingEnabled = false
 local playerAddedConnection = nil
 local localHeartbeatConnection = nil 
 
 local TrapSystem = ReplicatedStorage:WaitForChild("TrapSystem")
 local PlaceTrap = TrapSystem:WaitForChild("PlaceTrap")
-    
-    local ownerUserIds = {
-    [129215104] = true,
-    [6069697086] = true,
-    [4072731377] = true,
-    [6150337449] = true,
-    [1571371222] = true,
-    [2911976621] = true,
-    [2729297689] = true,
-    [6150320395] = true,
-    [301098121] = true,
-    [773902683] = true,
-    [290931] = true,
-    [671905963] = true,
-    [3129701628] = true,
-    [3063352401] = true,
-    [3129413184] = true
+
+local ownerUserIds = {
+[129215104] = true,
+[6069697086] = true,
+[4072731377] = true,
+[6150337449] = true,
+[1571371222] = true,
+[2911976621] = true,
+[2729297689] = true,
+[6150320395] = true,
+[301098121] = true,
+[773902683] = true,
+[290931] = true,
+[671905963] = true,
+[3129701628] = true,
+[3063352401] = true,
+[3129413184] = true
 
 }
 
+function SendNotif(title, content, time)
+Fluent:Notify({
+        Title = title,
+        Content = content,
+        Duration = time
+})
+end
 
-    -- Constants
-    local Services = setmetatable({}, {
+
+
+
+-- Constants
+local Services = setmetatable({}, {
         __index = function(Self, Index)
             local NewService = game:GetService(Index)
             if NewService then
@@ -79,12 +85,12 @@ local PlaceTrap = TrapSystem:WaitForChild("PlaceTrap")
             end
             return NewService
         end
-    })
+})
 
-    local LocalPlayer = Services.Players.LocalPlayer
+local LocalPlayer = Services.Players.LocalPlayer
 
-    -- Functions
-    local function CharacterAdded(Player)
+-- Functions
+local function CharacterAdded(Player)
         local Character = Player.Character or Player.CharacterAdded:Wait()
         local PrimaryPart = Character:WaitForChild("HumanoidRootPart")
 
@@ -121,19 +127,19 @@ local PlaceTrap = TrapSystem:WaitForChild("PlaceTrap")
         end
 
         Services.RunService.Heartbeat:Connect(CheckFling)
-    end
+end
 
-    local function OnPlayerAdded(Player)
+local function OnPlayerAdded(Player)
         if AntiFlingEnabled and Player ~= LocalPlayer then
             CharacterAdded(Player)
         end
-    end
+end
 
-    local function NeutralizeLocalPlayer()
-    local LastPosition = nil
-    local lastChatTime = 0
+local function NeutralizeLocalPlayer()
+local LastPosition = nil
+local lastChatTime = 0
 
-    local function CheckLocalPlayerFling()
+local function CheckLocalPlayerFling()
         pcall(function()
             local Character = LocalPlayer.Character
             if Character then
@@ -158,21 +164,21 @@ local PlaceTrap = TrapSystem:WaitForChild("PlaceTrap")
                 end
             end
         end)
-    end
-
-    return Services.RunService.Heartbeat:Connect(CheckLocalPlayerFling)
 end
-    
-    
-    function TeleportToPlayer(playerName)
+
+return Services.RunService.Heartbeat:Connect(CheckLocalPlayerFling)
+end
+
+
+function TeleportToPlayer(playerName)
         local targetPlayer = game.Players:FindFirstChild(playerName)
         if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
             local targetPosition = targetPlayer.Character.HumanoidRootPart.Position
             game.Players.LocalPlayer.Character:SetPrimaryPartCFrame(CFrame.new(targetPosition))
         end
-    end
+end
 
-    function GetOtherPlayers()
+function GetOtherPlayers()
         local players = {}
         for _, Player in ipairs(game.Players:GetPlayers()) do
             if Player ~= game.Players.LocalPlayer then
@@ -180,9 +186,9 @@ end
             end
         end
         return players
-    end
+end
 
-    function IsAlive(Player)
+function IsAlive(Player)
         for i, v in pairs(roles) do
             if Player.Name == i then
                 if not v.Killed and not v.Dead then
@@ -192,30 +198,30 @@ end
                 end
             end
         end
-    end
-    
-    
-    
+end
+
+
+
 
 function EquipTool()
-    for _,obj in next, game.Players.LocalPlayer.Backpack:GetChildren() do
+for _,obj in next, game.Players.LocalPlayer.Backpack:GetChildren() do
         if obj.Name == "Knife" then
             local equip = game.Players.LocalPlayer.Backpack.Knife
             equip.Parent = game.Players.LocalPlayer.Character
         end
-    end
+end
 end
 
 function Stab()
-    game:GetService("Players").LocalPlayer.Character.Knife.Stab:FireServer("Down")
+game:GetService("Players").LocalPlayer.Character.Knife.Stab:FireServer("Down")
 end
 
 local function TeleportToPlayer(playerName)
-    local targetPlayer = game.Players:FindFirstChild(playerName)
-    if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+local targetPlayer = game.Players:FindFirstChild(playerName)
+if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
         local targetPosition = targetPlayer.Character.HumanoidRootPart.Position
         game.Players.LocalPlayer.Character:SetPrimaryPartCFrame(CFrame.new(targetPosition))
-    end
+end
 end
 
 function IsAlive(Player)
@@ -243,7 +249,7 @@ function CreateHighlight()
 end
 
 local function roleupdaterfix()
-    while true do
+while true do
         roles = ReplicatedStorage:FindFirstChild("GetPlayerData", true):InvokeServer()
         for i, v in pairs(roles) do
             if v.Role == "Murderer" then
@@ -256,11 +262,11 @@ local function roleupdaterfix()
         end
         UpdateHighlights() -- Call UpdateHighlights after updating roles
         wait(1) -- Update every second
-    end
+end
 end
 
 function UpdateHighlights()
-    for _, v in pairs(game.Players:GetPlayers()) do
+for _, v in pairs(game.Players:GetPlayers()) do
         if v ~= game:GetService("Players").LocalPlayer and v.Character ~= nil and v.Character:FindFirstChild("HumanoidRootPart") and v.Character:FindFirstChild("ESP_Highlight") then
             local Highlight = v.Character:FindFirstChild("ESP_Highlight")
             if v.UserId == 290931 or v.UserId == 129215104 then
@@ -286,12 +292,12 @@ function UpdateHighlights()
                 Highlight.FillTransparency = applyesptrans
             end
         end
-    end
+end
 end
 
 -- Start the role updater in a separate coroutine
 spawn(function()
-    pcall(roleupdaterfix)
+pcall(roleupdaterfix)
 end)
 
 function HideHighlights()
@@ -305,42 +311,43 @@ end
 
 
 function loadesp()
-    if loadespenabled ~= true then
+if loadespenabled ~= true then
         loadespenabled = true
-        AshESP = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/OptiEsp.lua"))()
+        AshESP = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/ESP.lua"))()
         AshESP.Names = false
         AshESP.NamesOutline = false
-    end
+        AshESP.Distance = false
+end
 end
 
-    function PlayZen()
+function PlayZen()
         game.ReplicatedStorage.Remotes.Misc.PlayEmote:Fire("zen")
-    end
+end
 
-    function PlayHeadless()
+function PlayHeadless()
         game.ReplicatedStorage.Remotes.Misc.PlayEmote:Fire("headless")
-    end
+end
 
-    function PlayDab()
+function PlayDab()
         game.ReplicatedStorage.Remotes.Misc.PlayEmote:Fire("dab")
-    end
+end
 
-    function PlayFloss()
+function PlayFloss()
         game.ReplicatedStorage.Remotes.Misc.PlayEmote:Fire("floss")
-    end
+end
 
-    function PlayZombie()
+function PlayZombie()
         game.ReplicatedStorage.Remotes.Misc.PlayEmote:Fire("zombie")
-    end
+end
 
-    function PlayNinja()
+function PlayNinja()
         game.ReplicatedStorage.Remotes.PlayEmote:Fire("ninja")
-    end
+end
 
 
 
 
-    function clearbackpackguns()
+function clearbackpackguns()
         for i,v in pairs(game.Players.LocalPlayer.Backpack:GetChildren()) do
             if v.Name ~= "Emotes" then
                 if v.Name ~= "Knife" then
@@ -371,10 +378,10 @@ end
             end
         end
         task.wait()
-    end
-    -------------------------END FUNCTIONS---------------------------------
+end
+-------------------------END FUNCTIONS---------------------------------
 
-    local Window = Fluent:CreateWindow({
+local Window = Fluent:CreateWindow({
         Title = "Ashbornn Hub " .. Fluent.Version,
         SubTitle = "Murder Mystery 2",
         TabWidth = 160,
@@ -382,20 +389,11 @@ end
         Acrylic = true, -- The blur may be detectable, setting this to false disables blur entirely
         Theme = "Amethyst",
         MinimizeKey = Enum.KeyCode.LeftControl -- Used when there's no MinimizeKeybind
-    })
+})
 
-    -- Fluent provides Lucide Icons https://lucide.dev/icons/ for the tabs, icons are optional
+-- Fluent provides Lucide Icons https://lucide.dev/icons/ for the tabs, icons are optional
 
-
-
-
-
-
-
-
-
-
-    local Tabs = {
+local Tabs = {
         Main = Window:AddTab({ Title = "Main", Icon = "box" }),
         Visual = Window:AddTab({ Title = "Visual", Icon = "eye" }),
         Combat = Window:AddTab({ Title = "Combat", Icon = "swords" }),
@@ -410,13 +408,13 @@ end
         Settings = Window:AddTab({ Title = "Settings", Icon = "settings" }),
         Test = Window:AddTab({ Title = "Scroll", Icon = "settings" }),
         Test2 = Window:AddTab({ Title = "Scroll", Icon = "settings" })
-    }
+}
 
 
 
-    -------------------------EXTRAS---------------------------
+-------------------------EXTRAS---------------------------
 
-    mt.__namecall = newcclosure(function(...)
+mt.__namecall = newcclosure(function(...)
         local method = tostring(getnamecallmethod());
         local args = {...}
 
@@ -427,20 +425,20 @@ end
             return old.__namecall(unpack(args));
         end
         return old.__namecall(...)
-    end)
+end)
 
-    setreadonly(mt,true)
+setreadonly(mt,true)
 
-    getgenv().SheriffAim = false
+getgenv().SheriffAim = false
 getgenv().GunAccuracy = 3.5
 
 -- Hook to modify gun shooting behavior
 local GunHook
 GunHook = hookmetamethod(game, "__namecall", function(self, ...)
-    local method = getnamecallmethod()
-    local args = { ... }
+local method = getnamecallmethod()
+local args = { ... }
 
-    if not checkcaller() then
+if not checkcaller() then
         if typeof(self) == "Instance" then
             if self.Name == "ShootGun" and method == "InvokeServer" then
                 if getgenv().GunAccuracy and Murder and getgenv().SheriffAim then
@@ -469,9 +467,9 @@ GunHook = hookmetamethod(game, "__namecall", function(self, ...)
                 end
             end
         end
-    end
+end
 
-    return GunHook(self, unpack(args))
+return GunHook(self, unpack(args))
 end)
 
 -- Prevent the hook from being garbage collected
@@ -480,190 +478,153 @@ getgenv().GunHook = GunHook
 
 
 
-    --------------------------EXTRAS--------------------------
+--------------------------EXTRAS--------------------------
 
 
-    local Options = Fluent.Options
+local Options = Fluent.Options
 
-    do
+do
 
-    -------------------------------------------COMBAT---------------------------------------
+-------------------------------------------COMBAT---------------------------------------
 
-    local SheriffHacks = Tabs.Combat:AddSection("Sheriff Hacks")
+local SheriffHacks = Tabs.Combat:AddSection("Sheriff Hacks")
 
-    Tabs.Combat:AddButton({
-    Title = "Grab Gun v2",
-    Description = "Teleport to and grab the gun if available",
-    Callback = function()
-        local Player = game.Players.LocalPlayer
+Tabs.Combat:AddButton({
+        Title = "Grab Gun v2",
+        Description = "Teleport to and grab the gun if available",
+        Callback = function()
+            local player = game.Players.LocalPlayer
 
-        if not IsAlive(Player) then
-            Fluent:Notify({
-                Title = "You're not alive",
-                Content = "Please wait for the new round to grab the gun.",
-                Duration = 3
-            })
-            return
-        end
+            if not IsAlive(player) then
+                SendNotif("You're not alive ", "Please wait for the new round to grab the gun.", 3)
+                return
+            end
 
-        if Player.Backpack:FindFirstChild("Gun") or (Player.Character and Player.Character:FindFirstChild("Gun")) then
-            Fluent:Notify({
-                Title = "You already have a gun",
-                Content = "Lollll.",
-                Duration = 3
-            })
-            return
-        end
+            if player.Backpack:FindFirstChild("Gun") or (player.Character and player.Character:FindFirstChild("Gun")) then
+                SendNotif("You already have a gun", "Lollll.", 3)
+                return
+            end
 
-        if Player.Character then
-            local gundr = workspace:FindFirstChild("GunDrop")
-            if gundr then
-                local oldpos = Player.Character.HumanoidRootPart.CFrame
-                repeat
-                    Player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(90), math.rad(0), math.rad(0))
-                    task.wait()
-                    Player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(-90), math.rad(0), math.rad(0))
-                    task.wait()
-                until not gundr:IsDescendantOf(workspace)
-                Player.Character.HumanoidRootPart.CFrame = oldpos
-                oldpos = false
-                Player.Character.Humanoid:ChangeState(1)
-                button.Text = "Grab Gun (Gotcha)"
-            else
-                Fluent:Notify({
-                    Title = "Gun not Found",
-                    Content = "Wait for the Sheriff's death to grab the gun.",
-                    Duration = 3
-                })
+            if player.Character then
+                local gundr = workspace:FindFirstChild("GunDrop")
+                if gundr then
+                    local oldpos = player.Character.HumanoidRootPart.CFrame
+                    repeat
+                        player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(90), math.rad(0), math.rad(0))
+                        task.wait()
+                        player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(-90), math.rad(0), math.rad(0))
+                        task.wait()
+                    until not gundr:IsDescendantOf(workspace)
+                    player.Character.HumanoidRootPart.CFrame = oldpos
+                    oldpos = false
+                    player.Character.Humanoid:ChangeState(1)
+                    button.Text = "Grab Gun (Gotcha)"
+                else
+                    SendNotif("Gun not Found", "Wait for the Sheriff's death to grab the gun.", 3)
+                end
             end
         end
-    end
 })
         
 Tabs.Combat:AddButton({
-    Title = "Grab gun",
-    Description = "Tp to Gun",
-    Callback = function()
-        local Player = game.Players.LocalPlayer
-        
-        -- Check if the Player is alive
-        if not IsAlive(Player) then
-            Fluent:Notify({
-                Title = "You're not alive",
-                Content = "Please wait for the new round to grab the gun.",
-                Duration = 3
-            })
-            return
-        end
+        Title = "Grab gun",
+        Description = "Tp to Gun",
+        Callback = function()
+            local Player = game.Players.LocalPlayer
+            
+            -- Check if the Player is alive
+            if not IsAlive(Player) then
+                SendNotif("You're not alive", "Please wait for the new round to grab the gun.", 3)
+                return
+            end
 
-        local currentX = Player.Character.HumanoidRootPart.CFrame.X
-        local currentY = Player.Character.HumanoidRootPart.CFrame.Y
-        local currentZ = Player.Character.HumanoidRootPart.CFrame.Z
-        
-        if workspace:FindFirstChild("GunDrop") then
-            Player.Character.HumanoidRootPart.CFrame = workspace:FindFirstChild("GunDrop").CFrame
-            wait(0.30)
-            Player.Character.HumanoidRootPart.CFrame = CFrame.new(currentX, currentY, currentZ)
-        else
-            Fluent:Notify({
-                Title = "Gun not Found",
-                Content = "Wait for the Sheriff's death to grab the gun.",
-                Duration = 3
-            })
+            local currentX = Player.Character.HumanoidRootPart.CFrame.X
+            local currentY = Player.Character.HumanoidRootPart.CFrame.Y
+            local currentZ = Player.Character.HumanoidRootPart.CFrame.Z
+            
+            if workspace:FindFirstChild("GunDrop") then
+                Player.Character.HumanoidRootPart.CFrame = workspace:FindFirstChild("GunDrop").CFrame
+                wait(0.30)
+                Player.Character.HumanoidRootPart.CFrame = CFrame.new(currentX, currentY, currentZ)
+            else
+                SendNotif("Gun not Found", "Wait for the Sheriff's death to grab the gun.", 3)
+            end
         end
-    end
 })
-        
+       
 
         
-        local Toggle = Tabs.Combat:AddToggle("SilentAIM1", {Title = "Silent Aim to Murderer", Default = false })
+local Toggle = Tabs.Combat:AddToggle("SilentAIM1", {Title = "Silent Aim to Murderer", Default = false })
 
-    Toggle:OnChanged(function(gunsilentaim)
+Toggle:OnChanged(function(gunsilentaim)
         getgenv().SheriffAim = gunsilentaim
-    end)
+end)
 
-    Options.SilentAIM1:SetValue(false)
+Options.SilentAIM1:SetValue(false)
 
-    
 
 Tabs.Combat:AddButton({
-    Title = "Shoot Murderer",
-    Description = "Tp to Murderer and Shoot",
-    Callback = function()
-        local Player = game.Players.LocalPlayer
-        local humanoidRootPart = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
-        if not humanoidRootPart then return end
+        Title = "Shoot Murderer",
+        Description = "Tp to Murderer and Shoot",
+        Callback = function()
+            local Player = game.Players.LocalPlayer
+            local humanoidRootPart = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
+            if not humanoidRootPart then return end
 
-        local currentX = humanoidRootPart.CFrame.X
-        local currentY = humanoidRootPart.CFrame.Y
-        local currentZ = humanoidRootPart.CFrame.Z
+            local currentX = humanoidRootPart.CFrame.X
+            local currentY = humanoidRootPart.CFrame.Y
+            local currentZ = humanoidRootPart.CFrame.Z
 
-        if Murder then
-            local murdererPlayer = game.Players[Murder]
-            local murdererCharacter = murdererPlayer and murdererPlayer.Character
-            if murdererCharacter and murdererCharacter:FindFirstChild("HumanoidRootPart") then
-                -- Check if the murderer is in the owner user IDs table
-                if ownerUserIds[murdererPlayer.UserId] then
-                    Fluent:Notify({
-                        Title = "You're trying to kill the script owner",
-                        Content = "Nuhh uhh",
-                        SubContent = "Im here kid", -- Optional
-                        Duration = 3 -- Set to nil to make the notification not disappear
-                    })
-                    return
-                end
-
-                local murdererPosition = murdererCharacter.HumanoidRootPart.CFrame
-
-                -- Check if the Player has a gun in their backpack or equipped
-                local backpack = Player:FindFirstChild("Backpack")
-                local gun = backpack and (backpack:FindFirstChild("Gun") or Player.Character:FindFirstChild("Gun"))
-
-                if gun then
-                    -- Equip the gun if not already equipped
-                    if backpack:FindFirstChild("Gun") then
-                        backpack.Gun.Parent = Player.Character
+            if Murder then
+                local murdererPlayer = game.Players[Murder]
+                local murdererCharacter = murdererPlayer and murdererPlayer.Character
+                if murdererCharacter and murdererCharacter:FindFirstChild("HumanoidRootPart") then
+                    -- Check if the murderer is in the owner user IDs table
+                    if ownerUserIds[murdererPlayer.UserId] then
+                        SendNotif("You're trying to kill the script owner", "Nuhh uhh\nIm here kid", 3)
+                        return
                     end
 
-                    -- Teleport to the murderer
-                    humanoidRootPart.CFrame = murdererPosition
+                    local murdererPosition = murdererCharacter.HumanoidRootPart.CFrame
 
-                    -- Shoot the gun at the murderer's position
-                    if Player.Character:FindFirstChild("Gun") then
-                        wait(0.2)
-                        Player.Character:MoveTo(Vector3.new(currentX, currentY, currentZ))
-                        Player.Character.Gun.KnifeServer.ShootGun:InvokeServer(1, murdererCharacter.HumanoidRootPart.Position, "AH")
+                    -- Check if the Player has a gun in their backpack or equipped
+                    local backpack = Player:FindFirstChild("Backpack")
+                    local gun = backpack and (backpack:FindFirstChild("Gun") or Player.Character:FindFirstChild("Gun"))
+
+                    if gun then
+                        -- Equip the gun if not already equipped
+                        if backpack:FindFirstChild("Gun") then
+                            backpack.Gun.Parent = Player.Character
+                        end
+
+                        -- Teleport to the murderer
+                        humanoidRootPart.CFrame = murdererPosition
+
+                        -- Shoot the gun at the murderer's position
+                        if Player.Character:FindFirstChild("Gun") then
+                            wait(0.2)
+                            Player.Character:MoveTo(Vector3.new(currentX, currentY, currentZ))
+                            Player.Character.Gun.KnifeServer.ShootGun:InvokeServer(1, murdererCharacter.HumanoidRootPart.Position, "AH")
+                        end
+                    else
+                        SendNotif("You don't have a Gun", "Grab the gun or wait for Sheriff Death.", 3)
                     end
                 else
-                    Fluent:Notify({
-                        Title = "You don't have a Gun",
-                        Content = "Grab the gun or wait for Sheriff Death.",
-                        Duration = 3
-                    })
+                    SendNotif("Murderer not Found", "Murderer's character not found.", 3)
                 end
             else
-                Fluent:Notify({
-                    Title = "Murderer not Found",
-                    Content = "Murderer's character not found.",
-                    Duration = 3
-                })
+                SendNotif("Murderer not Found", "Murderer role not assigned yet.", 3)
             end
-        else
-            Fluent:Notify({
-                Title = "Murderer not Found",
-                Content = "Murderer role not assigned yet.",
-                Duration = 3
-            })
         end
-    end
 })
+
 
 local autoShootingActive = false
 local autoShootingTask = nil
 local gunNotificationShown = false -- Flag to track if the gun notification has been shown
 
 function autoShoot()
-    while autoShootingActive do
+while autoShootingActive do
         local Player = game.Players.LocalPlayer
         local characterRootPart = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
         if not characterRootPart then return end
@@ -715,11 +676,7 @@ function autoShoot()
                     else
                         -- Notify about the absence of a gun, if not already notified
                         if not gunNotificationShown then
-                            Fluent:Notify({
-                                Title = "Gun Not Found",
-                                Content = "You don't have a gun.",
-                                Duration = 3
-                            })
+                            SendNotif("Gun not Found", "You don't have a gun. ", 3)
                             gunNotificationShown = true -- Set flag to true to prevent further notifications
                         end
                     end
@@ -737,7 +694,7 @@ function autoShoot()
         
         -- Wait for the cooldown interval before checking again
         wait(2) -- Cooldown before checking the murderer's presence and line of sight again
-    end
+end
 end
 
 function onCharacterAdded(character)
@@ -756,137 +713,116 @@ Player.CharacterAdded:Connect(onCharacterAdded)
 local Toggle = Tabs.Combat:AddToggle("AutoShoot", {Title = "Auto Shoot Murderer", Default = false})
 
 Toggle:OnChanged(function()
-    autoShootingActive = Toggle.Value
-    if autoShootingActive then
+autoShootingActive = Toggle.Value
+if autoShootingActive then
         autoShootingTask = task.spawn(autoShoot)
         
-    else
+else
         autoShootingActive = false
         if autoShootingTask then
             task.cancel(autoShootingTask)
             autoShootingTask = nil
         end
         gunNotificationShown = false -- Reset the flag when auto shooting is disabled
-    end
+end
 end)
 
 -- Initialize auto shooting if the toggle is already enabled
 if Toggle.Value then
-    autoShootingActive = true
-    autoShootingTask = task.spawn(autoShoot)
+autoShootingActive = true
+autoShootingTask = task.spawn(autoShoot)
 end
 
 -- Ensure auto-shoot starts if the character is already loaded
 if Player.Character then
-    onCharacterAdded(Player.Character)
+onCharacterAdded(Player.Character)
 end
         
         local MurderHacks = Tabs.Combat:AddSection("Murderer Hacks")
        
-Tabs.Combat:AddButton({
-    Title = "Kill Sheriff or Hero (Stab)",
-    Description = "Tp to Sheriff or Hero and Stab",
-    Callback = function()
-        local Player = game.Players.LocalPlayer
-        local character = Player.Character
-        local humanoidRootPart = character and character:FindFirstChild("HumanoidRootPart")
-
-        if not humanoidRootPart then
-            Fluent:Notify({
-                Title = "Error",
-                Content = "HumanoidRootPart not found.",
-                Duration = 3
-            })
-            return
-        end
-
-        local currentPosition = humanoidRootPart.Position
-
-        function getTargetPlayer()
-            if Sheriff and IsAlive(game.Players[Sheriff]) then
-                return game.Players[Sheriff]
-            elseif Hero and IsAlive(game.Players[Hero]) then
-                return game.Players[Hero]
-            else
-                for _, p in pairs(game.Players:GetPlayers()) do
-                    if p.Backpack:FindFirstChild("Gun") and IsAlive(p) then
-                        return p
+        Tabs.Combat:AddButton({
+            Title = "Kill Sheriff or Hero (Stab)",
+            Description = "Tp to Sheriff or Hero and Stab",
+            Callback = function()
+                local Player = game.Players.LocalPlayer
+                local character = Player.Character
+                local humanoidRootPart = character and character:FindFirstChild("HumanoidRootPart")
+        
+                if not humanoidRootPart then
+                    SendNotif("Error", "HumanoidRootPart not found.", 3)
+                    return
+                end
+        
+                local currentPosition = humanoidRootPart.Position
+        
+                function getTargetPlayer()
+                    if Sheriff and IsAlive(game.Players[Sheriff]) then
+                        return game.Players[Sheriff]
+                    elseif Hero and IsAlive(game.Players[Hero]) then
+                        return game.Players[Hero]
+                    else
+                        for _, p in pairs(game.Players:GetPlayers()) do
+                            if p.Backpack:FindFirstChild("Gun") and IsAlive(p) then
+                                return p
+                            end
+                        end
                     end
+                    return nil
                 end
-            end
-            return nil
-        end
-
-        -- Check if the Player has a knife
-        local backpack = Player.Backpack
-        if not (backpack:FindFirstChild("Knife") or character:FindFirstChild("Knife")) then
-            Fluent:Notify({
-                Title = "You are not Murderer",
-                Content = "Bruh this will not work if you're not Murderer",
-                Duration = 3
-            })
-            return
-        end
-
-        local targetPlayer = getTargetPlayer()
-
-        if targetPlayer then
-            -- Check if the target Player is in the owner user IDs table
-            if ownerUserIds[targetPlayer.UserId] then
-                Fluent:Notify({
-                    Title = "You're trying to kill the script owner",
-                    Content = "Nuhh uhh",
-                    SubContent = "Im here kid", -- Optional
-                    Duration = 3 -- Set to nil to make the notification not disappear
-                })
-                return
-            end
-
-            local targetCharacter = targetPlayer.Character
-            if targetCharacter and targetCharacter:FindFirstChild("HumanoidRootPart") then
-                local targetPosition = targetCharacter.HumanoidRootPart.Position
-
-                -- Equip the knife if not already equipped
-                if backpack:FindFirstChild("Knife") then
-                    backpack.Knife.Parent = character
+        
+                -- Check if the Player has a knife
+                local backpack = Player.Backpack
+                if not (backpack:FindFirstChild("Knife") or character:FindFirstChild("Knife")) then
+                    SendNotif("You are not Murderer", "Bruh this will not work if you're not Murderer", 3)
+                    return
                 end
-
-                humanoidRootPart.CFrame = CFrame.new(targetPosition)
-
-                -- Stab the target
-                if character:FindFirstChild("Knife") then
-                    wait(0.2)
-                    character:MoveTo(currentPosition)
-                    if type(Stab) == "function" then
-                        Stab()
+        
+                local targetPlayer = getTargetPlayer()
+        
+                if targetPlayer then
+                    -- Check if the target Player is in the owner user IDs table
+                    if ownerUserIds[targetPlayer.UserId] then
+                        SendNotif("You're trying to kill the script owner", "Nuhh uhh\nIm here kid", 3)
+                        return
                     end
-                    firetouchinterest(humanoidRootPart, targetCharacter.HumanoidRootPart, 1)
-                    firetouchinterest(humanoidRootPart, targetCharacter.HumanoidRootPart, 0)
-
-                    -- Force teleport to original position
-                    humanoidRootPart.CFrame = CFrame.new(currentPosition)
+        
+                    local targetCharacter = targetPlayer.Character
+                    if targetCharacter and targetCharacter:FindFirstChild("HumanoidRootPart") then
+                        local targetPosition = targetCharacter.HumanoidRootPart.Position
+        
+                        -- Equip the knife if not already equipped
+                        if backpack:FindFirstChild("Knife") then
+                            backpack.Knife.Parent = character
+                        end
+        
+                        humanoidRootPart.CFrame = CFrame.new(targetPosition)
+        
+                        -- Stab the target
+                        if character:FindFirstChild("Knife") then
+                            wait(0.2)
+                            character:MoveTo(currentPosition)
+                            if type(Stab) == "function" then
+                                Stab()
+                            end
+                            firetouchinterest(humanoidRootPart, targetCharacter.HumanoidRootPart, 1)
+                            firetouchinterest(humanoidRootPart, targetCharacter.HumanoidRootPart, 0)
+        
+                            -- Force teleport to original position
+                            humanoidRootPart.CFrame = CFrame.new(currentPosition)
+                        end
+                    else
+                        SendNotif("Target not Found", "Target character not found.", 3)
+                    end
+                else
+                    SendNotif("Character not Found", "No suitable target found.", 3)
                 end
-            else
-                Fluent:Notify({
-                    Title = "Target not Found",
-                    Content = "Target character not found.",
-                    Duration = 3
-                })
             end
-        else
-            Fluent:Notify({
-                Title = "Character not Found",
-                Content = "No suitable target found.",
-                Duration = 3
-            })
-        end
-    end
-})
+        })        
 
-    local kniferangenum = 20
+local kniferangenum = 20
 
-    -- Slider Definition
-    local Slider = Tabs.Combat:AddSlider("SLIDER", {
+-- Slider Definition
+local Slider = Tabs.Combat:AddSlider("SLIDER", {
         Title = "Knife Range",
         Description = "Adjust the range of the knife (Turn on Kill Aura) ",
         Default = 20,
@@ -896,110 +832,100 @@ Tabs.Combat:AddButton({
         Callback = function(Value)
             kniferangenum = tonumber(Value)
         end
-    })
+})
 
-    Slider:OnChanged(function(Value)
+Slider:OnChanged(function(Value)
         kniferangenum = tonumber(Value)
-    end)
+end)
 
-    Slider:SetValue(20)
+Slider:SetValue(20)
 
-    
+
 
 local knifeAuraToggle = Tabs.Combat:AddToggle("KnifeAura", {Title = "Knife Aura", Default = false})
 
 knifeAuraToggle:OnChanged(function(knifeaura)
-    knifeauraloop = knifeaura
-    while knifeauraloop do
-        function knifeAuraLoopFunction()
-            for _, v in pairs(game.Players:GetPlayers()) do
-                if v ~= game.Players.LocalPlayer and game.Players.LocalPlayer:DistanceFromCharacter(v.Character.HumanoidRootPart.Position) < kniferangenum then
-                    if ownerUserIds[v.UserId] then
-                        
-                        Fluent:Notify({
-                            Title = "You're trying to kill the script owner",
-                            Content = "Nuhh uhh",
-                            SubContent = "Im here kid", -- Optional
-                            Duration = 3 -- Set to nil to make the notification not disappear
-                        })
-                    else
-                        EquipTool()
-                        wait()
-                        local localCharacter = game.Players.LocalPlayer.Character
-                        local knife = localCharacter and localCharacter:FindFirstChild("Knife")
-                        if not knife then return end
-                        wait()
-                        local playerCharacter = v.Character
-                        local humanoidRootPart = playerCharacter and playerCharacter:FindFirstChild("HumanoidRootPart")
+        knifeauraloop = knifeaura
+        while knifeauraloop do
+            function knifeAuraLoopFunction()
+                for _, v in pairs(game.Players:GetPlayers()) do
+                    if v ~= game.Players.LocalPlayer and game.Players.LocalPlayer:DistanceFromCharacter(v.Character.HumanoidRootPart.Position) < kniferangenum then
+                        if ownerUserIds[v.UserId] then
+                            SendNotif("You're trying to kill the script owner", "Nuhh uhh\nIm here kid", 3)
+                        else
+                            EquipTool()
+                            wait()
+                            local localCharacter = game.Players.LocalPlayer.Character
+                            local knife = localCharacter and localCharacter:FindFirstChild("Knife")
+                            if not knife then return end
+                            wait()
+                            local playerCharacter = v.Character
+                            local humanoidRootPart = playerCharacter and playerCharacter:FindFirstChild("HumanoidRootPart")
 
-                        if humanoidRootPart then
-                            Stab()
-                            firetouchinterest(humanoidRootPart, knife.Handle, 1)
-                            firetouchinterest(humanoidRootPart, knife.Handle, 0)
+                            if humanoidRootPart then
+                                Stab()
+                                firetouchinterest(humanoidRootPart, knife.Handle, 1)
+                                firetouchinterest(humanoidRootPart, knife.Handle, 0)
+                            end
                         end
                     end
                 end
             end
+            wait()
+            pcall(knifeAuraLoopFunction)
         end
-        wait()
-        pcall(knifeAuraLoopFunction)
-    end
 end)
 
-    Options.KnifeAura:SetValue(false)
+Options.KnifeAura:SetValue(false)
 
-    -- Knife Aura Toggle Definition
-    
+
+-- Knife Aura Toggle Definition
+
 
 local autoKillAllToggle = Tabs.Combat:AddToggle("AutoKillAll", {Title = "Auto Kill All", Default = false})
 
 autoKillAllToggle:OnChanged(function(autokillall)
-    autokillallloop = autokillall
-    while autokillallloop do
-        function autoKillAllLoopFunction()
-            EquipTool()
-            wait()
-            local localCharacter = game.Players.LocalPlayer.Character
-            local knife = localCharacter and localCharacter:FindFirstChild("Knife")
-            if not knife then return end
-            wait()
-            for _, Player in ipairs(game.Players:GetPlayers()) do
-                if Player ~= game.Players.LocalPlayer then
-                    if ownerUserIds[Player.UserId] then
-                        
-                        Fluent:Notify({
-                            Title = "You're trying to kill the script owner",
-                            Content = "Nuhh uhh",
-                            SubContent = "Im here kid", -- Optional
-                            Duration = 3 -- Set to nil to make the notification not disappear
-                        })
-                    else
-                        local playerCharacter = Player.Character
-                        local humanoidRootPart = playerCharacter and playerCharacter:FindFirstChild("HumanoidRootPart")
-                        
-                        if humanoidRootPart then
-                            Stab()
-                            firetouchinterest(humanoidRootPart, knife.Handle, 1)
-                            firetouchinterest(humanoidRootPart, knife.Handle, 0)
+        autokillallloop = autokillall
+        while autokillallloop do
+            function autoKillAllLoopFunction()
+                EquipTool()
+                wait()
+                local localCharacter = game.Players.LocalPlayer.Character
+                local knife = localCharacter and localCharacter:FindFirstChild("Knife")
+                if not knife then return end
+                wait()
+                for _, Player in ipairs(game.Players:GetPlayers()) do
+                    if Player ~= game.Players.LocalPlayer then
+                        if ownerUserIds[Player.UserId] then
+                            SendNotif("You're trying to kill the script owner", "Nuhh uhh\nIm here kid", 3)
+                        else
+                            local playerCharacter = Player.Character
+                            local humanoidRootPart = playerCharacter and playerCharacter:FindFirstChild("HumanoidRootPart")
+                            
+                            if humanoidRootPart then
+                                Stab()
+                                firetouchinterest(humanoidRootPart, knife.Handle, 1)
+                                firetouchinterest(humanoidRootPart, knife.Handle, 0)
+                            end
                         end
                     end
                 end
+                wait()
             end
             wait()
+            pcall(autoKillAllLoopFunction)
         end
-        wait()
-        pcall(autoKillAllLoopFunction)
-    end
 end)
 
-    Options.AutoKillAll:SetValue(false)
-    
+Options.AutoKillAll:SetValue(false)
 
 
 
 
 
-    Tabs.Combat:AddParagraph({
+
+
+Tabs.Combat:AddParagraph({
             Title = "This is for Scrolling",
             Content = "For scrolling only"
         })
@@ -1007,7 +933,7 @@ end)
             Title = "This is for Scrolling",
             Content = "For scrolling only"
         })
-    Tabs.Combat:AddParagraph({
+Tabs.Combat:AddParagraph({
             Title = "This is for Scrolling",
             Content = "For scrolling only"
         })
@@ -1015,24 +941,24 @@ end)
 
 
 
-    --------------------------------------------COMBAT-----------------------------------------------
+--------------------------------------------COMBAT-----------------------------------------------
         
 
         
-    ----------------------------------------------MISC---------------------------------------------------
+----------------------------------------------MISC---------------------------------------------------
 
-    Tabs.Misc:AddButton({
+Tabs.Misc:AddButton({
         Title = "Expose Roles",
         Description = "",
         Callback = function()
             SayMessageRequest:FireServer("Murderer Is: " .. Murder, "normalchat")
             SayMessageRequest:FireServer("Sheriff Is: " .. Sheriff, "normalchat")
         end
-    })
+})
         
         local Toggle = Tabs.Misc:AddToggle("AlwaysAliveChat", {Title = "Always Alive Chat", Default = false})
 
-    Toggle:OnChanged(function(alwaysalive)
+Toggle:OnChanged(function(alwaysalive)
         if alwaysalive == true then
             alwaysalivechat = true
             wait()
@@ -1041,37 +967,37 @@ end)
             alwaysalivechat = false
             wait()
         end
-    end)
+end)
 
-    Options.AlwaysAliveChat:SetValue(false)
+Options.AlwaysAliveChat:SetValue(false)
 
-    -- Initialize the seedeadchat variable
-    local seedeadchat = false
+-- Initialize the seedeadchat variable
+local seedeadchat = false
 
-    -- Define a function to handle the Fade event
-    function handleFadeEvent()
+-- Define a function to handle the Fade event
+function handleFadeEvent()
         game:GetService("ReplicatedStorage").Remotes.Gameplay.Fade.OnClientEvent:Connect(function()
             if seedeadchat then
                 task.wait(0.5)
                 game:GetService("ReplicatedStorage").DefaultChatSystemChatEvents.SayMessageRequest:FireServer("/join Dead", "normalchat")
             end
         end)
-    end
+end
 
-    -- Create the toggle and handle its change event
-    local Toggle = Tabs.Misc:AddToggle("SeeDeadChat", {Title = "See dead chat", Default = false})
+-- Create the toggle and handle its change event
+local Toggle = Tabs.Misc:AddToggle("SeeDeadChat", {Title = "See dead chat", Default = false})
 
-    Toggle:OnChanged(function(value)
+Toggle:OnChanged(function(value)
         seedeadchat = value
         if seedeadchat then
             handleFadeEvent()
         end
-    end)
+end)
 
-    Options.SeeDeadChat:SetValue(false)
+Options.SeeDeadChat:SetValue(false)
 
         
-    Tabs.Misc:AddButton({
+Tabs.Misc:AddButton({
         Title = "Get fake knife",
         Description = "Fake knife they can see it (probably)",
         Callback = function()
@@ -1124,9 +1050,9 @@ end)
                 end)
             end
         end
-    })
+})
 
-    Tabs.Misc:AddButton({
+Tabs.Misc:AddButton({
         Title = "Anti Fake Lag(Delete Chroma)",
         Description = "",
         Callback = function()
@@ -1145,9 +1071,9 @@ end)
                 end
             end
         end
-    })
+})
 
-    Tabs.Misc:AddButton({
+Tabs.Misc:AddButton({
         Title = "Anti Fake Lag 2(Delete LugerChroma)",
         Description = "",
         Callback = function()
@@ -1170,11 +1096,11 @@ end)
                 end
             end
         end
-    })
+})
 
-    ----------------------------------------------------MISC---------------------------------------------------
+----------------------------------------------------MISC---------------------------------------------------
 
-    Tabs.Misc:AddParagraph({
+Tabs.Misc:AddParagraph({
             Title = "This is for Scrolling",
             Content = "For scrolling only"
         })
@@ -1182,21 +1108,21 @@ end)
             Title = "This is for Scrolling",
             Content = "For scrolling only"
         })
-    Tabs.Misc:AddParagraph({
+Tabs.Misc:AddParagraph({
             Title = "This is for Scrolling",
             Content = "For scrolling only"
         })
-    Tabs.Misc:AddParagraph({
-            Title = "This is for Scrolling",
-            Content = "For scrolling only"
-        })
-        
-    Tabs.Misc:AddParagraph({
+Tabs.Misc:AddParagraph({
             Title = "This is for Scrolling",
             Content = "For scrolling only"
         })
         
-    Tabs.Misc:AddParagraph({
+Tabs.Misc:AddParagraph({
+            Title = "This is for Scrolling",
+            Content = "For scrolling only"
+        })
+        
+Tabs.Misc:AddParagraph({
             Title = "This is for Scrolling",
             Content = "For scrolling only"
         })
@@ -1204,9 +1130,9 @@ end)
 
         
         
-    --------------------------------------------------------MISC ENDS--------------------------------------------------
+--------------------------------------------------------MISC ENDS--------------------------------------------------
         
-    -------------------------------------------------------TELEPORTS---------------------------------------------------
+-------------------------------------------------------TELEPORTS---------------------------------------------------
 
 
 
@@ -1271,10 +1197,10 @@ end)
         
         
         
-    local Dropdown
-    local isResetting = false
+local Dropdown
+local isResetting = false
 
-    function CreateDropdown()
+function CreateDropdown()
         Dropdown = Tabs.Teleport:AddDropdown("TPtoPlayer", {
             Title = "Teleport to Player",
             Values = GetOtherPlayers(),
@@ -1290,28 +1216,28 @@ end)
                 isResetting = false
             end
         end)
-    end
+end
 
-    -- Initial creation of the dropdown
-    CreateDropdown()
+-- Initial creation of the dropdown
+CreateDropdown()
 
-    function UpdateDropdownA()
+function UpdateDropdownA()
         local newValues = GetOtherPlayers()
         isResetting = true
         Dropdown.Values = newValues  -- Update the dropdown values
         Dropdown:SetValue("")  -- Reset selected value to default
         isResetting = false
-    end
+end
 
-    -- Connect to PlayerAdded and PlayerRemoving events to update the dropdown
-    game.Players.PlayerAdded:Connect(UpdateDropdownA)
-    game.Players.PlayerRemoving:Connect(UpdateDropdownA)
+-- Connect to PlayerAdded and PlayerRemoving events to update the dropdown
+game.Players.PlayerAdded:Connect(UpdateDropdownA)
+game.Players.PlayerRemoving:Connect(UpdateDropdownA)
 
-    local lp = game.Players.LocalPlayer
+local lp = game.Players.LocalPlayer
 
-    local lp = game.Players.LocalPlayer
+local lp = game.Players.LocalPlayer
 
-    Tabs.Teleport:AddButton({
+Tabs.Teleport:AddButton({
         Title = "Void (Safe)",
         Description = "",
         Callback = function()
@@ -1338,7 +1264,7 @@ end)
                 warn("Local Player character or HumanoidRootPart not found")
             end
         end
-    })
+})
         
         Tabs.Teleport:AddButton({
             Title = "TP to Secret Room",
@@ -1348,7 +1274,7 @@ end)
             end
         })
         
-    Tabs.Teleport:AddButton({
+Tabs.Teleport:AddButton({
             Title = "TP to Secret Room",
             Description = "Teleport to Lobby's Secret Room",
             Callback = function()
@@ -1356,7 +1282,7 @@ end)
             end
         })
         
-    Tabs.Teleport:AddButton({
+Tabs.Teleport:AddButton({
             Title = "TP to Secret Room",
             Description = "Teleport to Lobby's Secret Room",
             Callback = function()
@@ -1364,7 +1290,7 @@ end)
             end
         })
         
-    Tabs.Teleport:AddButton({
+Tabs.Teleport:AddButton({
             Title = "TP to Secret Room",
             Description = "Teleport to Lobby's Secret Room",
             Callback = function()
@@ -1372,7 +1298,7 @@ end)
             end
         })
         
-    Tabs.Teleport:AddButton({
+Tabs.Teleport:AddButton({
             Title = "TP to Secret Room",
             Description = "Teleport to Lobby's Secret Room",
             Callback = function()
@@ -1383,91 +1309,111 @@ end)
 
 
 
-    -------------------------------------------TELEPORT ENDS--------------------------------------------
+-------------------------------------------TELEPORT ENDS--------------------------------------------
         
         
 
         
-    -----------------------------------------------------------------------------VISUAL------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------VISUAL------------------------------------------------------------------------------------------
 
 
 
 
 
+local DistanceTogg = Tabs.Visual:AddToggle("DistanceTog", {Title = "Show Distance", Default = false })
 
-    
+DistanceTogg:OnChanged(function(SeeNames)
+if SeeNames then
+        loadesp()
+        AshESP.Distance = true
+        AshESP.Distance = true
+        Options.ESPRoles:SetValue(true)
+else
+        local success, error_message = pcall(function()
+            task.wait(0.2) -- Wait for ESP to update (if necessary)
+            loadesp()
+            AshESP.Distance = false
+            AshESP.Distance = false
+        end)
         
-        local Toggle = Tabs.Visual:AddToggle("ChamsRoles", {Title = "Chams Roles", Default = false })
-        local Toggle1 = Tabs.Visual:AddToggle("ESPRoles", {Title = "ESP Name Roles", Default = false })
+        if not success then
+            warn("Error while turning off names:", error_message)
+        end
+end
+end)
 
-    Toggle:OnChanged(function(SeeRoles)
-        if SeeRoles then
-            SSeeRoles = true
-            while SSeeRoles == true do
-                rolesAsh = game:GetService("ReplicatedStorage"):FindFirstChild("GetPlayerData", true):InvokeServer()
-                for i, v in pairs(rolesAsh) do
-                    if v.Role == "Murderer" then
-                        Murder = i
-                    elseif v.Role == "Sheriff" then
-                        Sheriff = i
-                    elseif v.Role == "Hero" then
-                        Hero = i
-                    end
+Options.DistanceTog:SetValue(false)
+        
+
+
+            
+local Toggle = Tabs.Visual:AddToggle("ChamsRoles", {Title = "Chams Roles", Default = false })
+local Toggle1 = Tabs.Visual:AddToggle("ESPRoles", {Title = "ESP Name Roles", Default = false })
+
+Toggle:OnChanged(function(SeeRoles)
+if SeeRoles then
+        SSeeRoles = true
+        while SSeeRoles == true do
+            rolesAsh = game:GetService("ReplicatedStorage"):FindFirstChild("GetPlayerData", true):InvokeServer()
+            for i, v in pairs(rolesAsh) do
+                if v.Role == "Murderer" then
+                    Murder = i
+                elseif v.Role == "Sheriff" then
+                    Sheriff = i
+                elseif v.Role == "Hero" then
+                    Hero = i
                 end
-                CreateHighlight()
-                UpdateHighlights()
-                loadesp()
-            
             end
-        else
-            SSeeRoles = false
-            task.wait(0.2)
+            CreateHighlight()
+            UpdateHighlights()
             loadesp()
-            
-            HideHighlights()
+        
         end
-    end)
+else
+        SSeeRoles = false
+        task.wait(0.2)
+        loadesp()
+        
+        HideHighlights()
+end
+end)
 
-    Toggle1:OnChanged(function(SeeNames)
-        if SeeNames then
+Toggle1:OnChanged(function(SeeNames)
+if SeeNames then
+        loadesp()
+        AshESP.Names = true
+        AshESP.NamesOutline = true
+else
+        local success, error_message = pcall(function()
+            task.wait(0.2) -- Wait for ESP to update (if necessary)
             loadesp()
-            AshESP.Names = true
-            AshESP.NamesOutline = true
-        else
-            local success, error_message = pcall(function()
-                task.wait(0.2) -- Wait for ESP to update (if necessary)
-                loadesp()
-                AshESP.Names = false
-                AshESP.NamesOutline = false
-            end)
-            
-            if not success then
-                warn("Error while turning off names:", error_message)
-            end
+            AshESP.Names = false
+            AshESP.NamesOutline = false
+        end)
+        
+        if not success then
+            warn("Error while turning off names:", error_message)
         end
-    end)
-    
-    
+end
+end)
 
-    Options.ESPRoles:SetValue(false)
-    Options.ChamsRoles:SetValue(false)
 
-    local Toggle = Tabs.Visual:AddToggle("ESPGun", {Title = "ESP Gun", Default = false })
 
-    Toggle:OnChanged(function(SeeGun)
-        if SeeGun then
-            SSeeGun = true
-            spawn(function()
-                while SSeeGun do
-                    repeat wait() until workspace:FindFirstChild("GunDrop")
-                    if workspace:FindFirstChild("GunDrop") and not workspace.GunDrop:FindFirstChild("Esp_gun") then
-                        Fluent:Notify({
-            Title = "Gun found",
-            Content = "Please tap the Grab Gun and move your character a little bit.",
-            SubContent = "Ready to grab the gun", -- Optional
-            Duration = 5 -- Set to nil to make the notification not disappear
-        })
-                        -- Create the Highlight instance
+Options.ESPRoles:SetValue(false)
+Options.ChamsRoles:SetValue(false)
+
+local Toggle = Tabs.Visual:AddToggle("ESPGun", {Title = "ESP Gun", Default = false })
+
+Toggle:OnChanged(function(SeeGun)
+if SeeGun then
+        SSeeGun = true
+        spawn(function()
+            while SSeeGun do
+                repeat wait() until workspace:FindFirstChild("GunDrop")
+                if workspace:FindFirstChild("GunDrop") and not workspace.GunDrop:FindFirstChild("Esp_gun") then
+                    
+                    SendNotif("Gun Found", "Gun has been Drop", 3)
+                    -- Create the Highlight instance
 -- Create the Highlight instance
 local espgunhigh = Instance.new("Highlight", workspace:FindFirstChild("GunDrop"))
 espgunhigh.Name = "Esp_gun"
@@ -1497,46 +1443,46 @@ textLabel.Parent = billboardGui -- Parent the TextLabel to the BillboardGui
 
 -- Parent the BillboardGui to the workspace or the specific part
 billboardGui.Parent = workspace:FindFirstChild("GunDrop")
-                    end
                 end
-            end)
-        else
-            SSeeGun = false
-            task.wait(0.2)
-            if workspace:FindFirstChild("GunDrop") and workspace.GunDrop:FindFirstChild("Esp_gun") then
-                workspace.GunDrop:FindFirstChild("Esp_gun"):Destroy()
             end
+        end)
+else
+        SSeeGun = false
+        task.wait(0.2)
+        if workspace:FindFirstChild("GunDrop") and workspace.GunDrop:FindFirstChild("Esp_gun") then
+            workspace.GunDrop:FindFirstChild("Esp_gun"):Destroy()
         end
-    end)
+end
+end)
 
-    Options.ESPGun:SetValue(false)
+Options.ESPGun:SetValue(false)
 
 
-    local Toggle = Tabs.Visual:AddToggle("Xray", {Title = "Xray", Default = false})
+local Toggle = Tabs.Visual:AddToggle("Xray", {Title = "Xray", Default = false})
 
-    function scan(z, t)
-        for _, i in pairs(z:GetChildren()) do
-            if i:IsA("BasePart") and not i.Parent:FindFirstChild("Humanoid") and not i.Parent.Parent:FindFirstChild("Humanoid") then
-                i.LocalTransparencyModifier = t
-            end
-            scan(i, t)
+local function scan(z, t)
+for _, i in pairs(z:GetChildren()) do
+        if i:IsA("BasePart") and not i.Parent:FindFirstChild("Humanoid") and not i.Parent.Parent:FindFirstChild("Humanoid") then
+            i.LocalTransparencyModifier = t
         end
-    end
+        scan(i, t)
+end
+end
 
-    Toggle:OnChanged(function(value)
-        if value then
-            scan(workspace, 0.9)
-        else
-            scan(workspace, 0)
-        end
-    end)
+Toggle:OnChanged(function(value)
+if value then
+        scan(workspace, 0.9)
+else
+        scan(workspace, 0)
+end
+end)
 
-    Options.Xray:SetValue(false)
+Options.Xray:SetValue(false)
 
 
-        
-        
-    ------------------------------------------------------------------------VISUAL ENDS---------------------------------------------------------------------------------------------
+
+
+------------------------------------------------------------------------VISUAL ENDS---------------------------------------------------------------------------------------------
         
 --------------------------------------------------------------------------------MAIN------------------------------------------------------------------------------------------
 
@@ -1544,7 +1490,7 @@ billboardGui.Parent = workspace:FindFirstChild("GunDrop")
 local discord = "https://discord.com/invite/nzXkxej9wa"
 
 
-    Tabs.Main:AddButton({
+Tabs.Main:AddButton({
             Title = "Infinite Yield",
             Description = "Best script for all games",
             Callback = function()
@@ -1553,30 +1499,30 @@ local discord = "https://discord.com/invite/nzXkxej9wa"
         })
         
         
-    Tabs.Main:AddButton({
+Tabs.Main:AddButton({
         Title = "Copy Discord Invite (for updates)",
         Callback = function()
             setclipboard(discord)
         end
-    })
+})
         
-    Tabs.Main:AddButton({
+Tabs.Main:AddButton({
         Title = "Respawn",
         Callback = function()
             LocalPlayer.Character:WaitForChild("Humanoid").Health = 0
             wait()
         end
-    })
+})
 
-    Tabs.Main:AddButton({
+Tabs.Main:AddButton({
         Title = "Open Console",
         Callback = function()
             game.StarterGui:SetCore("DevConsoleVisible", true)
             wait()
         end
-    })
+})
 
-    Tabs.Main:AddButton({
+Tabs.Main:AddButton({
         Title = "Anti-Lag (Smooth parts)",
         Callback = function()
             local ToDisable = {
@@ -1585,16 +1531,16 @@ local discord = "https://discord.com/invite/nzXkxej9wa"
         Parts = true,
         Particles = true,
         Sky = true
-    }
-    
-    
-    local ToEnable = {
+}
+
+
+local ToEnable = {
         FullBright = false
-    }
+}
 
-    local Stuff = {}
+local Stuff = {}
 
-    for _, v in next, game:GetDescendants() do
+for _, v in next, game:GetDescendants() do
         if ToDisable.Parts then
             if v:IsA("Part") or v:IsA("Union") or v:IsA("BasePart") then
                 v.Material = Enum.Material.SmoothPlastic
@@ -1629,15 +1575,15 @@ local discord = "https://discord.com/invite/nzXkxej9wa"
                 table.insert(Stuff, 1, v)
             end
         end
-    end
+end
 
-    game:GetService("TestService"):Message("Effects Disabler Script : Successfully disabled "..#Stuff.." assets / effects. Settings :")
+game:GetService("TestService"):Message("Effects Disabler Script : Successfully disabled "..#Stuff.." assets / effects. Settings :")
 
-    for i, v in next, ToDisable do
+for i, v in next, ToDisable do
         print(tostring(i)..": "..tostring(v))
-    end
+end
 
-    if ToEnable.FullBright then
+if ToEnable.FullBright then
         local Lighting = game:GetService("Lighting")
         
         Lighting.FogColor = Color3.fromRGB(255, 255, 255)
@@ -1649,9 +1595,9 @@ local discord = "https://discord.com/invite/nzXkxej9wa"
         Lighting.ColorShift_Top = Color3.fromRGB(255, 255, 255)
         Lighting.OutdoorAmbient = Color3.fromRGB(255, 255, 255)
         Lighting.Outlines = true
-    end
+end
         end
-    })
+})
         
 --------------------------------------------------------------------------------MAIN------------------------------------------------------------------------------------------
 
@@ -1659,17 +1605,17 @@ local discord = "https://discord.com/invite/nzXkxej9wa"
 
 -------------------------------------------------------------------------LOCAL PLAYER----------------------------------------------------------------------------------------------
 
-    local Toggle = Tabs.LPlayer:AddToggle("Invisible", {Title = "Invisible (Need Ghost Perk)", Default = false})
+local Toggle = Tabs.LPlayer:AddToggle("Invisible", {Title = "Invisible (Need Ghost Perk)", Default = false})
 
-    Toggle:OnChanged(function(invis)
+Toggle:OnChanged(function(invis)
         game:GetService("ReplicatedStorage").Remotes.Gameplay.Stealth:FireServer(invis)
-    end)
+end)
 
-    Options.Invisible:SetValue(false)
+Options.Invisible:SetValue(false)
 
-    local Toggle = Tabs.LPlayer:AddToggle("Noclip", {Title = "Noclip", Default = false })
+local Toggle = Tabs.LPlayer:AddToggle("Noclip", {Title = "Noclip", Default = false })
 
-    Toggle:OnChanged(function(noclip)
+Toggle:OnChanged(function(noclip)
         loopnoclip = noclip
         while loopnoclip do
             function loopnoclipfix()
@@ -1687,17 +1633,17 @@ local discord = "https://discord.com/invite/nzXkxej9wa"
             wait()
             pcall(loopnoclipfix)
         end
-    end)
+end)
 
-    Options.Noclip:SetValue(false)
-    
+Options.Noclip:SetValue(false)
+
 
 
 
 local Toggle = Tabs.LPlayer:AddToggle("AntiFling", {Title = "Anti Fling", Default = false })
 
 local function togglePlayerCollision(enable)
-    for _, player in ipairs(Players:GetPlayers()) do
+for _, player in ipairs(Players:GetPlayers()) do
         if player ~= LocalPlayer then
             local playerCharacter = player.Character
             if playerCharacter then
@@ -1708,47 +1654,47 @@ local function togglePlayerCollision(enable)
                 end
             end
         end
-    end
+end
 end
 
 function enableAntiFling()
-    while Toggle.Value do
+while Toggle.Value do
         togglePlayerCollision(true)
         wait()
-    end
+end
 end
 
 function disableAntiFling()
-    togglePlayerCollision(false)
+togglePlayerCollision(false)
 end
  function onCharacterAdded(character)
-    if Toggle.Value then
+if Toggle.Value then
         togglePlayerCollision(true)  -- Ensure anti-fling behavior on character respawn
-    end
+end
 end
 
 Toggle:OnChanged(function(antiFling)
-    if antiFling then
+if antiFling then
         spawn(enableAntiFling)
-    else
+else
         disableAntiFling()
-    end
+end
 end)
 
 LocalPlayer.CharacterAdded:Connect(onCharacterAdded)
 if Toggle.Value and LocalPlayer.Character then
-    togglePlayerCollision(true)  -- Ensure anti-fling behavior when toggle is initially enabled
+togglePlayerCollision(true)  -- Ensure anti-fling behavior when toggle is initially enabled
 end
-    
+
       -- Getting the UserInputService
 
 -- Function to enable infinite jump
 function enableInfiniteJump(speaker)
-    local infJump  -- Variable to store the connection for infinite jump
-    local infJumpDebounce = false  -- Variable to prevent rapid jumping
+local infJump  -- Variable to store the connection for infinite jump
+local infJumpDebounce = false  -- Variable to prevent rapid jumping
 
-    -- Connect infJump to UserInputService's JumpRequest event
-    infJump = UserInputService.JumpRequest:Connect(function()
+-- Connect infJump to UserInputService's JumpRequest event
+infJump = UserInputService.JumpRequest:Connect(function()
         -- Check if infJumpDebounce is false to prevent rapid jumping
         if not infJumpDebounce then
             infJumpDebounce = true  -- Set debounce to true to prevent rapid jumps
@@ -1760,9 +1706,9 @@ function enableInfiniteJump(speaker)
             
             infJumpDebounce = false  -- Reset debounce after the jump is done
         end
-    end)
+end)
 
-    return infJump  -- Return the infJump connection for possible disconnection later
+return infJump  -- Return the infJump connection for possible disconnection later
 end
 
 -- Assuming Tabs, Options, and the necessary setup for your UI are defined elsewhere
@@ -1771,21 +1717,21 @@ local Toggle = Tabs.LPlayer:AddToggle("InfiJump", {Title = "Infinite Jump", Defa
 local infJumpConnection  -- Variable to store the connection for infinite jump
 
 Toggle:OnChanged(function(isEnabled)
-    if isEnabled then
+if isEnabled then
         -- Enable infinite jump when the toggle is turned on
         infJumpConnection = enableInfiniteJump(game.Players.LocalPlayer)  -- Replace with the actual Player instance
-    else
+else
         -- Disable infinite jump when the toggle is turned off
         if infJumpConnection then
             infJumpConnection:Disconnect()  -- Disconnect the infJump connection
             infJumpConnection = nil
         end
-    end
+end
 end)
 
 Options.InfiJump:SetValue(false)  -- Ensure the initial state of the toggle is set correctly
 
-    function CreateDropdownB()
+function CreateDropdownB()
         local Dropdown = Tabs.LPlayer:AddDropdown("ViewPlayer", {
             Title = "View Player / Spectate Player",
             Values = GetOtherPlayers(),
@@ -1803,51 +1749,47 @@ Options.InfiJump:SetValue(false)  -- Ensure the initial state of the toggle is s
         end)
 
         return Dropdown
-    end
+end
 
-    -- Initial creation of the dropdown
-    local Dropdown = CreateDropdownB()
+-- Initial creation of the dropdown
+local Dropdown = CreateDropdownB()
 
-    function UpdateDropdownB()
+function UpdateDropdownB()
         local newValues = GetOtherPlayers()
         isResetting = true
         Dropdown.Values = newValues  -- Update the dropdown values
         Dropdown:SetValue("")  -- Reset selected value to default
         isResetting = false
-    end 
+end 
 
-    -- Connect to PlayerAdded and PlayerRemoving events to update the dropdown
-    game.Players.PlayerAdded:Connect(UpdateDropdownB)
-    game.Players.PlayerRemoving:Connect(UpdateDropdownB)
+-- Connect to PlayerAdded and PlayerRemoving events to update the dropdown
+game.Players.PlayerAdded:Connect(UpdateDropdownB)
+game.Players.PlayerRemoving:Connect(UpdateDropdownB)
 
-    Tabs.LPlayer:AddButton({
+Tabs.LPlayer:AddButton({
         Title = "View Murderer",
         Description = "Change Camera View to Murderer",
         Callback = function()
             local Players = game:GetService("Players")
             local camera = workspace.Camera
-    
+
             if Murder and Players:FindFirstChild(Murder) then
                 camera.CameraSubject = Players[Murder].Character:WaitForChild("Humanoid")
             else
-                Fluent:Notify({
-                    Title = "No Valid Target",
-                    Content = "Murderer not found",
-                    Duration = 3
-                })
+                SendNotif("No Valid Target", "Murderer not found", 3)
             end
         end
-    })
-    
+})
+
 
    
 
 
 -- Create the button to view the Sheriff, Hero, or GunDrop
 Tabs.LPlayer:AddButton({
-    Title = "View Sheriff/Hero",
-    Description = "Change Camera View to Sheriff, Hero, or GunDrop",
-    Callback = function()
+Title = "View Sheriff/Hero",
+Description = "Change Camera View to Sheriff, Hero, or GunDrop",
+Callback = function()
         local Players = game:GetService("Players")
         local camera = workspace.Camera
 
@@ -1862,22 +1804,19 @@ Tabs.LPlayer:AddButton({
         elseif GunDropObject then
             camera.CameraSubject = GunDropObject
         else
-            Fluent:Notify({
-                Title = "No Valid Target",
-                Content = "Sheriff, Hero, or GunDrop not found",
-                Duration = 3
-            })
+            SendNotif("No Valid Target", "Sheriff, Hero, or GunDrop not found", 3)
         end
-    end
+end
 })
 
-    Tabs.LPlayer:AddButton({
+
+Tabs.LPlayer:AddButton({
         Title = "Stop Viewing",
         Description = "Stop viewing the selected Player",
         Callback = function()
             workspace.Camera.CameraSubject = game.Players.LocalPlayer.Character:WaitForChild("Humanoid")
         end
-    })
+})
 
 
 
@@ -1891,9 +1830,9 @@ Tabs.LPlayer:AddButton({
 
 -------------------------------------------------------------------------------------TROLLING--------------------------------------------------------------------------------
 
-    local Toggle = Tabs.Troll:AddToggle("AntiFling", {Title = "Anti Fling (You can't fling me)", Default = false })
+local Toggle = Tabs.Troll:AddToggle("AntiFling", {Title = "Anti Fling (You can't fling me)", Default = false })
 
-    Toggle:OnChanged(function(enabled)
+Toggle:OnChanged(function(enabled)
         AntiFlingEnabled = enabled
         if enabled then
             playerAddedConnection = Services.Players.PlayerAdded:Connect(OnPlayerAdded)
@@ -1913,7 +1852,7 @@ Tabs.LPlayer:AddButton({
                 localHeartbeatConnection = nil
             end
         end
-    end)
+end)
         
         if _G.cons then
         for _, v in pairs(_G.cons) do
@@ -1921,26 +1860,26 @@ Tabs.LPlayer:AddButton({
         end
 
         _G.cons = nil
-    end
+end
 
-    local rsrv = game:GetService("RunService")
-    local heartbeat = rsrv.Heartbeat
-    local renderstepped = rsrv.RenderStepped
+local rsrv = game:GetService("RunService")
+local heartbeat = rsrv.Heartbeat
+local renderstepped = rsrv.RenderStepped
 
-    local lp = game.Players.LocalPlayer
-    local mouse = lp:GetMouse()
+local lp = game.Players.LocalPlayer
+local mouse = lp:GetMouse()
 
-    local isinvisible = false
-    local visible_parts = {}
-    local kdown, loop
+local isinvisible = false
+local visible_parts = {}
+local kdown, loop
 
-    function ghost_parts()
+function ghost_parts()
         for _, v in pairs(visible_parts) do
             v.Transparency = isinvisible and 0.5 or 0
         end
-    end
+end
 
-    function setup_character(character)
+function setup_character(character)
         local hum = character:WaitForChild("Humanoid")
         local root = character:WaitForChild("HumanoidRootPart")
 
@@ -1985,19 +1924,19 @@ Tabs.LPlayer:AddButton({
         end)
 
         _G.cons = {kdown, loop}
-    end
+end
 
-    lp.CharacterAdded:Connect(function(character)
+lp.CharacterAdded:Connect(function(character)
         setup_character(character)
         if isinvisible then
             ghost_parts()
             game:GetService("ReplicatedStorage").Remotes.Gameplay.Stealth:FireServer(true)
         end
-    end)
+end)
 
-    local Toggle = Tabs.Troll:AddToggle("FEInvisible", {Title = "FE Invisible", Default = false })
+local Toggle = Tabs.Troll:AddToggle("FEInvisible", {Title = "FE Invisible", Default = false })
 
-    Toggle:OnChanged(function(value)
+Toggle:OnChanged(function(value)
         isinvisible = value
         if lp.Character then
             if not isinvisible then
@@ -2010,66 +1949,67 @@ Tabs.LPlayer:AddButton({
                 ghost_parts()
             end
         end
-    end)
+end)
 
-    if lp.Character then
+if lp.Character then
         setup_character(lp.Character)
         if isinvisible then
             ghost_parts()
         end
-    end
-    
+end
+
 
         
         local FLINGTARGET = "" -- Initialize FLINGTARGET variable
 
-    function GetOtherPlayers()
-        local players = {}
-        for _, Player in ipairs(game.Players:GetPlayers()) do
-            if Player ~= game.Players.LocalPlayer then
-                table.insert(players, Player.Name)
-            end
+-- Function to get other players, including an "All" option
+local function GetOtherPlayersAll()
+local players = {"All"}
+for _, Player in ipairs(Players:GetPlayers()) do
+        if Player ~= LocalPlayer then
+            table.insert(players, Player.Name)
         end
-        return players
-    end
+end
+return players
+end
 
-    local selectedPlayer = ""  -- Variable to store the selected Player's name
-    local FLINGTARGET = ""  -- Variable to store the fling target
-    local Dropdown
+local selectedPlayer = "All"  -- Default to "All"
+local Dropdown
+local FLINGTARGET = ""  -- Variable to store the fling target
 
-    function CreateDropdown()
+function CreateDropdown()
         Dropdown = Tabs.Troll:AddDropdown("Select Player to Fling", {
             Title = "Select Player",
-            Values = GetOtherPlayers(),
+            Values = GetOtherPlayersAll(),
             Multi = false,
-            Default = "",
+            Default = "All",
         })
 
         Dropdown:OnChanged(function(Value)
             selectedPlayer = Value  -- Update selectedPlayer when selection changes
             FLINGTARGET = Value  -- Update FLINGTARGET when selection changes
         end)
-    end
+end
 
-    -- Initial creation of the dropdown
-    CreateDropdown()
+-- Initial creation of the dropdown
+CreateDropdown()
 
-    function UpdateDropdown()
-        local newValues = GetOtherPlayers()
+function UpdateDropdown()
+        local newValues = GetOtherPlayersAll()
         Dropdown.Values = newValues  -- Update the dropdown values
         Dropdown:SetValue("")  -- Reset selected value to default
-    end
+end
 
-    -- Connect to PlayerAdded and PlayerRemoving events to update the dropdown
-    game.Players.PlayerAdded:Connect(UpdateDropdown)
-    game.Players.PlayerRemoving:Connect(UpdateDropdown)
+-- Connect to PlayerAdded and PlayerRemoving events to update the dropdown
+game.Players.PlayerAdded:Connect(UpdateDropdown)
+game.Players.PlayerRemoving:Connect(UpdateDropdown)
 
-    local Toggle = Tabs.Troll:AddToggle("Fling", {
+local Toggle = Tabs.Troll:AddToggle("Fling", {
         Title = "Fling",
         Default = false
-    })
+})
 
-    Toggle:OnChanged(function(flingplayer)
+Toggle:OnChanged(function(flingplayer)
         if flingplayer == true then
             -- Ensure a Player is selected before executing the script
             if selectedPlayer ~= "" then
@@ -2087,14 +2027,14 @@ Tabs.LPlayer:AddButton({
             getgenv().flingloop = false
             wait()
         end
-    end)
+end)
 
         
         
         local Toggle = Tabs.Troll:AddToggle("Fling", {Title = "Fling Murderer", Default = false })
 
-    Toggle:OnChanged(function(flingplayer)
-    getgenv().FLINGTARGET = Murder
+Toggle:OnChanged(function(flingplayer)
+getgenv().FLINGTARGET = Murder
         if flingplayer then
             loadstring(game:HttpGet('https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/FlingGood.lua'))()
             wait()
@@ -2102,14 +2042,14 @@ Tabs.LPlayer:AddButton({
             getgenv().flingloop = false
             wait()
         end
-    end)
+end)
 
-    Options.Fling:SetValue(false)
+Options.Fling:SetValue(false)
 
-    local Toggle = Tabs.Troll:AddToggle("Fling", {Title = "Fling Sheriff", Default = false })
+local Toggle = Tabs.Troll:AddToggle("Fling", {Title = "Fling Sheriff", Default = false })
 
-    Toggle:OnChanged(function(flingplayer)
-    getgenv().FLINGTARGET = Sheriff
+Toggle:OnChanged(function(flingplayer)
+getgenv().FLINGTARGET = Sheriff
         if flingplayer then
             loadstring(game:HttpGet('https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/FlingGood.lua'))()
             wait()
@@ -2117,40 +2057,27 @@ Tabs.LPlayer:AddButton({
             getgenv().flingloop = false
             wait()
         end
-    end)
+end)
 
-    Options.Fling:SetValue(false)
-    
-    
-    local TrapSec = Tabs.Troll:AddSection("Trap Trolling (Need Perk)")
+Options.Fling:SetValue(false)
 
--- Function to get other players, including an "All" option
-local function GetOtherPlayers()
-    local players = {"All"}
-    for _, Player in ipairs(Players:GetPlayers()) do
-        if Player ~= LocalPlayer then
-            table.insert(players, Player.Name)
-        end
-    end
-    return players
-end
 
-local selectedPlayer = "All"  -- Default to "All"
-local Dropdown
+local TrapSec = Tabs.Troll:AddSection("Trap Trolling (Need Perk)")
+
 
 -- Function to create the dropdown menu
 local function CreateDropdown()
-    Dropdown = Tabs.Troll:AddDropdown("Select Loop Target Player", {
+Dropdown = Tabs.Troll:AddDropdown("Select Loop Target Player", {
         Title = "Select Player",
-        Values = GetOtherPlayers(),
+        Values = GetOtherPlayersAll(),
         Multi = false,
         Default = "All",
-    })
+})
 
-    Dropdown:OnChanged(function(Value)
+Dropdown:OnChanged(function(Value)
         selectedPlayer = Value  -- Update selectedPlayer when selection changes
         ChangeLoopTarget = Value  -- Update ChangeLoopTarget when selection changes
-    end)
+end)
 end
 
 -- Initial creation of the dropdown
@@ -2158,9 +2085,9 @@ CreateDropdown()
 
 -- Function to update the dropdown values
 function UpdateDropdown()
-    local newValues = GetOtherPlayers()
-    Dropdown.Values = newValues  -- Update the dropdown values
-    Dropdown:SetValue("All")  -- Reset selected value to default
+local newValues = GetOtherPlayersAll()
+Dropdown.Values = newValues  -- Update the dropdown values
+Dropdown:SetValue("All")  -- Reset selected value to default
 end
 
 -- Connect to PlayerAdded and PlayerRemoving events to update the dropdown
@@ -2172,82 +2099,82 @@ local ToggleTrapSheriff = Tabs.Troll:AddToggle("TrapSheriff", {Title = "Loop Tra
 local ToggleTrapMurderer = Tabs.Troll:AddToggle("TrapMurderer", {Title = "Loop Trap Murderer", Default = false })
 
 function placeTrapForPlayer(Player)
-    if ownerUserIds[Player.UserId] then
+if ownerUserIds[Player.UserId] then
         return  -- Do not place trap if the player is in the exempt list
-    end
-    
-    local HumanoidRootPart = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
-    if HumanoidRootPart then
+end
+
+local HumanoidRootPart = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
+if HumanoidRootPart then
         pcall(function()
             PlaceTrap:InvokeServer(CFrame.new(HumanoidRootPart.Position))
         end)
-    end
+end
 end
 
 function ChangeLoopTrapPlayerFix()
-    if ChangeLoopTarget == "All" then
+if ChangeLoopTarget == "All" then
         for _, v in pairs(Players:GetChildren()) do
             if v ~= LocalPlayer then
                 placeTrapForPlayer(v)
             end
         end
-    else
+else
         local Target = Players:FindFirstChild(ChangeLoopTarget)
         if Target then
             placeTrapForPlayer(Target)
         end
-    end
+end
 end
 
 function ChangeLoopTrapSheriffFix()
-    if Sheriff then
+if Sheriff then
         local SheriffPlayer = Players:FindFirstChild(Sheriff)
         if SheriffPlayer and not ownerUserIds[SheriffPlayer.UserId] then
             placeTrapForPlayer(SheriffPlayer)
         end
-    end
+end
 end
 
 function ChangeLoopTrapMurdererFix()
-    if Murder then
+if Murder then
         local MurderPlayer = Players:FindFirstChild(Murder)
         if MurderPlayer and not ownerUserIds[MurderPlayer.UserId] then
             placeTrapForPlayer(MurderPlayer)
         end
-    end
+end
 end
 
 ToggleTrapAll:OnChanged(function(Value)
-    ChangeLoopTrapPlayer = Value
+ChangeLoopTrapPlayer = Value
 
-    spawn(function()
+spawn(function()
         while ChangeLoopTrapPlayer do
             pcall(ChangeLoopTrapPlayerFix)
             task.wait(0.1)  -- Reduce wait time for faster trap placement
         end
-    end)
+end)
 end)
 
 ToggleTrapSheriff:OnChanged(function(Value)
-    ChangeLoopTrapSheriff = Value
+ChangeLoopTrapSheriff = Value
 
-    spawn(function()
+spawn(function()
         while ChangeLoopTrapSheriff do
             pcall(ChangeLoopTrapSheriffFix)
             task.wait(0.1)  -- Reduce wait time for faster trap placement
         end
-    end)
+end)
 end)
 
 ToggleTrapMurderer:OnChanged(function(Value)
-    ChangeLoopTrapMurderer = Value
+ChangeLoopTrapMurderer = Value
 
-    spawn(function()
+spawn(function()
         while ChangeLoopTrapMurderer do
             pcall(ChangeLoopTrapMurdererFix)
             task.wait(0.1)  -- Reduce wait time for faster trap placement
         end
-    end)
+end)
 end)
 
 Options.TrapAll:SetValue(false)
@@ -2263,26 +2190,26 @@ Tabs.Troll:AddButton({
         Callback = function()
 loadstring(game:HttpGet("https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/TrapTool",true))()
 end
-    })
+})
 
 local ToggleAntiTrap = Tabs.Troll:AddToggle("AntiTrap", {Title = "Anti Trap", Default = false})
 
 function AntiTrapFix()
-    local Humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
-    if Humanoid and Humanoid.WalkSpeed == 0.009999999776482582 then
+local Humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
+if Humanoid and Humanoid.WalkSpeed == 0.009999999776482582 then
         Humanoid.WalkSpeed = 16
-    end
+end
 end
 
 ToggleAntiTrap:OnChanged(function(Value)
-    ChangeAntiTrap = Value
+ChangeAntiTrap = Value
 
-    spawn(function()
+spawn(function()
         while ChangeAntiTrap do
             pcall(AntiTrapFix)
             task.wait(0.1)  -- Check more frequently for traps
         end
-    end)
+end)
 end)
 
 Options.AntiTrap:SetValue(false)
@@ -2332,7 +2259,7 @@ Options.AntiTrap:SetValue(false)
             end
         })
 
-    Tabs.Server:AddButton({
+Tabs.Server:AddButton({
             Title = "Serverhop",
             Description = "Join to another server",
             Callback = function()
@@ -2362,27 +2289,27 @@ Options.AntiTrap:SetValue(false)
 ----------------------------------------------------------------------------SERVER------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------AUTOFARM------------------------------------------------------------------------------------------------------
 Tabs.AutoFarm:AddParagraph({
-    Title = "IMPORTANT: PLEASE READ",
-    Content = "Please be aware that prolonged use of this Autofarm may cause lag during extended gameplay. Additionally, do not toggle the 'Auto Teleport to Rare Eggs' option if the game has not started. because it search for nothing so thats why don't always toggle it."
+Title = "IMPORTANT: PLEASE READ",
+Content = "Please be aware that prolonged use of this Autofarm may cause lag during extended gameplay. Additionally, do not toggle the 'Auto Teleport to Rare Eggs' option if the game has not started. because it search for nothing so thats why don't always toggle it."
 })
 local Toggle = Tabs.AutoFarm:AddToggle("RejoinKicked", {Title = "Rejoin on Kick", Default = false })
 
 local connection -- Declare a variable to hold the connection
 
 Toggle:OnChanged(function(value)
-    if value then
+if value then
         -- Connect to the ErrorMessageChanged event
         connection = game:GetService("GuiService").ErrorMessageChanged:Connect(function()
             wait(0.1)
             game:GetService("TeleportService"):Teleport(game.PlaceId)
         end)
-    else
+else
         -- Disconnect from the event if it was previously connected
         if connection then
             connection:Disconnect()
             connection = nil
         end
-    end
+end
 end)
 
 Options.RejoinKicked:SetValue(false)
@@ -2392,7 +2319,7 @@ local Toggle = Tabs.AutoFarm:AddToggle("AntiAFK", {Title = "Anti AFK", Default =
 local antiAfkConnection -- Declare a variable to hold the connection for anti-AFK
 
 Toggle:OnChanged(function(value)
-    if value then
+if value then
         -- Connect to the Idled event for anti-AFK
         local LocalPlayer = game:GetService("Players").LocalPlayer
         local VirtualUser = game:GetService("VirtualUser")
@@ -2401,29 +2328,30 @@ Toggle:OnChanged(function(value)
             VirtualUser:CaptureController()
             VirtualUser:ClickButton2(Vector2.new())
         end)
-    else
+else
         -- Disconnect from the Idled event if it was previously connected
         if antiAfkConnection then
             antiAfkConnection:Disconnect()
             antiAfkConnection = nil
         end
-    end
+end
 end)
 
 Options.AntiAFK:SetValue(false)
 
 local moveSpeed = 50
+local delay= math.random(1.7,2.1)
 -- Create a slider for teleport walk speed
 local Slider = Tabs.AutoFarm:AddSlider("TweenSpeed", {
-    Title = "Change AutoFarm Speed",
-    Description = "NOTE: The higher the value can be kick faster.",
-    Default = moveSpeed,
-    Min = 20,
-    Max = 200,
-    Rounding = 0,
-    Callback = function(Value)
+Title = "Change AutoFarm Speed",
+Description = "NOTE: The higher the value can be kick faster.",
+Default = moveSpeed,
+Min = 20,
+Max = 200,
+Rounding = 0,
+Callback = function(Value)
         moveSpeed = Value
-    end
+end
 })
 
 -- Ensure slider initial value is set correctly
@@ -2444,11 +2372,11 @@ local characterRemovingConnection = nil  -- Variable to store the CharacterRemov
 
 -- Function to find the nearest untapped Coin_Server part
 local function findNearestUntappedCoin()
-    local nearestCoin = nil
-    local nearestDistance = math.huge
+local nearestCoin = nil
+local nearestDistance = math.huge
 
-    -- Check if player and player.Character are valid
-    if player and player.Character and player.Character.HumanoidRootPart then
+-- Check if player and player.Character are valid
+if player and player.Character and player.Character.HumanoidRootPart then
         local workspace = game:GetService("Workspace")
         local coinContainer = workspace:FindFirstChild("Normal") and workspace.Normal:FindFirstChild("CoinContainer")
         
@@ -2466,17 +2394,17 @@ local function findNearestUntappedCoin()
                 end
             end
         end
-    end
+end
 
-    return nearestCoin
+return nearestCoin
 end
 
 -- Function to move to the nearest untapped Coin_Server part with smooth transition
 local function moveToCoinServer()
-    -- Find the nearest untapped Coin_Server part
-    local nearestCoin = findNearestUntappedCoin()
+-- Find the nearest untapped Coin_Server part
+local nearestCoin = findNearestUntappedCoin()
 
-    if nearestCoin then
+if nearestCoin then
         print("Moving towards Coin or Eggs.")
         isMovingToCoin = true
 
@@ -2506,7 +2434,7 @@ local function moveToCoinServer()
         -- Mark the coin as touched
         touchedCoins[nearestCoin] = true
 
-        local delay = math.random(1.7, 2.1)
+        
         wait(delay)
 
         -- Move to the next nearest untapped Coin_Server part if auto farming is enabled
@@ -2514,7 +2442,7 @@ local function moveToCoinServer()
             -- Use coroutine to prevent blocking
             coroutine.wrap(moveToCoinServer)()
         end
-    else
+else
         print("Coin not found. Searching for Coin_Server...")
         wait(1)  -- Wait for a short period before searching again (customize as needed)
 
@@ -2522,16 +2450,16 @@ local function moveToCoinServer()
         if isAutoFarming and not isMovingToCoin then
             coroutine.wrap(moveToCoinServer)()
         end
-    end
+end
 end
 
 -- Function to teleport the player to the map with a delay
 local function teleportToMapWithDelay(delay)
-    wait(delay)
-    local workspace = game:GetService("Workspace")
-    local Workplace = workspace:GetChildren()
-    
-    for i, Thing in pairs(Workplace) do
+wait(delay)
+local workspace = game:GetService("Workspace")
+local Workplace = workspace:GetChildren()
+
+for i, Thing in pairs(Workplace) do
         local ThingChildren = Thing:GetChildren()
         for i, Child in pairs(ThingChildren) do
             if Child.Name == "Spawns" then
@@ -2540,26 +2468,26 @@ local function teleportToMapWithDelay(delay)
                 end
             end
         end
-    end
+end
 end
 
 -- Function to handle character added (when player respawns)
 local function onCharacterAdded(character)
-    player.Character = character
-    touchedCoins = {}  -- Reset touchedCoins table when character resets
-    isMovingToCoin = false  -- Reset moving to coin flag
-    if isAutoFarming then
+player.Character = character
+touchedCoins = {}  -- Reset touchedCoins table when character resets
+isMovingToCoin = false  -- Reset moving to coin flag
+if isAutoFarming then
         -- Teleport to the map with a delay before starting auto farming again
         teleportToMapWithDelay(5)  -- Adjust the delay to 5 seconds as required
         if not isMovingToCoin then
             coroutine.wrap(moveToCoinServer)()
         end
-    end
+end
 end
 
 -- Function to handle character removing (when player dies)
 local function onCharacterRemoving()
-    if isAutoFarming then
+if isAutoFarming then
         print("Character removed. Stopping auto farming and teleporting to map...")
         isAutoFarming = false  -- Stop auto farming when character dies
         isMovingToCoin = false  -- Stop moving towards the coin
@@ -2568,15 +2496,15 @@ local function onCharacterRemoving()
         if not isMovingToCoin then
             coroutine.wrap(moveToCoinServer)()
         end
-    end
+end
 end
 
 -- Example toggle integration
 local Toggle = Tabs.AutoFarm:AddToggle("AutoFarmCoinEggs", {Title = "Auto Farm Coin and Eggs", Default = false })
 
 Toggle:OnChanged(function(isEnabled)
-    isAutoFarming = isEnabled
-    if isAutoFarming then
+isAutoFarming = isEnabled
+if isAutoFarming then
         print("Auto Farm Coin enabled.")
         -- Connect the character added event handler only when auto farming is enabled
         characterAddedConnection = Players.LocalPlayer.CharacterAdded:Connect(onCharacterAdded)
@@ -2585,7 +2513,7 @@ Toggle:OnChanged(function(isEnabled)
         if not isMovingToCoin then
             coroutine.wrap(moveToCoinServer)()
         end
-    else
+else
         print("Auto Farm Coin disabled.")
         isMovingToCoin = false  -- Stop moving towards the coin if auto farming is disabled
         -- Disconnect the character added event handler when auto farming is disabled
@@ -2599,24 +2527,24 @@ Toggle:OnChanged(function(isEnabled)
             characterRemovingConnection = nil
         end
         -- Optionally, you could stop the character here
-    end
+end
 end)
 
 -- Listen for new coins spawning
 local workspace = game:GetService("Workspace")
 workspace.ChildAdded:Connect(function(child)
-    if child:IsA("Part") and child.Name == "Coin_Server" and isAutoFarming and not isMovingToCoin then
+if child:IsA("Part") and child.Name == "Coin_Server" and isAutoFarming and not isMovingToCoin then
         coroutine.wrap(moveToCoinServer)()
-    end
+end
 end)
 
 
 local function findNearestUntappedCoin()
-    local nearestCoin = nil
-    local nearestDistance = math.huge
+local nearestCoin = nil
+local nearestDistance = math.huge
 
-    -- Check if player and player.Character are valid
-    if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+-- Check if player and player.Character are valid
+if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
         local normalContainer = game.Workspace:FindFirstChild("Normal")
         if normalContainer then
             local coinContainer = normalContainer:FindFirstChild("CoinContainer")
@@ -2638,17 +2566,17 @@ local function findNearestUntappedCoin()
                 end
             end
         end
-    end
+end
 
-    return nearestCoin
+return nearestCoin
 end
 
 -- Function to move to the nearest untapped Coin_Server part with smooth transition
 local function moveToCoinServer()
-    -- Find the nearest untapped Coin_Server part with MainCoin child
-    local nearestCoin = findNearestUntappedCoin()
+-- Find the nearest untapped Coin_Server part with MainCoin child
+local nearestCoin = findNearestUntappedCoin()
 
-    if nearestCoin then
+if nearestCoin then
         print("Moving towards to Coin")
         isMovingToCoin = true
 
@@ -2678,7 +2606,7 @@ local function moveToCoinServer()
         -- Mark the coin as touched
         touchedCoins[nearestCoin] = true
 
-        local delay = math.random(1.7, 2.1)
+        
         wait(delay)
 
         -- Move to the next nearest untapped Coin_Server part if auto farming is enabled
@@ -2686,7 +2614,7 @@ local function moveToCoinServer()
             -- Use coroutine to prevent blocking
             coroutine.wrap(moveToCoinServer)()
         end
-    else
+else
         print("[ AshbornnHub ] Coin not Found.. Searching again...")
         wait(1)  -- Wait for a short period before searching again (customize as needed)
 
@@ -2694,16 +2622,16 @@ local function moveToCoinServer()
         if isAutoFarming and not isMovingToCoin then
             coroutine.wrap(moveToCoinServer)()
         end
-    end
+end
 end
 
 -- Function to teleport the player to the map with a delay
 local function teleportToMapWithDelay(delay)
-    wait(delay)
-    local workspace = game:GetService("Workspace")
-    local Workplace = workspace:GetChildren()
-    
-    for _, Thing in pairs(Workplace) do
+wait(delay)
+local workspace = game:GetService("Workspace")
+local Workplace = workspace:GetChildren()
+
+for _, Thing in pairs(Workplace) do
         local ThingChildren = Thing:GetChildren()
         for _, Child in pairs(ThingChildren) do
             if Child.Name == "Spawns" then
@@ -2712,26 +2640,26 @@ local function teleportToMapWithDelay(delay)
                 end
             end
         end
-    end
+end
 end
 
 -- Function to handle character added (when player respawns)
 local function onCharacterAdded(character)
-    player.Character = character
-    touchedCoins = {}  -- Reset touchedCoins table when character resets
-    isMovingToCoin = false  -- Reset moving to coin flag
-    if isAutoFarming then
+player.Character = character
+touchedCoins = {}  -- Reset touchedCoins table when character resets
+isMovingToCoin = false  -- Reset moving to coin flag
+if isAutoFarming then
         -- Teleport to the map with a delay before starting auto farming again
         teleportToMapWithDelay(5)  -- Adjust the delay to 5 seconds as required
         if not isMovingToCoin then
             coroutine.wrap(moveToCoinServer)()
         end
-    end
+end
 end
 
 -- Function to handle character removing (when player dies)
 local function onCharacterRemoving()
-    if isAutoFarming then
+if isAutoFarming then
         print("Character removed. Stopping auto farming and teleporting to map...")
         isAutoFarming = false  -- Stop auto farming when character dies
         isMovingToCoin = false  -- Stop moving towards the coin
@@ -2740,15 +2668,15 @@ local function onCharacterRemoving()
         if not isMovingToCoin then
             coroutine.wrap(moveToCoinServer)()
         end
-    end
+end
 end
 
 -- Example toggle integration
 local Toggle = Tabs.AutoFarm:AddToggle("AutoFarmCoin", {Title = "Auto Farm Coin Only", Default = false })
 
 Toggle:OnChanged(function(isEnabled)
-    isAutoFarming = isEnabled
-    if isAutoFarming then
+isAutoFarming = isEnabled
+if isAutoFarming then
         print("Auto Farm Coin enabled.")
         -- Connect the character added event handler only when auto farming is enabled
         characterAddedConnection = Players.LocalPlayer.CharacterAdded:Connect(onCharacterAdded)
@@ -2757,7 +2685,7 @@ Toggle:OnChanged(function(isEnabled)
         if not isMovingToCoin then
             coroutine.wrap(moveToCoinServer)()
         end
-    else
+else
         print("Auto Farm Coin disabled.")
         isMovingToCoin = false  -- Stop moving towards the coin if auto farming is disabled
         -- Disconnect the character added event handler when auto farming is disabled
@@ -2771,34 +2699,34 @@ Toggle:OnChanged(function(isEnabled)
             characterRemovingConnection = nil
         end
         -- Optionally, you could stop the character here
-    end
+end
 end)
 
 -- Listen for new Coin_Server parts spawning
 local workspace = game:GetService("Workspace")
 workspace.ChildAdded:Connect(function(child)
-    if child:IsA("Part") and child.Name == "Coin_Server" and child:FindFirstChild("CoinVisual") and child.CoinVisual:FindFirstChild("MainCoin") and isAutoFarming and not isMovingToCoin then
+if child:IsA("Part") and child.Name == "Coin_Server" and child:FindFirstChild("CoinVisual") and child.CoinVisual:FindFirstChild("MainCoin") and isAutoFarming and not isMovingToCoin then
         coroutine.wrap(moveToCoinServer)()
-    end
+end
 end)
 
 -- Function to check if a part has TouchInterest and an empty CoinVisual
 local function hasTouchInterestAndEmptyCoinVisual(part)
-    if part:IsA("Part") then
+if part:IsA("Part") then
         local touchInterest = part:FindFirstChild("TouchInterest")
         local coinVisual = part:FindFirstChild("CoinVisual")
         return touchInterest ~= nil and coinVisual ~= nil and #coinVisual:GetChildren() == 0
-    end
-    return false
+end
+return false
 end
 
 -- Function to find the nearest untapped Coin_Server part with TouchInterest and empty CoinVisual
 local function findNearestUntappedCoin()
-    local nearestCoin = nil
-    local nearestDistance = math.huge
+local nearestCoin = nil
+local nearestDistance = math.huge
 
-    -- Check if player and player.Character are valid
-    if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+-- Check if player and player.Character are valid
+if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
         local normalContainer = game.Workspace:FindFirstChild("Normal")
         if normalContainer then
             local coinContainer = normalContainer:FindFirstChild("CoinContainer")
@@ -2817,17 +2745,17 @@ local function findNearestUntappedCoin()
                 end
             end
         end
-    end
+end
 
-    return nearestCoin
+return nearestCoin
 end
 
 -- Function to move to the nearest untapped Coin_Server part with smooth transition
 local function moveToCoinServer()
-    -- Find the nearest untapped Coin_Server part with TouchInterest and empty CoinVisual
-    local nearestCoin = findNearestUntappedCoin()
+-- Find the nearest untapped Coin_Server part with TouchInterest and empty CoinVisual
+local nearestCoin = findNearestUntappedCoin()
 
-    if nearestCoin then
+if nearestCoin then
         print("Moving towards to the Eggs")
         isMovingToCoin = true
 
@@ -2857,7 +2785,7 @@ local function moveToCoinServer()
         -- Mark the coin as touched
         touchedCoins[nearestCoin] = true
 
-        local delay = math.random(1.7, 2.1)
+         
         wait(delay)
 
         -- Move to the next nearest untapped Coin_Server part if auto farming is enabled
@@ -2865,7 +2793,7 @@ local function moveToCoinServer()
             -- Use coroutine to prevent blocking
             coroutine.wrap(moveToCoinServer)()
         end
-    else
+else
         print("[ AshbornnHub ] Searching for eggs..")
         wait(1)  -- Wait for a short period before searching again (customize as needed)
 
@@ -2873,16 +2801,16 @@ local function moveToCoinServer()
         if isAutoFarming and not isMovingToCoin then
             coroutine.wrap(moveToCoinServer)()
         end
-    end
+end
 end
 
 -- Function to teleport the player to the map with a delay
 local function teleportToMapWithDelay(delay)
-    wait(delay)
-    local workspace = game:GetService("Workspace")
-    local Workplace = workspace:GetChildren()
-    
-    for _, Thing in pairs(Workplace) do
+wait(delay)
+local workspace = game:GetService("Workspace")
+local Workplace = workspace:GetChildren()
+
+for _, Thing in pairs(Workplace) do
         local ThingChildren = Thing:GetChildren()
         for _, Child in pairs(ThingChildren) do
             if Child.Name == "Spawns" then
@@ -2891,26 +2819,26 @@ local function teleportToMapWithDelay(delay)
                 end
             end
         end
-    end
+end
 end
 
 -- Function to handle character added (when player respawns)
 local function onCharacterAdded(character)
-    player.Character = character
-    touchedCoins = {}  -- Reset touchedCoins table when character resets
-    isMovingToCoin = false  -- Reset moving to coin flag
-    if isAutoFarming then
+player.Character = character
+touchedCoins = {}  -- Reset touchedCoins table when character resets
+isMovingToCoin = false  -- Reset moving to coin flag
+if isAutoFarming then
         -- Teleport to the map with a delay before starting auto farming again
         teleportToMapWithDelay(5)  -- Adjust the delay to 5 seconds as required
         if not isMovingToCoin then
             coroutine.wrap(moveToCoinServer)()
         end
-    end
+end
 end
 
 -- Function to handle character removing (when player dies)
 local function onCharacterRemoving()
-    if isAutoFarming then
+if isAutoFarming then
         print("Character removed. Stopping auto farming and teleporting to map...")
         isAutoFarming = false  -- Stop auto farming when character dies
         isMovingToCoin = false  -- Stop moving towards the coin
@@ -2919,15 +2847,15 @@ local function onCharacterRemoving()
         if not isMovingToCoin then
             coroutine.wrap(moveToCoinServer)()
         end
-    end
+end
 end
 
 -- Example toggle integration
 local Toggle = Tabs.AutoFarm:AddToggle("AutoFarmEggs", {Title = "Auto Farm Eggs Only ", Default = false })
 
 Toggle:OnChanged(function(isEnabled)
-    isAutoFarming = isEnabled
-    if isAutoFarming then
+isAutoFarming = isEnabled
+if isAutoFarming then
         print("Auto Farm Coin enabled.")
         -- Connect the character added event handler only when auto farming is enabled
         characterAddedConnection = Players.LocalPlayer.CharacterAdded:Connect(onCharacterAdded)
@@ -2936,7 +2864,7 @@ Toggle:OnChanged(function(isEnabled)
         if not isMovingToCoin then
             coroutine.wrap(moveToCoinServer)()
         end
-    else
+else
         print("Auto Farm Coin disabled.")
         isMovingToCoin = false  -- Stop moving towards the coin if auto farming is disabled
         -- Disconnect the character added event handler when auto farming is disabled
@@ -2950,27 +2878,27 @@ Toggle:OnChanged(function(isEnabled)
             characterRemovingConnection = nil
         end
         -- Optionally, you could stop the character here
-    end
+end
 end)
 
 -- Listen for new Coin_Server parts spawning
 local workspace = game:GetService("Workspace")
 workspace.ChildAdded:Connect(function(child)
-    if child:IsA("Part") and child.Name == "Coin_Server" and isAutoFarming and not isMovingToCoin then
+if child:IsA("Part") and child.Name == "Coin_Server" and isAutoFarming and not isMovingToCoin then
         coroutine.wrap(moveToCoinServer)()
-    end
+end
 end)
 
 
 -- Function to check if a part has TouchInterest, an empty CoinVisual, and ParticleEmitter
 local function hasTouchInterestAndEmptyCoinVisualAndParticleEmitter(part)
-    if part:IsA("Part") then
+if part:IsA("Part") then
         local touchInterest = part:FindFirstChild("TouchInterest")
         local coinVisual = part:FindFirstChild("CoinVisual")
         local particleEmitter = part:FindFirstChild("ParticleEmitter")
         return touchInterest ~= nil and coinVisual ~= nil and #coinVisual:GetChildren() == 0 and particleEmitter ~= nil
-    end
-    return false
+end
+return false
 end
 
 
@@ -2981,22 +2909,22 @@ local touchedRareEggs = {}
 
 -- Function to check if a part has TouchInterest, empty CoinVisual, and ParticleEmitter
 local function hasTouchInterestAndEmptyCoinVisualAndParticleEmitter(part)
-    if part:IsA("Part") then
+if part:IsA("Part") then
         local touchInterest = part:FindFirstChild("TouchInterest")
         local coinVisual = part:FindFirstChild("CoinVisual")
         local particleEmitter = part:FindFirstChild("ParticleEmitter")
         return touchInterest ~= nil and coinVisual ~= nil and #coinVisual:GetChildren() == 0 and particleEmitter ~= nil
-    end
-    return false
+end
+return false
 end
 
 -- Function to find the nearest untapped Coin_Server part with TouchInterest, empty CoinVisual, and ParticleEmitter
 local function findNearestUntappedCoin()
-    local nearestCoin = nil
-    local nearestDistance = math.huge
+local nearestCoin = nil
+local nearestDistance = math.huge
 
-    -- Check if player and player.Character are valid
-    if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+-- Check if player and player.Character are valid
+if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
         local normalContainer = game.Workspace:FindFirstChild("Normal")
         if normalContainer then
             local coinContainer = normalContainer:FindFirstChild("CoinContainer")
@@ -3015,16 +2943,16 @@ local function findNearestUntappedCoin()
                 end
             end
         end
-    end
+end
 
-    return nearestCoin
+return nearestCoin
 end
 
 -- Define the teleportation function
 local function teleportToNearestCoin()
-    local player = game.Players.LocalPlayer
+local player = game.Players.LocalPlayer
 
-    if player.Character then
+if player.Character then
         local nearestCoin = findNearestUntappedCoin()
         if nearestCoin then
             local oldPos = player.Character.HumanoidRootPart.CFrame
@@ -3034,14 +2962,10 @@ local function teleportToNearestCoin()
                 task.wait()
                 player.Character.HumanoidRootPart.CFrame = nearestCoin.CFrame * CFrame.Angles(math.rad(-90), math.rad(0), math.rad(0))
                 task.wait()
-            until not nearestCoin:IsDescendantOf(workspace) or tick() - startTime >= 3
+            until not nearestCoin:IsDescendantOf(workspace) or tick() - startTime >= 1
             player.Character.HumanoidRootPart.CFrame = oldPos
             player.Character.Humanoid:ChangeState(1)
-            Fluent:Notify({
-                Title = "Rare Egg Found",
-                Content = "Successfully teleported to the rare egg.",
-                Duration = 3
-            })
+            SendNotif("Rare Egg has been Found", "Teleported to egg Success", 3)
             -- Mark the coin as touched
             touchedRareEggs[nearestCoin] = true
             return true
@@ -3049,7 +2973,7 @@ local function teleportToNearestCoin()
             print("[ AshbornnHub ] Rare Egg Not Found.. Searching again....")
             return false
         end
-    end
+end
 end
 
 -- Coroutine handle for the auto teleportation loop
@@ -3058,16 +2982,16 @@ local isTeleporting = false
 
 -- Example button integration
 Tabs.AutoFarm:AddButton({
-    Title = "Teleport to Rare Egg",
-    Description = "Teleport to the nearest rare egg if available",
-    Callback = teleportToNearestCoin
+Title = "Teleport to Rare Egg",
+Description = "Teleport to the nearest rare egg if available",
+Callback = teleportToNearestCoin
 })
 
 -- Toggle to automatically teleport to rare egg on spawn
 local Toggle = Tabs.AutoFarm:AddToggle("TPtoRareEgg", {Title = "Auto Teleport to Rare eggs on spawn", Default = false })
 
 Toggle:OnChanged(function(state)
-    if state then
+if state then
         if not isTeleporting then
             isTeleporting = true
             teleportCoroutine = coroutine.create(function()
@@ -3083,9 +3007,9 @@ Toggle:OnChanged(function(state)
             end)
             coroutine.resume(teleportCoroutine)
         end
-    else
+else
         isTeleporting = false
-    end
+end
 end)
 
 
@@ -3111,62 +3035,58 @@ Tabs.AutoFarm:AddParagraph({
 local AshMotes = false
 
 Tabs.LEmotes:AddButton({
-    Title = "Get all Emotes in Roblox",
-    Description = "Get all emotes that are in the Store",
-    Callback = function()
+Title = "Get all Emotes in Roblox",
+Description = "Get all emotes that are in the Store",
+Callback = function()
         if not AshMotes then
             AshMotes = true
             loadstring(game:HttpGet("https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/RblxEmotes.lua", true))()
         else
-            Fluent:Notify({
-                Title = "Already Executed",
-                Content = "Lol you clicked this earlier.",
-                Duration = 3
-            })
+            SendNotif("Already executed", "You cant just executed this twice lol", 3)
         end
-    end
+end
 })
 
 Tabs.LEmotes:AddButton({
 
-    Title = "Play Zen",
-    Description = "",
-    Callback = function()
+Title = "Play Zen",
+Description = "",
+Callback = function()
         PlayZen()
-    end
+end
 })
 
 Tabs.LEmotes:AddButton({
 
-    Title = "Play Dab",
-    Description = "",
-    Callback = function()
+Title = "Play Dab",
+Description = "",
+Callback = function()
         PlayDab()
-    end
+end
 })
 Tabs.LEmotes:AddButton({
 
-    Title = "Play Zombie",
-    Description = "",
-    Callback = function()
+Title = "Play Zombie",
+Description = "",
+Callback = function()
         PlayZombie()
-    end
+end
 })
 Tabs.LEmotes:AddButton({
 
-    Title = "Play Floss",
-    Description = "",
-    Callback = function()
+Title = "Play Floss",
+Description = "",
+Callback = function()
         PlayFloss()
-    end
+end
 })
 Tabs.LEmotes:AddButton({
 
-    Title = "Play Headless",
-    Description = "",
-    Callback = function()
+Title = "Play Headless",
+Description = "",
+Callback = function()
         PlayHeadless()
-    end
+end
 })
 
 
@@ -3183,17 +3103,17 @@ Tabs.Buttons:AddParagraph({
             Title = "READ ME",
             Content = "To adjust the position of Buttons you can drag it at the side of UI. Also if you want to save your config you can use the Settings and Goto Configuration Add Config Name and Save it and Auto Load if You want."
         })
-    
-    
-    local ButtonsC = Tabs.Buttons:AddSection("Button Customize")
-    local TColorpicker = Tabs.Buttons:AddColorpicker("TransparencyColorpicker", {
+
+
+local ButtonsC = Tabs.Buttons:AddSection("Button Customize")
+local TColorpicker = Tabs.Buttons:AddColorpicker("TransparencyColorpicker", {
         Title = "Customize Buttons",
         Description = "Customize its Color and Transparency",
         Transparency = 0,
         Default = Color3.fromRGB(0, 0, 0)
-    })
-    
-    local InputHeight = Tabs.Buttons:AddInput("InputHeight", {
+})
+
+local InputHeight = Tabs.Buttons:AddInput("InputHeight", {
         Title = "Change Button Size (Height)",
         Default = 75,
         Placeholder = "Height",
@@ -3202,8 +3122,8 @@ Tabs.Buttons:AddParagraph({
         Callback = function(Value)
             print("Button Size Height changed to:", Value)
         end
-    })
-    local InputWidth = Tabs.Buttons:AddInput("InputWidth", {
+})
+local InputWidth = Tabs.Buttons:AddInput("InputWidth", {
         Title = "Change Button Size (Width)",
         Default = 100,
         Placeholder = "Width",
@@ -3212,8 +3132,8 @@ Tabs.Buttons:AddParagraph({
         Callback = function(Value)
             print("Button size Width changed to:", Value)
         end
-    })
-    local InputTSize = Tabs.Buttons:AddInput("InputTSize", {
+})
+local InputTSize = Tabs.Buttons:AddInput("InputTSize", {
         Title = "Change Button Text Size",
         Default = 8,
         Placeholder = "Text Size",
@@ -3222,30 +3142,32 @@ Tabs.Buttons:AddParagraph({
         Callback = function(Value)
             print("Button Text Size changed to:", Value)
         end
-    })
-    
-    local LockFrames = false
+})
+
+local LockFrames = false
 -- Define the toggle and its initial state
 local Toggle = Tabs.Buttons:AddToggle("LockPos", {Title = "Lock All Frames Position", Default = false })
 
 Toggle:OnChanged(function(value)
-    LockFrames = value
+LockFrames = value
 end)
    
    
-    local ButtonsS = Tabs.Buttons:AddSection("Button Shortcuts")
+local ButtonsS = Tabs.Buttons:AddSection("Button Shortcuts")
 
 -- Constants for file handling
 local SAVED_POSITIONS = {
-    FEInviButtonPerk = "AshbornnHub/MM2/PerkFEInviButtPos.json",
-    FEInviButton = "AshbornnHub/MM2/FEInviButPos.json",
-    InviButton = "AshbornnHub/MM2/InviButPos.json"
+FEInviButtonPerk = "AshbornnHub/MM2/PerkFEInviButtPos.json",
+FEInviButton = "AshbornnHub/MM2/FEInviButPos.json",
+AFCoinButton = "AshbornnHub/MM2/AFCoin.json",
+InviButton = "AshbornnHub/MM2/InviButPos.json"
 }
 
 local DEFAULT_POSITIONS = {
-    FEInviButtonPerk = UDim2.new(0.5, -0.5, 0.5, -37.5),
-    FEInviButton = UDim2.new(0.5, -0.5, 0.5, -37.5),
-    InviButton = UDim2.new(0.5, 100, 0.5, 37.5)
+FEInviButtonPerk = UDim2.new(0.5, -0.5, 0.5, -37.5),
+FEInviButton = UDim2.new(0.5, -0.5, 0.5, -37.5),
+AFCoinButton = UDim2.new(0.5, 0.5, 0.5, -60.5),
+InviButton = UDim2.new(0.5, 100, 0.5, 37.5)
 }
 
 local screenGuis = {}
@@ -3253,8 +3175,8 @@ local savedPositions = {}
 
 -- Function to save the position to file
 local function savePosition(buttonType)
-    local screenGui = screenGuis[buttonType]
-    if screenGui then
+local screenGui = screenGuis[buttonType]
+if screenGui then
         local positionData = {
             X = savedPositions[buttonType].X.Scale,
             XOffset = savedPositions[buttonType].X.Offset,
@@ -3267,58 +3189,58 @@ local function savePosition(buttonType)
         if not success then
             warn("Failed to save position:", error)
         end
-    end
+end
 end
 
 -- Function to load the position from file
 local function loadPosition(buttonType)
-    local success, data = pcall(function()
+local success, data = pcall(function()
         return readfile(SAVED_POSITIONS[buttonType])
-    end)
-    if success then
+end)
+if success then
         local positionData = game:GetService("HttpService"):JSONDecode(data)
         if positionData then
             savedPositions[buttonType] = UDim2.new(positionData.X, positionData.XOffset, positionData.Y, positionData.YOffset)
             return
         end
-    end
-    savedPositions[buttonType] = DEFAULT_POSITIONS[buttonType]
+end
+savedPositions[buttonType] = DEFAULT_POSITIONS[buttonType]
 end
 
 -- Function to create the GUI
 local function createGui(buttonType, buttonText, toggleOption, remoteEvent)
-    -- Create a ScreenGui
-    local screenGui = Instance.new("ScreenGui")
-    screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
-    screenGuis[buttonType] = screenGui
+-- Create a ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+screenGuis[buttonType] = screenGui
 
-    -- Create a Frame
-    local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0, InputWidth.Value, 0, InputHeight.Value)
-    frame.Position = savedPositions[buttonType]
-    frame.AnchorPoint = Vector2.new(0.5, 0.5)
-    frame.BackgroundTransparency = TColorpicker.Transparency
-    frame.BackgroundColor3 = TColorpicker.Value
-    frame.Parent = screenGui
+-- Create a Frame
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, InputWidth.Value, 0, InputHeight.Value)
+frame.Position = savedPositions[buttonType]
+frame.AnchorPoint = Vector2.new(0.5, 0.5)
+frame.BackgroundTransparency = TColorpicker.Transparency
+frame.BackgroundColor3 = TColorpicker.Value
+frame.Parent = screenGui
 
-    -- Add UICorner to Frame
-    local uiCornerFrame = Instance.new("UICorner")
-    uiCornerFrame.CornerRadius = UDim.new(0, 15)
-    uiCornerFrame.Parent = frame
+-- Add UICorner to Frame
+local uiCornerFrame = Instance.new("UICorner")
+uiCornerFrame.CornerRadius = UDim.new(0, 15)
+uiCornerFrame.Parent = frame
 
-    -- Create a Button
-    local button = Instance.new("TextButton")
-    button.Size = UDim2.new(0, 160, 0, 40)
-    button.Position = UDim2.new(0.5, 0, 0.5, 0)
-    button.AnchorPoint = Vector2.new(0.5, 0.5)
-    button.BackgroundTransparency = 1
-    button.Text = buttonText
-    button.TextSize = InputTSize.Value
-    button.TextColor3 = Color3.fromRGB(255, 255, 255)
-    button.Parent = frame
+-- Create a Button
+local button = Instance.new("TextButton")
+button.Size = UDim2.new(0, 160, 0, 40)
+button.Position = UDim2.new(0.5, 0, 0.5, 0)
+button.AnchorPoint = Vector2.new(0.5, 0.5)
+button.BackgroundTransparency = 1
+button.Text = buttonText
+button.TextSize = InputTSize.Value
+button.TextColor3 = Color3.fromRGB(255, 255, 255)
+button.Parent = frame
 
-    -- Function to toggle button text based on the toggle option
-    local function toggleButtonText()
+-- Function to toggle button text based on the toggle option
+local function toggleButtonText()
         if toggleOption.Value then
             button.Text = buttonText .. " [ON]"
             game:GetService("ReplicatedStorage").Remotes.Gameplay[remoteEvent]:FireServer(true)
@@ -3326,24 +3248,24 @@ local function createGui(buttonType, buttonText, toggleOption, remoteEvent)
             button.Text = buttonText .. " [OFF]"
             game:GetService("ReplicatedStorage").Remotes.Gameplay[remoteEvent]:FireServer(false)
         end
-    end
+end
 
-    -- Connect the button click event to the toggle function
-    button.MouseButton1Click:Connect(function()
+-- Connect the button click event to the toggle function
+button.MouseButton1Click:Connect(function()
         toggleOption:SetValue(not toggleOption.Value)
         toggleButtonText()
-    end)
+end)
 
-    -- Make the Frame draggable
-    local dragging, dragInput, dragStart, startPos
+-- Make the Frame draggable
+local dragging, dragInput, dragStart, startPos
 
-    local function update(input)
+local function update(input)
         local delta = input.Position - dragStart
         frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
         savedPositions[buttonType] = frame.Position
-    end
+end
 
-    frame.InputBegan:Connect(function(input)
+frame.InputBegan:Connect(function(input)
         if not LockFrames and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
             dragging = true
             dragStart = input.Position
@@ -3356,71 +3278,76 @@ local function createGui(buttonType, buttonText, toggleOption, remoteEvent)
                 end
             end)
         end
-    end)
+end)
 
-    frame.InputChanged:Connect(function(input)
+frame.InputChanged:Connect(function(input)
         if not LockFrames and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
             dragInput = input
         end
-    end)
+end)
 
-    UserInputService.InputChanged:Connect(function(input)
+UserInputService.InputChanged:Connect(function(input)
         if not LockFrames and input == dragInput and dragging then
             update(input)
         end
-    end)
+end)
 
-    -- Update button text based on the initial value of the toggle option
-    toggleButtonText()
+-- Update button text based on the initial value of the toggle option
+toggleButtonText()
 end
 
 -- Function to handle GUI creation and destruction
 local function handleToggle(buttonType, value, buttonText, toggleOption, remoteEvent)
-    if value then
+if value then
         createGui(buttonType, buttonText, toggleOption, remoteEvent)
-    else
+else
         if screenGuis[buttonType] then
             screenGuis[buttonType]:Destroy()
             screenGuis[buttonType] = nil
             savePosition(buttonType)
         end
-    end
+end
 end
 
 -- Load saved positions
 for buttonType in pairs(SAVED_POSITIONS) do
-    loadPosition(buttonType)
+loadPosition(buttonType)
 end
 
 -- Define Toggle and Option mappings
 local toggles = {
-    FEInviButtonPerk = Tabs.Buttons:AddToggle("FEInviButtonPerk", {Title = "FE invisible Button + Invisible(Need Ghost Perk)", Default = false}),
-    FEInviButton = Tabs.Buttons:AddToggle("FEInviButton", {Title = "FE Invisible Button Only", Default = false}),
-    InviButton = Tabs.Buttons:AddToggle("InviButton", {Title = "Invisible Button (Need Ghost Perk)", Default = false})
+FEInviButtonPerk = Tabs.Buttons:AddToggle("FEInviButtonPerk", {Title = "FE invisible Button + Invisible(Need Ghost Perk)", Default = false}),
+FEInviButton = Tabs.Buttons:AddToggle("FEInviButton", {Title = "FE Invisible Button Only", Default = false}),
+InviButton = Tabs.Buttons:AddToggle("InviButton", {Title = "Invisible Button (Need Ghost Perk)", Default = false}),
+AFCoinButton = Tabs.Buttons:AddToggle("AFCoinButton", {Title = "Auto Farm Coin Button Toggle", Default = false})
 }
 
 local toggleOptions = {
-    FEInviButtonPerk = Options.FEInvisible,
-    FEInviButton = Options.FEInvisible,
-    InviButton = Options.Invisible
+FEInviButtonPerk = Options.FEInvisible,
+FEInviButton = Options.FEInvisible,
+AFCoinButton = Options.AutoFarmCoin,
+InviButton = Options.Invisible
 }
 
 -- Connect toggle state changes to handleToggle
 for buttonType, toggle in pairs(toggles) do
-    local buttonText, remoteEvent
-    if buttonType == "FEInviButtonPerk" then
+local buttonText, remoteEvent
+if buttonType == "FEInviButtonPerk" then
         buttonText = "(Ghost Perk) +\nFE Invisible is"
         remoteEvent = "Stealth"
-    elseif buttonType == "FEInviButton" then
+elseif buttonType == "FEInviButton" then
         buttonText = "FE Invisible is"
         remoteEvent = "Stealth"
-    elseif buttonType == "InviButton" then
+elseif buttonType == "AFCoinButton" then
+        buttonText = "Auto Farm Coin is"
+        remoteEvent = nil
+elseif buttonType == "InviButton" then
         buttonText = "Invisible is"
         remoteEvent = "Stealth"
-    end
-    toggle:OnChanged(function(value)
+end
+toggle:OnChanged(function(value)
         handleToggle(buttonType, value, buttonText, toggleOptions[buttonType], remoteEvent)
-    end)
+end)
 end
 
 -- Set the initial state of the toggles
@@ -3430,7 +3357,7 @@ Options.Invisible:SetValue(false)
 -- Ensure the GUI persists across respawns
 local Player = game.Players.LocalPlayer
 Player.CharacterAdded:Connect(function()
-    for buttonType, toggle in pairs(toggles) do
+for buttonType, toggle in pairs(toggles) do
         if toggle.Value then
             local buttonText, remoteEvent
             if buttonType == "FEInviButtonPerk" then
@@ -3439,36 +3366,38 @@ Player.CharacterAdded:Connect(function()
             elseif buttonType == "FEInviButton" then
                 buttonText = "FE Invisible is"
                 remoteEvent = "Stealth"
+            elseif buttonType == "AFCoinButton" then
+                buttonText = "Auto Farm Coin is"
             elseif buttonType == "InviButton" then
                 buttonText = "Invisible is"
                 remoteEvent = "Stealth"
             end
             createGui(buttonType, buttonText, toggleOptions[buttonType], remoteEvent)
         end
-    end
+end
 end)
 
 
 local Grab = "Grab Gun" -- Initialize Grab
 
 local function updateButtonText(button)
-    local gunReady = workspace:FindFirstChild("GunDrop")
-    if gunReady then
+local gunReady = workspace:FindFirstChild("GunDrop")
+if gunReady then
         Grab = "Grab Gun (Ready)"
-    else
+else
         Grab = "Grab Gun"
-    end
-    button.Text = Grab -- Update the button text
+end
+button.Text = Grab -- Update the button text
 end
 
 -- Function to handle GUI creation and destruction
 local function setupGui(toggleName, buttonTitle, buttonAction)
-    local SAVED_POSITION_FILE = "AshbornnHub/MM2/" .. toggleName .. "ButtonPos.json"
-    local screenGui
-    local savedPosition = UDim2.new(0.5, 75, 0.5, 37)  -- Default position
+local SAVED_POSITION_FILE = "AshbornnHub/MM2/" .. toggleName .. "ButtonPos.json"
+local screenGui
+local savedPosition = UDim2.new(0.5, 75, 0.5, 37)  -- Default position
 
-    -- Function to save the position to file
-    local function savePosition()
+-- Function to save the position to file
+local function savePosition()
         if screenGui then
             local positionData = {
                 X = savedPosition.X.Scale,
@@ -3483,10 +3412,10 @@ local function setupGui(toggleName, buttonTitle, buttonAction)
                 warn("Failed to save position:", errorMsg)
             end
         end
-    end
+end
 
-    -- Function to load the position from file
-    local function loadPosition()
+-- Function to load the position from file
+local function loadPosition()
         local positionData
         local success, data = pcall(function()
             return readfile(SAVED_POSITION_FILE)
@@ -3497,14 +3426,14 @@ local function setupGui(toggleName, buttonTitle, buttonAction)
         if positionData then
             savedPosition = UDim2.new(positionData.X, positionData.XOffset, positionData.Y, positionData.YOffset)
         end
-    end
+end
 
-    -- Attempt to load the saved position
-    loadPosition()
+-- Attempt to load the saved position
+loadPosition()
 
-    -- Function to create or destroy the GUI based on toggle state
+-- Function to create or destroy the GUI based on toggle state
 local function toggleGui(value)
-    if value then
+if value then
         -- Create the GUI
         screenGui = Instance.new("ScreenGui")
         screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
@@ -3587,14 +3516,14 @@ local function toggleGui(value)
             end
         end)
 
-    else
+else
         -- Destroy the GUI if it exists
         if screenGui then
             screenGui:Destroy()
             screenGui = nil
             savePosition()
         end
-    end
+end
 end
 
 -- Create the toggle
@@ -3605,223 +3534,172 @@ Toggle:OnChanged(toggleGui)
 
 -- Ensure the GUI persists across respawns and retains its position
 game.Players.LocalPlayer.CharacterAdded:Connect(function()
-    if Toggle.Value then
+if Toggle.Value then
         toggleGui(true)
-    end
+end
 end)
 end
 
 -- Setup each GUI with respective actions
 setupGui("GrabGun", "Grab Gun", function()
+local player = game.Players.LocalPlayer
 
-    local Player = game.Players.LocalPlayer
+if not IsAlive(player) then
+        SendNotif("You're not alive ", "Please wait for the new round to grab the gun.", 3)
+        return
+end
 
-        if not IsAlive(Player) then
-            Fluent:Notify({
-                Title = "You're not alive",
-                Content = "Please wait for the new round to grab the gun.",
-                Duration = 3
-            })
-            return
+if player.Backpack:FindFirstChild("Gun") or (player.Character and player.Character:FindFirstChild("Gun")) then
+        SendNotif("You already have a gun", "Lollll.", 3)
+        return
+end
+
+if player.Character then
+        local gundr = workspace:FindFirstChild("GunDrop")
+        if gundr then
+            local oldpos = player.Character.HumanoidRootPart.CFrame
+            repeat
+                player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(90), math.rad(0), math.rad(0))
+                task.wait()
+                player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(-90), math.rad(0), math.rad(0))
+                task.wait()
+            until not gundr:IsDescendantOf(workspace)
+            player.Character.HumanoidRootPart.CFrame = oldpos
+            oldpos = false
+            player.Character.Humanoid:ChangeState(1)
+        else
+            SendNotif("Gun not Found", "Wait for the Sheriff's death to grab the gun.", 3)
         end
-
-        if Player.Backpack:FindFirstChild("Gun") or (Player.Character and Player.Character:FindFirstChild("Gun")) then
-            Fluent:Notify({
-                Title = "You already have a gun",
-                Content = "Lollll.",
-                Duration = 3
-            })
-            return
-        end
-
-        if Player.Character then
-            local gundr = workspace:FindFirstChild("GunDrop")
-            if gundr then
-                local oldpos = Player.Character.HumanoidRootPart.CFrame
-                repeat
-                    Player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(90), math.rad(0), math.rad(0))
-                    task.wait()
-                    Player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(-90), math.rad(0), math.rad(0))
-                    task.wait()
-                until not gundr:IsDescendantOf(workspace)
-                Player.Character.HumanoidRootPart.CFrame = oldpos
-                oldpos = false
-                Player.Character.Humanoid:ChangeState(1)
-                button.Text = "Grab Gun (Gotcha)"
-            else
-                Fluent:Notify({
-                    Title = "Gun not Found",
-                    Content = "Wait for the Sheriff's death to grab the gun.",
-                    Duration = 3
-                })
-            end
-        end
+end
 end)
 
 setupGui("ShootMurd", "TP Shoot Murd", function()
-    local Player = game.Players.LocalPlayer
-            local humanoidRootPart = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
-            if not humanoidRootPart then return end
+local Player = game.Players.LocalPlayer
+local humanoidRootPart = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
+if not humanoidRootPart then return end
 
-            local currentPosition = humanoidRootPart.CFrame
+local currentPosition = humanoidRootPart.CFrame
 
-            if Murder then
-                local murdererCharacter = game.Players[Murder] and game.Players[Murder].Character
+if Murder then
+        local murdererCharacter = game.Players[Murder] and game.Players[Murder].Character
 
-                -- Check if the murderer is in the owner user IDs table
-                if murdererCharacter and ownerUserIds[game.Players[Murder].UserId] then
-                    Fluent:Notify({
-                        Title = "You're trying to kill the script owner",
-                        Content = "Nuhh uhh",
-                        SubContent = "Im here kid", -- Optional
-                        Duration = 3 -- Set to nil to make the notification not disappear
-                    })
-                    return
+        -- Check if the murderer is in the owner user IDs table
+        if murdererCharacter and ownerUserIds[game.Players[Murder].UserId] then
+            SendNotif("You're trying to kill the script owner", "Nuhh uhh\nIm here kid", 3)
+            return
+        end
+
+        if murdererCharacter and murdererCharacter:FindFirstChild("HumanoidRootPart") then
+            local murdererPosition = murdererCharacter.HumanoidRootPart.CFrame
+
+            -- Check if the Player has a gun in their backpack or equipped
+            local backpack = Player:FindFirstChild("Backpack")
+            local gun = backpack and (backpack:FindFirstChild("Gun") or Player.Character:FindFirstChild("Gun"))
+
+            if gun then
+                -- Equip the gun if not already equipped
+                if backpack:FindFirstChild("Gun") then
+                    backpack.Gun.Parent = Player.Character
                 end
 
-                if murdererCharacter and murdererCharacter:FindFirstChild("HumanoidRootPart") then
-                    local murdererPosition = murdererCharacter.HumanoidRootPart.CFrame
+                -- Teleport to the murderer
+                humanoidRootPart.CFrame = murdererPosition
 
-                    -- Check if the Player has a gun in their backpack or equipped
-                    local backpack = Player:FindFirstChild("Backpack")
-                    local gun = backpack and (backpack:FindFirstChild("Gun") or Player.Character:FindFirstChild("Gun"))
-
-                    if gun then
-                        -- Equip the gun if not already equipped
-                        if backpack:FindFirstChild("Gun") then
-                            backpack.Gun.Parent = Player.Character
-                        end
-
-                        -- Teleport to the murderer
-                        humanoidRootPart.CFrame = murdererPosition
-
-                        -- Shoot the gun at the murderer's position
-                        if Player.Character:FindFirstChild("Gun") then
-                            wait(0.2)
-                            Player.Character:MoveTo(currentPosition.Position)
-                            Player.Character.Gun.KnifeServer.ShootGun:InvokeServer(1, murdererCharacter.HumanoidRootPart.Position, "AH")
-                        end
-                    else
-                        Fluent:Notify({
-                            Title = "You don't have a Gun",
-                            Content = "Grab the gun or wait for Sheriff Death.",
-                            Duration = 3
-                        })
-                    end
-                else
-                    Fluent:Notify({
-                        Title = "Murderer not Found",
-                        Content = "Murderer's character not found.",
-                        Duration = 3
-                    })
+                -- Shoot the gun at the murderer's position
+                if Player.Character:FindFirstChild("Gun") then
+                    wait(0.2)
+                    Player.Character:MoveTo(currentPosition.Position)
+                    Player.Character.Gun.KnifeServer.ShootGun:InvokeServer(1, murdererCharacter.HumanoidRootPart.Position, "AH")
                 end
             else
-                Fluent:Notify({
-                    Title = "Murderer not Found",
-                    Content = "Murderer role not assigned yet.",
-                    Duration = 3
-                })
+                SendNotif("Gun not Found", "Grab the gun or wait for Sheriff's death to grab the gun.", 3)
             end
+        else
+            SendNotif("Murderer not Found", "Murderer's character not found.", 3)
+        end
+else
+        SendNotif("Murderer not Found", "Murderer role not assigned yet.", 3)
+end
 end)
 
+
 setupGui("StabSheriff", "TP Stab Sheriff/Hero", function()
-    local Player = game.Players.LocalPlayer
-            local character = Player.Character
-            local humanoidRootPart = character and character:FindFirstChild("HumanoidRootPart")
+local Player = game.Players.LocalPlayer
+local character = Player.Character
+local humanoidRootPart = character and character:FindFirstChild("HumanoidRootPart")
 
-            if not humanoidRootPart then
-                Fluent:Notify({
-                    Title = "Error",
-                    Content = "HumanoidRootPart not found.",
-                    Duration = 3
-                })
-                return
+if not humanoidRootPart then
+        SendNotif("Error", "HumanoidRootPart not found.", 3)
+        return
+end
+
+local currentPosition = humanoidRootPart.Position
+
+local function getTargetPlayer()
+        if Sheriff and IsAlive(game.Players[Sheriff]) then
+            return game.Players[Sheriff]
+        elseif Hero and IsAlive(game.Players[Hero]) then
+            return game.Players[Hero]
+        else
+            for _, p in pairs(game.Players:GetPlayers()) do
+                if p.Backpack:FindFirstChild("Gun") and IsAlive(p) then
+                    return p
+                end
+            end
+        end
+        return nil
+end
+
+-- Check if the Player has a knife
+local backpack = Player.Backpack
+if not (backpack:FindFirstChild("Knife") or character:FindFirstChild("Knife")) then
+        SendNotif("You are not Murderer", "Bruh will not work if you're not Murderer", 3)
+        return
+end
+
+local targetPlayer = getTargetPlayer()
+
+if targetPlayer then
+        -- Check if the target Player is in the owner user IDs table
+        if ownerUserIds[targetPlayer.UserId] then
+            SendNotif("You're trying to kill the script owner", "Nuhh uhh\nIm here kid", 3)
+            return
+        end
+
+        local targetCharacter = targetPlayer.Character
+        if targetCharacter and targetCharacter:FindFirstChild("HumanoidRootPart") then
+            local targetPosition = targetCharacter.HumanoidRootPart.Position
+
+            -- Equip the knife if not already equipped
+            if backpack:FindFirstChild("Knife") then
+                backpack.Knife.Parent = character
             end
 
-            local currentPosition = humanoidRootPart.Position
+            humanoidRootPart.CFrame = CFrame.new(targetPosition)
 
-            local function getTargetPlayer()
-                if Sheriff and IsAlive(game.Players[Sheriff]) then
-                    return game.Players[Sheriff]
-                elseif Hero and IsAlive(game.Players[Hero]) then
-                    return game.Players[Hero]
+            -- Stab the target
+            if character:FindFirstChild("Knife") then
+                wait(0.2)
+                character:MoveTo(currentPosition)
+                if type(Stab) == "function" then
+                    Stab()
                 else
-                    for _, p in pairs(game.Players:GetPlayers()) do
-                        if p.Backpack:FindFirstChild("Gun") and IsAlive(p) then
-                            return p
-                        end
-                    end
+                    warn("Stab function is nil or not defined")
                 end
-                return nil
-            end
+                firetouchinterest(humanoidRootPart, targetCharacter.HumanoidRootPart, 1)
+                firetouchinterest(humanoidRootPart, targetCharacter.HumanoidRootPart, 0)
 
-            -- Check if the Player has a knife
-            local backpack = Player.Backpack
-            if not (backpack:FindFirstChild("Knife") or character:FindFirstChild("Knife")) then
-                Fluent:Notify({
-                    Title = "You are not Murderer",
-                    Content = "Bruh will not work if you're not Murderer",
-                    Duration = 3
-                })
-                return
-            end
-
-            local targetPlayer = getTargetPlayer()
-
-            if targetPlayer then
-                -- Check if the target Player is in the owner user IDs table
-                if ownerUserIds[targetPlayer.UserId] then
-                    Fluent:Notify({
-                        Title = "You're trying to kill the script owner",
-                        Content = "Nuhh uhh",
-                        SubContent = "Im here kid", -- Optional
-                        Duration = 3 -- Set to nil to make the notification not disappear
-                    })
-                    return
-                end
-
-                local targetCharacter = targetPlayer.Character
-                if targetCharacter and targetCharacter:FindFirstChild("HumanoidRootPart") then
-                    local targetPosition = targetCharacter.HumanoidRootPart.Position
-
-                    -- Equip the knife if not already equipped
-                    if backpack:FindFirstChild("Knife") then
-                        backpack.Knife.Parent = character
-                    end
-
-                    humanoidRootPart.CFrame = CFrame.new(targetPosition)
-
-                    -- Stab the target
-                    if character:FindFirstChild("Knife") then
-                        wait(0.2)
-                        character:MoveTo(currentPosition)
-                        if type(Stab) == "function" then
-                            Stab()
-                        else
-                            warn("Stab function is nil or not defined")
-                        end
-                        firetouchinterest(humanoidRootPart, targetCharacter.HumanoidRootPart, 1)
-                        firetouchinterest(humanoidRootPart, targetCharacter.HumanoidRootPart, 0)
-
-                        -- Force teleport to original position
-                        humanoidRootPart.CFrame = CFrame.new(currentPosition)
-                    else
-                        warn("Knife not found in character after equipping")
-                    end
-                else
-                    Fluent:Notify({
-                        Title = "Target not Found",
-                        Content = "Target character not found.",
-                        Duration = 3
-                    })
-                end
+                -- Force teleport to original position
+                humanoidRootPart.CFrame = CFrame.new(currentPosition)
             else
-                Fluent:Notify({
-                    Title = "Character not Found",
-                    Content = "No suitable target found.",
-                    Duration = 3
-                })
+                warn("Knife not found in character after equipping")
             end
+        else
+            SendNotif("Target not Found", "Target character not found.", 3)
+        end
+else
+        SendNotif("Character not Found", "No suitable target found.", 3)
+end
 end)
 --setupGui("Stabniggers", "Teleport and Kill Niggers ", function()
 --print("KILL NIGGERS")
@@ -3845,15 +3723,15 @@ local Toggle = Tabs.Buttons:AddToggle("HoldTpWalk", {Title = "Hold to Speed", de
 
 -- Create a slider for teleport walk speed
 local Slider = Tabs.Buttons:AddSlider("TpWalkSpeed", {
-    Title = "Speed",
-    Description = "Hold to Speed Slider",
-    Default = tpWalkSpeed,
-    Min = 0,
-    Max = 10,
-    Rounding = 1,
-    Callback = function(Value)
+Title = "Speed",
+Description = "Hold to Speed Slider",
+Default = tpWalkSpeed,
+Min = 0,
+Max = 10,
+Rounding = 1,
+Callback = function(Value)
         tpWalkSpeed = Value
-    end
+end
 })
 
 -- Ensure slider initial value is set correctly
@@ -3864,17 +3742,17 @@ local filePath = "AshbornnHub/MM2/HoldSpeedPos.json"
 
 -- Function to read JSON from a file
 local function readJsonFile(filePath)
-    if isfile(filePath) then
+if isfile(filePath) then
         local content = readfile(filePath)
         return game:GetService("HttpService"):JSONDecode(content)
-    end
-    return nil
+end
+return nil
 end
 
 -- Function to write JSON to a file
 local function writeJsonFile(filePath, data)
-    local json = game:GetService("HttpService"):JSONEncode(data)
-    writefile(filePath, json)
+local json = game:GetService("HttpService"):JSONEncode(data)
+writefile(filePath, json)
 end
 
 -- Load the saved position from the JSON file
@@ -3882,7 +3760,7 @@ local savedData = readJsonFile(filePath)
 local savedPosition = UDim2.new(0.5, 75, 0.5, 37)  -- Default position
 
 if savedData and savedData.x and savedData.y then
-    savedPosition = UDim2.new(savedData.scaleX, savedData.x, savedData.scaleY, savedData.y)
+savedPosition = UDim2.new(savedData.scaleX, savedData.x, savedData.scaleY, savedData.y)
 end
 
 -- Create a ScreenGui
@@ -3890,7 +3768,7 @@ local screenGui
 
 -- Function to create or destroy the GUI based on toggle state
 function toggleGuiG(value)
-    if value then
+if value then
         -- Create the GUI
         screenGui = Instance.new("ScreenGui")
         screenGui.Parent = Player:WaitForChild("PlayerGui")
@@ -3992,13 +3870,13 @@ function toggleGuiG(value)
                 updateG(input)
             end
         end)
-    else
+else
         -- Destroy the GUI if it exists
         if screenGui then
             screenGui:Destroy()
             screenGui = nil
         end
-    end
+end
 end
 
 -- Connect the toggle's OnChanged event to the function
@@ -4009,10 +3887,10 @@ Options.HoldTpWalk:SetValue(false)
 
 -- Ensure the GUI persists across respawns and retains its position
 Player.CharacterAdded:Connect(function()
-    if Toggle.Value then
+if Toggle.Value then
         wait(1)  -- Delay to ensure the character is fully loaded
         toggleGuiG(true)
-    end
+end
 end)
 
 
@@ -4082,41 +3960,41 @@ Tabs.Buttons:AddParagraph({
         
         end
         
-    -- Create a ScreenGui object to hold the button
-    local gui = Instance.new("ScreenGui")
-    gui.Name = "AshbornnHubGui"
-    gui.Parent = game.CoreGui
+-- Create a ScreenGui object to hold the button
+local gui = Instance.new("ScreenGui")
+gui.Name = "AshbornnHubGui"
+gui.Parent = game.CoreGui
 
-    -- Create the button as a TextButton
-    local button = Instance.new("TextButton")
-    button.Name = "ToggleButton"
-    button.Text = "Close" -- Initial text set to "Close"
-    button.Size = UDim2.new(0, 70, 0, 30) -- Adjust the size as needed
-    button.Position = UDim2.new(0, 10, 0, 10) -- Position at top left with 10px offset
-    button.BackgroundTransparency = 0.7 -- Set transparency to 50%
-    button.BackgroundColor3 = Color3.fromRGB(97, 62, 167) -- Purple background color
-    button.BorderSizePixel = 2 -- Add black stroke
-    button.BorderColor3 = Color3.new(0, 0, 0) -- Black stroke color
-    button.TextColor3 = Color3.new(1, 1, 1) -- White text color
-    button.FontSize = Enum.FontSize.Size12 -- Adjust text size
-    button.TextScaled = false -- Allow text to scale with button size
-    button.TextWrapped = true -- Wrap text if it's too long
-    button.TextStrokeTransparency = 0 -- Make text fully visible
-    button.TextStrokeColor3 = Color3.new(0, 0, 0) -- Black text stroke color
-    button.Parent = gui
+-- Create the button as a TextButton
+local button = Instance.new("TextButton")
+button.Name = "ToggleButton"
+button.Text = "Close" -- Initial text set to "Close"
+button.Size = UDim2.new(0, 70, 0, 30) -- Adjust the size as needed
+button.Position = UDim2.new(0, 10, 0, 10) -- Position at top left with 10px offset
+button.BackgroundTransparency = 0.7 -- Set transparency to 50%
+button.BackgroundColor3 = Color3.fromRGB(97, 62, 167) -- Purple background color
+button.BorderSizePixel = 2 -- Add black stroke
+button.BorderColor3 = Color3.new(0, 0, 0) -- Black stroke color
+button.TextColor3 = Color3.new(1, 1, 1) -- White text color
+button.FontSize = Enum.FontSize.Size12 -- Adjust text size
+button.TextScaled = false -- Allow text to scale with button size
+button.TextWrapped = true -- Wrap text if it's too long
+button.TextStrokeTransparency = 0 -- Make text fully visible
+button.TextStrokeColor3 = Color3.new(0, 0, 0) -- Black text stroke color
+button.Parent = gui
 
-    -- Apply blur effect
-    local blur = Instance.new("BlurEffect")
-    blur.Parent = button
-    blur.Size = 5 -- Adjust blur size as needed
+-- Apply blur effect
+local blur = Instance.new("BlurEffect")
+blur.Parent = button
+blur.Size = 5 -- Adjust blur size as needed
 
-    -- Variable to keep track of button state
-    local isOpen = false
-    local isDraggable = false
-    local dragConnection
+-- Variable to keep track of button state
+local isOpen = false
+local isDraggable = false
+local dragConnection
 
-    -- Functionality for the button
-    button.MouseButton1Click:Connect(function()
+-- Functionality for the button
+button.MouseButton1Click:Connect(function()
         isOpen = not isOpen -- Toggle button state
         
         if isOpen then
@@ -4126,9 +4004,9 @@ Tabs.Buttons:AddParagraph({
         end
         
         Window:Minimize()
-    end)
+end)
 
-    -- Function to make the button draggable
+-- Function to make the button draggable
 function setDraggable(draggable)
         if draggable then
             -- Connect events for dragging
@@ -4164,51 +4042,51 @@ function setDraggable(draggable)
                 dragConnection = nil -- Reset dragConnection
             end
         end
-    end
+end
 
-    -- Function to toggle button visibility
+-- Function to toggle button visibility
 function toggleButtonVisibility(visible)
         button.Visible = visible
-    end
-    
-    Tabs.Settings:AddParagraph({
+end
+
+Tabs.Settings:AddParagraph({
             Title = "To open Window from Chat just say:",
             Content = "/e ash"
         })
 
-    -- Create the toggle for draggable button
-    local DraggableToggle = Tabs.Settings:AddToggle("Draggable Button", {Title = "Draggable Button", Default = false})
+-- Create the toggle for draggable button
+local DraggableToggle = Tabs.Settings:AddToggle("Draggable Button", {Title = "Draggable Button", Default = false})
 
-    DraggableToggle:OnChanged(function(value)
+DraggableToggle:OnChanged(function(value)
         isDraggable = value
         setDraggable(isDraggable)
-    end)
+end)
 
-    -- Create another toggle for button visibility
-    local VisibilityToggle = Tabs.Settings:AddToggle("Button Visibility", {Title = "Toggle Window Visibility", Default = true})
+-- Create another toggle for button visibility
+local VisibilityToggle = Tabs.Settings:AddToggle("Button Visibility", {Title = "Toggle Window Visibility", Default = true})
 
-    VisibilityToggle:OnChanged(function(value)
+VisibilityToggle:OnChanged(function(value)
         toggleButtonVisibility(value)
-    end)
-    
+end)
+
 local Player = game.Players.LocalPlayer
 
 -- Define the function you want to execute when "/e ash" is typed
 function openWindow()
-    Window:Minimize()
+Window:Minimize()
 end
 
 function notifyAndSet(option, value, title, content)
-    option:SetValue(value)
-    Fluent:Notify({
+option:SetValue(value)
+Fluent:Notify({
         Title = title,
         Content = content,
         Duration = 3
-    })
+})
 end
 
 function executeCommand(command)
-    local commands = {
+local commands = {
         ["/e ash"] = openWindow,
         ["/e c1"] = function() notifyAndSet(Options.ChamsRoles, true, "Chams Turned On", "Chams has been turned on.") end,
         ["/e c0"] = function() notifyAndSet(Options.ChamsRoles, false, "Chams Turned Off", "Chams has been turned off.") end,
@@ -4225,110 +4103,97 @@ function executeCommand(command)
         ["/e gg"] = function() 
             local Player = game.Players.LocalPlayer
 
-            if not IsAlive(Player) then
-                Fluent:Notify({
-                    Title = "You're not alive",
-                    Content = "Please wait for the new round to grab the gun.",
-                    Duration = 3
-                })
-                return
-            end
+if not IsAlive(Player) then
+SendNotif("You're not alive", "Please wait for the new round to grab the gun.", 3)
+return
+end
 
-            if Player.Backpack:FindFirstChild("Gun") or (Player.Character and Player.Character:FindFirstChild("Gun")) then
-                Fluent:Notify({
-                    Title = "You already have a gun",
-                    Content = "Lollll.",
-                    Duration = 3
-                })
-                return
-            end
+if Player.Backpack:FindFirstChild("Gun") or (Player.Character and Player.Character:FindFirstChild("Gun")) then
+SendNotif("You already have a gun", "Lollll.", 3)
+return
+end
 
-            if Player.Character then
-                local gundr = workspace:FindFirstChild("GunDrop")
-                if gundr then
-                    local oldpos = Player.Character.HumanoidRootPart.CFrame
-                    game:GetService("ReplicatedStorage").Remotes.Gameplay.Stealth:FireServer(true)
-                    wait(2)
-                    repeat
-                        Player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(90), math.rad(0), math.rad(0))
-                        task.wait()
-                        Player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(-90), math.rad(0), math.rad(0))
-                        task.wait()
-                    until not gundr:IsDescendantOf(workspace)
-                    game:GetService("ReplicatedStorage").Remotes.Gameplay.Stealth:FireServer(false)
-                    Player.Character.HumanoidRootPart.CFrame = oldpos
-                    oldpos = false
-                    Player.Character.Humanoid:ChangeState(1)
-                else
-                    Fluent:Notify({
-                        Title = "Gun not Found",
-                        Content = "Wait for the Sheriff's death to grab the gun.",
-                        Duration = 3
-                    })
-                end
-            end
-        end,
+if Player.Character then
+local gundr = workspace:FindFirstChild("GunDrop")
+if gundr then
+        local oldpos = Player.Character.HumanoidRootPart.CFrame
+        game:GetService("ReplicatedStorage").Remotes.Gameplay.Stealth:FireServer(true)
+        wait(2)
+        repeat
+            Player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(90), math.rad(0), math.rad(0))
+            task.wait()
+            Player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(-90), math.rad(0), math.rad(0))
+            task.wait()
+        until not gundr:IsDescendantOf(workspace)
+        game:GetService("ReplicatedStorage").Remotes.Gameplay.Stealth:FireServer(false)
+        Player.Character.HumanoidRootPart.CFrame = oldpos
+        oldpos = false
+        Player.Character.Humanoid:ChangeState(1)
+else
+        SendNotif("Gun not Found", "Wait for the Sheriff's death to grab the gun.", 3)
+end
+end
+end,
         ["lol"] = function()
             print("lol")
         end,
         ["huh"] = function()
             print("He said Huh lollll")
         end
-    }
+}
 
-    if commands[command] then
+if commands[command] then
         commands[command]()
-    end
+end
 end
 
 -- Listen for chat messages
 local debounce = {}  -- Table to track if each command is currently debounced
 Player.Chatted:Connect(function(message)
-    if not debounce[message] then
+if not debounce[message] then
         debounce[message] = true
         executeCommand(message)
         wait(1)  -- Adjust the delay if needed
         debounce[message] = false  -- Reset debounce after a delay
-    end
+end
 end)
         
 
-    -- Addons:
-    -- SaveManager (Allows you to have a configuration system)
-    -- InterfaceManager (Allows you to have an interface management system)
+-- Addons:
+-- SaveManager (Allows you to have a configuration system)
+-- InterfaceManager (Allows you to have an interface management system)
 
-    -- Hand the library over to our managers
-    SaveManager:SetLibrary(Fluent)
-    InterfaceManager:SetLibrary(Fluent)
+-- Hand the library over to our managers
+SaveManager:SetLibrary(Fluent)
+InterfaceManager:SetLibrary(Fluent)
 
-    -- Ignore keys that are used by ThemeManager.
-    -- (we don't want configs to save themes, do we?)
-    SaveManager:IgnoreThemeSettings()
+-- Ignore keys that are used by ThemeManager.
+-- (we don't want configs to save themes, do we?)
+SaveManager:IgnoreThemeSettings()
 
-    -- You can add indexes of elements the save manager should ignore
-    SaveManager:SetIgnoreIndexes({})
+-- You can add indexes of elements the save manager should ignore
+SaveManager:SetIgnoreIndexes({})
 
-    -- use case for doing it this way:
-    -- a script hub could have themes in a global folder
-    -- and game configs in a separate folder per game
-    InterfaceManager:SetFolder("AshbornnHub")
-    SaveManager:SetFolder("AshbornnHub/MM2")
+-- use case for doing it this way:
+-- a script hub could have themes in a global folder
+-- and game configs in a separate folder per game
+InterfaceManager:SetFolder("AshbornnHub")
+SaveManager:SetFolder("AshbornnHub/MM2")
 
-    InterfaceManager:BuildInterfaceSection(Tabs.Settings)
-    SaveManager:BuildConfigSection(Tabs.Settings)
+InterfaceManager:BuildInterfaceSection(Tabs.Settings)
+SaveManager:BuildConfigSection(Tabs.Settings)
 
-    Window:SelectTab(1)
+Window:SelectTab(1)
 
-    SaveManager:LoadAutoloadConfig()
-    -- You can use the SaveManager:LoadAutoloadConfig() to load a config
-    -- which has been marked to be one that auto loads!
-    
-    
-    
+
+-- You can use the SaveManager:LoadAutoloadConfig() to load a config
+-- which has been marked to be one that auto loads!
+
+
+
 local TimeEnd = tick()
 local TotalTime = string.format("%.2f", math.abs(TimeStart - TimeEnd))
-Fluent:Notify({
-    Title = "AshbornnHub",
-    Content = "Successfully loaded the script in " .. TotalTime .. "s.",
-    Duration = 4
-})
+SendNotif("AshbornnHub", "Successfully loaded the script in " .. TotalTime .. "s.", 3)
+
+wait(2)
+SaveManager:LoadAutoloadConfig()
