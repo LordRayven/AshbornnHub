@@ -1245,26 +1245,27 @@ local Keybind = Tabs.Combat:AddKeybind("Keybind", {
         
 
             
-            local FLINGTARGET = "" -- Initialize FLINGTARGET variable
+        local FLINGTARGET = "" -- Initialize FLINGTARGET variable
 
-        local function GetOtherPlayers()
-            local players = {}
-            for _, player in ipairs(game.Players:GetPlayers()) do
-                if player ~= game.Players.LocalPlayer then
-                    table.insert(players, player.Name)
+        -- Function to get other players, including an "All" option
+        local function GetOtherPlayersAll()
+        local players = {"All"}
+        for _, Player in ipairs(Players:GetPlayers()) do
+                if Player ~= LocalPlayer then
+                    table.insert(players, Player.Name)
                 end
-            end
-            return players
         end
-
-        local selectedPlayer = ""  -- Variable to store the selected player's name
-        local FLINGTARGET = ""  -- Variable to store the fling target
+        return players
+        end
+        
+        local selectedPlayer = "All"  -- Default to "All"
         local Dropdown
+        local FLINGTARGET = ""  -- Variable to store the fling target
 
         local function CreateDropdown()
             Dropdown = Tabs.Troll:AddDropdown("Select Player to Fling", {
                 Title = "Select Player",
-                Values = GetOtherPlayers(),
+                Values = GetOtherPlayersAll(),
                 Multi = false,
                 Default = "",
             })
@@ -1279,7 +1280,7 @@ local Keybind = Tabs.Combat:AddKeybind("Keybind", {
         CreateDropdown()
 
         local function UpdateDropdown()
-            local newValues = GetOtherPlayers()
+            local newValues = GetOtherPlayersAll()
             Dropdown.Values = newValues  -- Update the dropdown values
             Dropdown:SetValue("")  -- Reset selected value to default
         end
