@@ -1285,12 +1285,7 @@ game.Players.PlayerRemoving:Connect(UpdateDropdownA)
 
 local lp = game.Players.LocalPlayer
 
-local lp = game.Players.LocalPlayer
-
-Tabs.Teleport:AddButton({
-        Title = "Void (Safe)",
-        Description = "",
-        Callback = function()
+function VoidSafe() 
             -- Check if the "Safe Void Path" part already exists in the workspace
             if not workspace:FindFirstChild("Safe Void Path") then
                 -- Create and configure the part
@@ -1313,31 +1308,12 @@ Tabs.Teleport:AddButton({
             else
                 warn("Local Player character or HumanoidRootPart not found")
             end
-        end
-})
-        
-        Tabs.Teleport:AddButton({
-            Title = "TP to Secret Room",
-            Description = "Teleport to Lobby's Secret Room",
-            Callback = function()
-                game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-152, 153, 113)
-            end
-        })
-        
+end
+
 Tabs.Teleport:AddButton({
-            Title = "TP to Secret Room",
-            Description = "Teleport to Lobby's Secret Room",
-            Callback = function()
-                game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-152, 153, 113)
-            end
-        })
-        
-Tabs.Teleport:AddButton({
-            Title = "TP to Secret Room",
-            Description = "Teleport to Lobby's Secret Room",
-            Callback = function()
-                game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-152, 153, 113)
-            end
+        Title = "Void (Safe)",
+        Description = "",
+        Callback = VoidSafe
         })
         
 Tabs.Teleport:AddButton({
@@ -2434,49 +2410,58 @@ local player = Players.LocalPlayer
 local arrivalThreshold = 1  -- Distance threshold to stop moving
 local touchedCoins = {}  -- Table to track touched Coin_Server parts
 local isAutoFarming = false  -- Flag to track if auto farming is enabled
+local TELEPORT_DISTANCE_THRESHOLD = 1000
 local isMovingToCoin = false  -- Flag to track if currently moving towards a coin
 local characterAddedConnection = nil  -- Variable to store the CharacterAdded connection
 local characterRemovingConnection = nil  -- Variable to store the CharacterRemoving connection
 
 -- Function to find the nearest untapped Coin_Server part
 local function findNearestUntappedCoin()
-local nearestCoin = nil
-local nearestDistance = math.huge
+    local nearestCoin = nil
+    local nearestDistance = math.huge
 
--- Check if player and player.Character are valid
-if player and player.Character and player.Character.HumanoidRootPart then
+    -- Check if player and player.Character are valid
+    if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
         local workspace = game:GetService("Workspace")
-        local coinContainer = workspace:FindFirstChild("Normal") and workspace.Normal:FindFirstChild("CoinContainer")
-        
-        if coinContainer then
-            local coins = coinContainer:GetChildren()
+        local normalContainer = workspace:FindFirstChild("Normal")
+        if normalContainer then
+            local coinContainer = normalContainer:FindFirstChild("CoinContainer")
+            if coinContainer then
+                local coins = coinContainer:GetChildren()
 
-            -- Find the nearest "Coin_Server" part that hasn't been touched yet
-            for i, coin in ipairs(coins) do
-                if coin:IsA("Part") and coin.Name == "Coin_Server" and not touchedCoins[coin] then
-                    local distance = (coin.Position - player.Character.HumanoidRootPart.Position).magnitude
-                    if distance < nearestDistance then
-                        nearestCoin = coin
-                        nearestDistance = distance
+                -- Find the nearest "Coin_Server" part that hasn't been touched yet
+                for i, coin in ipairs(coins) do
+                    if coin:IsA("Part") and coin.Name == "Coin_Server" and not touchedCoins[coin] then
+                        local distance = (coin.Position - player.Character.HumanoidRootPart.Position).magnitude
+                        if distance < nearestDistance then
+                            nearestCoin = coin
+                            nearestDistance = distance
+                        end
                     end
                 end
             end
         end
-end
+    end
 
-return nearestCoin
+    return nearestCoin
 end
 
 -- Function to move to the nearest untapped Coin_Server part with smooth transition
 local function moveToCoinServer()
--- Find the nearest untapped Coin_Server part
-local nearestCoin = findNearestUntappedCoin()
+    -- Find the nearest untapped Coin_Server part
+    local nearestCoin = findNearestUntappedCoin()
 
-if nearestCoin then
+    if nearestCoin then
         print("Moving towards Coin or Eggs.")
         isMovingToCoin = true
 
         local targetPosition = nearestCoin.Position + Vector3.new(0, 0, 0)  -- Target slightly above the part
+
+        -- Teleport if too far
+        if (nearestCoin.Position - player.Character.HumanoidRootPart.Position).magnitude > TELEPORT_DISTANCE_THRESHOLD then
+            player.Character.HumanoidRootPart.CFrame = CFrame.new(nearestCoin.Position)
+            wait(0.1)  -- Wait briefly to ensure character updates position
+        end
 
         -- Move the character towards the nearest untapped "Coin_Server" part gradually
         while isAutoFarming and isMovingToCoin do
@@ -2502,7 +2487,6 @@ if nearestCoin then
         -- Mark the coin as touched
         touchedCoins[nearestCoin] = true
 
-        
         wait(delay)
 
         -- Move to the next nearest untapped Coin_Server part if auto farming is enabled
@@ -2510,7 +2494,7 @@ if nearestCoin then
             -- Use coroutine to prevent blocking
             coroutine.wrap(moveToCoinServer)()
         end
-else
+    else
         print("Coin not found. Searching for Coin_Server...")
         isMovingToCoin = false
         wait(1)  -- Wait for a short period before searching again (customize as needed)
@@ -2518,8 +2502,9 @@ else
         -- If auto farming is enabled and not currently moving towards a coin, continue searching for the nearest coin
         if isAutoFarming and not isMovingToCoin then
             coroutine.wrap(moveToCoinServer)()
+            VoidSafe()
         end
-end
+    end
 end
 
 -- Function to teleport the player to the map with a delay
@@ -2608,12 +2593,14 @@ end
 end)
 
 
-local function findNearestUntappedCoin()
-local nearestCoin = nil
-local nearestDistance = math.huge
 
--- Check if player and player.Character are valid
-if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+-- Function to find the nearest untapped Coin_Server
+local function findNearestUntappedCoin()
+    local nearestCoin = nil
+    local nearestDistance = math.huge
+
+    -- Check if player and player.Character are valid
+    if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
         local normalContainer = game.Workspace:FindFirstChild("Normal")
         if normalContainer then
             local coinContainer = normalContainer:FindFirstChild("CoinContainer")
@@ -2635,55 +2622,63 @@ if player and player.Character and player.Character:FindFirstChild("HumanoidRoot
                 end
             end
         end
-end
+    end
 
-return nearestCoin
+    return nearestCoin, nearestDistance
 end
 
 -- Function to move to the nearest untapped Coin_Server part with smooth transition
 local function moveToCoinServer()
--- Find the nearest untapped Coin_Server part with MainCoin child
-local nearestCoin = findNearestUntappedCoin()
+    -- Find the nearest untapped Coin_Server part with MainCoin child
+    local nearestCoin, nearestDistance = findNearestUntappedCoin()
 
-if nearestCoin then
-        print("Moving towards to Coin")
-        isMovingToCoin = true
-
-        local targetPosition = nearestCoin.Position
-
-        -- Move the character towards the nearest untapped "Coin_Server" part gradually
-        while isAutoFarming and isMovingToCoin do
-            if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then
-                isMovingToCoin = false  -- Stop moving if character or HumanoidRootPart is nil
-                break
-            end
-
-            local currentPos = player.Character.HumanoidRootPart.Position
-            local direction = (targetPosition - currentPos).Unit
-            local distanceToTarget = (targetPosition - currentPos).Magnitude
-
-            if distanceToTarget <= arrivalThreshold then
-                print("Arrived at Coin")
-                isMovingToCoin = false
-                break
-            end
-
-            -- Move towards the target
-            player.Character.HumanoidRootPart.CFrame = CFrame.new(currentPos + direction * moveSpeed * RunService.Heartbeat:Wait())
+    if nearestCoin then
+        if nearestDistance > TELEPORT_DISTANCE_THRESHOLD then
+            -- Teleport to the nearest coin if it's too far away
+            player.Character.HumanoidRootPart.CFrame = CFrame.new(nearestCoin.Position)
+            wait(0.1)  -- Wait briefly to ensure character updates position
         end
 
-        -- Mark the coin as touched
-        touchedCoins[nearestCoin] = true
+        -- Check again if auto farming is still enabled after teleportation
+        if isAutoFarming then
+            print("Moving towards Coin")
+            isMovingToCoin = true
 
-        
-        wait(delay)
+            local targetPosition = nearestCoin.Position
 
-        -- Move to the next nearest untapped Coin_Server part if auto farming is enabled
-        if isAutoFarming and not isMovingToCoin then
-            -- Use coroutine to prevent blocking
-            coroutine.wrap(moveToCoinServer)()
+            -- Move the character towards the nearest untapped "Coin_Server" part gradually
+            while isAutoFarming and isMovingToCoin do
+                if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then
+                    isMovingToCoin = false  -- Stop moving if character or HumanoidRootPart is nil
+                    break
+                end
+
+                local currentPos = player.Character.HumanoidRootPart.Position
+                local direction = (targetPosition - currentPos).Unit
+                local distanceToTarget = (targetPosition - currentPos).Magnitude
+
+                if distanceToTarget <= arrivalThreshold then
+                    print("Arrived at Coin")
+                    isMovingToCoin = false
+                    break
+                end
+
+                -- Move towards the target
+                player.Character.HumanoidRootPart.CFrame = CFrame.new(currentPos + direction * moveSpeed * RunService.Heartbeat:Wait())
+            end
+
+            -- Mark the coin as touched
+            touchedCoins[nearestCoin] = true
+
+            wait(delay)
+
+            -- Move to the next nearest untapped Coin_Server part if auto farming is enabled
+            if isAutoFarming and not isMovingToCoin then
+                -- Use coroutine to prevent blocking
+                coroutine.wrap(moveToCoinServer)()
+            end
         end
-else
+    else
         print("[ AshbornnHub ] Coin not Found.. Searching again...")
         isMovingToCoin = false
         wait(1)  -- Wait for a short period before searching again (customize as needed)
@@ -2692,7 +2687,7 @@ else
         if isAutoFarming and not isMovingToCoin then
             coroutine.wrap(moveToCoinServer)()
         end
-end
+    end
 end
 
 -- Function to teleport the player to the map with a delay
@@ -2780,23 +2775,24 @@ if child:IsA("Part") and child.Name == "Coin_Server" and child:FindFirstChild("C
 end
 end)
 
+
 -- Function to check if a part has TouchInterest and an empty CoinVisual
 local function hasTouchInterestAndEmptyCoinVisual(part)
-if part:IsA("Part") then
+    if part:IsA("Part") then
         local touchInterest = part:FindFirstChild("TouchInterest")
         local coinVisual = part:FindFirstChild("CoinVisual")
         return touchInterest ~= nil and coinVisual ~= nil and #coinVisual:GetChildren() == 0
-end
-return false
+    end
+    return false
 end
 
 -- Function to find the nearest untapped Coin_Server part with TouchInterest and empty CoinVisual
 local function findNearestUntappedCoin()
-local nearestCoin = nil
-local nearestDistance = math.huge
+    local nearestCoin = nil
+    local nearestDistance = math.huge
 
--- Check if player and player.Character are valid
-if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+    -- Check if player and player.Character are valid
+    if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
         local normalContainer = game.Workspace:FindFirstChild("Normal")
         if normalContainer then
             local coinContainer = normalContainer:FindFirstChild("CoinContainer")
@@ -2815,21 +2811,27 @@ if player and player.Character and player.Character:FindFirstChild("HumanoidRoot
                 end
             end
         end
-end
+    end
 
-return nearestCoin
+    return nearestCoin
 end
 
 -- Function to move to the nearest untapped Coin_Server part with smooth transition
 local function moveToCoinServer()
--- Find the nearest untapped Coin_Server part with TouchInterest and empty CoinVisual
-local nearestCoin = findNearestUntappedCoin()
+    -- Find the nearest untapped Coin_Server part with TouchInterest and empty CoinVisual
+    local nearestCoin = findNearestUntappedCoin()
 
-if nearestCoin then
+    if nearestCoin then
         print("Moving towards to the Eggs")
         isMovingToCoin = true
 
         local targetPosition = nearestCoin.Position
+
+        -- Teleport if too far
+        if (nearestCoin.Position - player.Character.HumanoidRootPart.Position).Magnitude > TELEPORT_DISTANCE_THRESHOLD then
+            player.Character.HumanoidRootPart.CFrame = CFrame.new(nearestCoin.Position)
+            wait(0.1)  -- Wait briefly to ensure character updates position
+        end
 
         -- Move the character towards the nearest untapped "Coin_Server" part gradually
         while isAutoFarming and isMovingToCoin do
@@ -2855,7 +2857,6 @@ if nearestCoin then
         -- Mark the coin as touched
         touchedCoins[nearestCoin] = true
 
-         
         wait(delay)
 
         -- Move to the next nearest untapped Coin_Server part if auto farming is enabled
@@ -2863,7 +2864,7 @@ if nearestCoin then
             -- Use coroutine to prevent blocking
             coroutine.wrap(moveToCoinServer)()
         end
-else
+    else
         print("[ AshbornnHub ] Searching for eggs..")
         isMovingToCoin = false
         wait(1)  -- Wait for a short period before searching again (customize as needed)
@@ -2872,7 +2873,7 @@ else
         if isAutoFarming and not isMovingToCoin then
             coroutine.wrap(moveToCoinServer)()
         end
-end
+    end
 end
 
 -- Function to teleport the player to the map with a delay
