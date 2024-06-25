@@ -23,7 +23,6 @@ local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
 local Humanoid = Character:WaitForChild("Humanoid")
 local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
 local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
 
 local DefaultChatSystemChatEvents = ReplicatedStorage.DefaultChatSystemChatEvents
 local SayMessageRequest = DefaultChatSystemChatEvents.SayMessageRequest
@@ -42,6 +41,12 @@ antiafk = true
 local AntiFlingEnabled = false
 local playerAddedConnection = nil
 local localHeartbeatConnection = nil 
+
+local UIS = game:GetService("UserInputService")
+local Touchscreen = UIS.TouchEnabled
+getgenv().Ash_Device = Touchscreen and "Mobile" or "PC"
+local placeId = game.PlaceId
+local GameName = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name
 
 local TrapSystem = ReplicatedStorage:WaitForChild("TrapSystem")
 local PlaceTrap = TrapSystem:WaitForChild("PlaceTrap")
@@ -1894,110 +1899,115 @@ end)
 end
 
 local rsrv = game:GetService("RunService")
-local heartbeat = rsrv.Heartbeat
-local renderstepped = rsrv.RenderStepped
+        local heartbeat = rsrv.Heartbeat
+        local renderstepped = rsrv.RenderStepped
 
-local lp = game.Players.LocalPlayer
-local mouse = lp:GetMouse()
+        local lp = game.Players.LocalPlayer
+        local mouse = lp:GetMouse()
 
-local isinvisible = false
-local visible_parts = {}
-local kdown, loop
+        local isinvisible = false
+        local visible_parts = {}
+        local kdown, loop
 
-function ghost_parts()
-        for _, v in pairs(visible_parts) do
-            v.Transparency = isinvisible and 0.5 or 0
-        end
-end
-
-function setup_character(character)
-        local hum = character:WaitForChild("Humanoid")
-        local root = character:WaitForChild("HumanoidRootPart")
-
-        visible_parts = {}
-
-        for _, v in pairs(character:GetDescendants()) do
-            if v:IsA("BasePart") and v.Transparency == 0 then
-                visible_parts[#visible_parts + 1] = v
+        local function ghost_parts()
+            for _, v in pairs(visible_parts) do
+                v.Transparency = isinvisible and 0.5 or 0
             end
         end
 
-        if kdown then
-            kdown:Disconnect()
-        end
+        local function setup_character(character)
+            local hum = character:WaitForChild("Humanoid")
+            local root = character:WaitForChild("HumanoidRootPart")
 
-        kdown = mouse.KeyDown:Connect(function(key)
-            if key == "g" then
-                isinvisible = not isinvisible
-                ghost_parts()
-            end
-        end)
+            visible_parts = {}
 
-        if loop then
-            loop:Disconnect()
-        end
-
-        loop = heartbeat:Connect(function()
-            if isinvisible then
-                local oldcf = root.CFrame
-                local oldcamoffset = hum.CameraOffset
-
-                local newcf = oldcf * CFrame.new(-1500, -5000, -1500)
-
-                hum.CameraOffset = newcf:ToObjectSpace(CFrame.new(oldcf.Position)).Position
-                root.CFrame = newcf
-
-                renderstepped:Wait()
-
-                hum.CameraOffset = oldcamoffset
-                root.CFrame = oldcf
-            end
-        end)
-
-        _G.cons = {kdown, loop}
-end
-
-lp.CharacterAdded:Connect(function(character)
-        setup_character(character)
-        if isinvisible then
-            ghost_parts()
-            game:GetService("ReplicatedStorage").Remotes.Gameplay.Stealth:FireServer(true)
-        end
-end)
-
-local Toggle = Tabs.Troll:AddToggle("FEInvisible", {Title = "FE Invisible", Default = false })
-
-Toggle:OnChanged(function(value)
-        isinvisible = value
-        if lp.Character then
-            if not isinvisible then
-                -- Restore visibility
-                for _, v in pairs(visible_parts) do
-                    v.Transparency = 0
-                    game:GetService("ReplicatedStorage").Remotes.Gameplay.Stealth:FireServer(false)
+            for _, v in pairs(character:GetDescendants()) do
+                if v:IsA("BasePart") and v.Transparency == 0 then
+                    visible_parts[#visible_parts + 1] = v
                 end
-            else
+            end
+
+            if kdown then
+                kdown:Disconnect()
+            end
+
+            kdown = mouse.KeyDown:Connect(function(key)
+                if key == "g" then
+                    isinvisible = not isinvisible
+                    ghost_parts()
+                end
+            end)
+
+            if loop then
+                loop:Disconnect()
+            end
+
+            loop = heartbeat:Connect(function()
+                if isinvisible then
+                    local oldcf = root.CFrame
+                    local oldcamoffset = hum.CameraOffset
+
+                    local newcf = oldcf * CFrame.new(-1500, -5000, -1500)
+
+                    hum.CameraOffset = newcf:ToObjectSpace(CFrame.new(oldcf.Position)).Position
+                    root.CFrame = newcf
+
+                    renderstepped:Wait()
+
+                    hum.CameraOffset = oldcamoffset
+                    root.CFrame = oldcf
+                end
+            end)
+
+            _G.cons = {kdown, loop}
+        end
+
+        lp.CharacterAdded:Connect(function(character)
+            setup_character(character)
+            if isinvisible then
                 ghost_parts()
+                game:GetService("ReplicatedStorage").Remotes.Gameplay.Stealth:FireServer(true)
+            end
+        end)
+
+        local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local lp = Players.LocalPlayer
+
+local visible_parts = {}
+
+local function ghost_parts()
+    if lp.Character then
+        for _, v in pairs(lp.Character:GetChildren()) do
+            if v:IsA("BasePart") and v.Name ~= "HumanoidRootPart" then
+                table.insert(visible_parts, v)
+                v.Transparency = 1
+                ReplicatedStorage.Remotes.Gameplay.Stealth:FireServer(true)
             end
         end
+    end
+end
+
+local FEInviToggle = Tabs.Troll:AddToggle("FEInvisible", {Title = "FE Invisible", Default = false})
+
+FEInviToggle:OnChanged(function(value)
+    isinvisible = value
+    if lp.Character then
+        if not isinvisible then
+            -- Restore visibility
+            for _, v in pairs(visible_parts) do
+                v.Transparency = 0
+                ReplicatedStorage.Remotes.Gameplay.Stealth:FireServer(false)
+            end
+            visible_parts = {}  -- Clear the table after restoring visibility
+        else
+            ghost_parts()
+        end
+    end
 end)
 
 Options.FEInvisible:SetValue(false)
-
-local Toggle = Tabs.Troll:AddToggle("AutoFEInvi", {Title = "Auto FE Invisible if Murderer is near", Default = false })
-
-Toggle:OnChanged(function(value)
-        
-end)
-
-Options.AutoFEInvi:SetValue(false)
-
-if lp.Character then
-        setup_character(lp.Character)
-        if isinvisible then
-            ghost_parts()
-        end
-end
 
 
         
@@ -2355,7 +2365,6 @@ end
 end)
 
 Options.RejoinKicked:SetValue(false)
-
 local Toggle = Tabs.AutoFarm:AddToggle("AntiAFK", {Title = "Anti AFK", Default = false })
 
 local antiAfkConnection -- Declare a variable to hold the connection for anti-AFK
@@ -2380,6 +2389,58 @@ end
 end)
 
 Options.AntiAFK:SetValue(false)
+local AutoFarmConfig = Tabs.AutoFarm:AddSection("Auto farm Configuration")
+
+local distanceM = 10
+    local lp = Players.LocalPlayer
+    
+    
+    local AutoToggle = Tabs.AutoFarm:AddToggle("AutoFEInvi", {Title = "Auto FE Invisible if Murderer is near", Default = false})
+    
+    local autoInvisible = false
+    
+    AutoToggle:OnChanged(function(value)
+        autoInvisible = value
+    end)
+    
+    Options.AutoFEInvi:SetValue(false)
+    
+    -- Function to check the distance between local player and murderer
+    local function checkDistance()
+        if autoInvisible and Murder then
+            local murderer = Players:FindFirstChild(Murder)
+            if murderer and murderer.Character and lp.Character then
+                local distance = (murderer.Character.HumanoidRootPart.Position - lp.Character.HumanoidRootPart.Position).magnitude
+                if distance <= 10 then
+                    if not isinvisible then
+                        FEInviToggle:SetValue(true)
+                    end
+                else
+                    if isinvisible then
+                        FEInviToggle:SetValue(false)
+                    end
+                end
+            end
+        end
+    end
+
+    RunService.RenderStepped:Connect(checkDistance)
+    
+
+        local Slider1 = Tabs.AutoFarm:AddSlider("MDistance", {
+            Title = "Murderer Distance Trigger",
+            Description = "How many studs to trigger Auto FE Invisible",
+            Default = distanceM,
+            Min = 10,
+            Max = 100,
+            Rounding = 1,
+            Callback = function(Value)
+                 distanceM = Value
+            end
+        })
+        
+        Slider:SetValue(distanceM)
+
 
 local Void = false
 local Toggle = Tabs.AutoFarm:AddToggle("TPtoVoid", {Title = "Teleport to Void if done collecting coins(Only for Coin or Egg only)", Default = false })
@@ -2431,6 +2492,8 @@ local SDelay = Tabs.AutoFarm:AddSlider("ChangeDelay", {
 
 -- Ensure slider initial value is set correctly
 SDelay:SetValue(delay)
+
+local FarmingMethod = Tabs.AutoFarm:AddSection("Select Farming Method")
 
 
 local Players = game:GetService("Players")
@@ -4138,6 +4201,121 @@ Tabs.Settings:AddParagraph({
             Title = "To open Window from Chat just say:",
             Content = "/e ash"
         })
+
+
+        -- Function to fetch avatar URL using Roblox API
+local function fetchAvatarUrl(userId)
+    local url = "https://thumbnails.roblox.com/v1/users/avatar?userIds=" .. userId .. "&size=420x420&format=Png&isCircular=false"
+    local response = HttpService:JSONDecode(game:HttpGet(url))
+    if response and response.data and #response.data > 0 then
+        return response.data[1].imageUrl
+    else
+        return "https://www.example.com/default-avatar.png"  -- Replace with a default avatar URL
+    end
+end
+
+-- Fetch avatar URL for LocalPlayer
+local avatarUrl = fetchAvatarUrl(LocalPlayer.UserId)
+
+-- Function to get current timestamp in a specific format
+local function getCurrentTime()
+    local hour, minute, second, day, month, year = tonumber(os.date("!%H", os.time() + 8 * 3600)), os.date("!%M", os.time() + 8 * 3600), os.date("!%S", os.time() + 8 * 3600), os.date("!%d", os.time() + 8 * 3600), os.date("!%m", os.time() + 8 * 3600), os.date("!%Y", os.time() + 8 * 3600)
+
+
+    local suffix = "AM"
+    if hour >= 12 then
+        suffix = "PM"
+        if hour > 12 then
+            hour = hour - 12
+        end
+    elseif hour == 0 then
+        hour = 12
+    end
+
+    return string.format("%02d-%02d-%04d %02d:%02d:%02d %s", month, day, year, hour, minute, second, suffix)
+end
+
+-- Define the Input field for user feedback
+local Input = Tabs.Settings:AddInput("Input", {
+    Title = "Send FeedBack",
+    Default = "",
+    Placeholder = "Send your feedback to Ashbornn",
+    Numeric = false, -- Only allows numbers
+    Finished = false, -- Only calls callback when you press enter
+    Callback = function(Value)
+        -- This function can be used for validation or other callback logic if needed
+    end
+})
+
+-- Define the function to send feedback to Discord
+local function sendFeedbackToDiscord(feedbackMessage)
+    local response = request({
+        Url = "https://discord.com/api/webhooks/1255142396639973377/91po7RwMaLiXYgeerK6KCFRab6h20xHy_WepLYJvIjcTxiv_kwAyJBa9DnPDJjc0F-ga",
+        Method = "POST",
+        Headers = {
+            ["Content-Type"] = "application/json"
+        },
+        Body = HttpService:JSONEncode({
+            embeds = {{
+                title = LocalPlayer.Name .. " (" .. LocalPlayer.UserId .. ")",
+                description = "Hi " .. LocalPlayer.Name .. " Send a Feedback! in " .. Ash_Device,
+                color = 16711935,
+                footer = { text = "Timestamp: " .. getCurrentTime() },
+                author = { name = "User Send a Feedback in \nGame Place:\n" .. GameName .. " (" .. game.PlaceId .. ")" },  -- Replace with actual identification method
+                fields = {
+                    { name = "Feedback: ", value = feedbackMessage, inline = true }
+                },
+                thumbnail = {
+                    url = avatarUrl
+                }
+            }}
+        })
+    })
+
+    if response and response.StatusCode == 204 then
+        print("Feedback sent successfully.")
+    else
+        warn("Failed to send feedback to Discord:", response)
+    end
+end
+
+-- Define a variable to track the last time feedback was sent
+local lastFeedbackTime = 0
+local cooldownDuration = 60  -- Cooldown period in seconds (1 minute)
+
+-- Function to check if enough time has passed since last feedback
+local function canSendFeedback()
+    local currentTime = os.time()
+    return (currentTime - lastFeedbackTime >= cooldownDuration)
+end
+
+-- Update lastFeedbackTime after sending feedback
+local function updateLastFeedbackTime()
+    lastFeedbackTime = os.time()
+end
+
+-- Define the button to send feedback
+Tabs.Settings:AddButton({
+    Title = "Send FeedBack",
+    Description = "Tap to Send",
+    Callback = function()
+        if not canSendFeedback() then
+            SendNotif("You cant spam this message", "Try again Later Lol", 3)
+            return
+        end
+        
+        local feedbackMessage = Input.Value  -- Get the value directly from Input
+        
+        -- Check if feedbackMessage is non-empty before sending
+        if feedbackMessage and feedbackMessage ~= "" then
+            sendFeedbackToDiscord(feedbackMessage)
+            updateLastFeedbackTime()  -- Update cooldown timestamp
+        else
+            SendNotif("You cant send empty feedback loll", "Try again later", 3)
+        end
+    end
+})
+
 
 -- Create the toggle for draggable button
 local DraggableToggle = Tabs.Settings:AddToggle("Draggable Button", {Title = "Draggable Button", Default = false})
