@@ -494,68 +494,70 @@ do
 
 local SheriffHacks = Tabs.Combat:AddSection("Sheriff Hacks")
 
-Tabs.Combat:AddButton({
-        Title = "Grab Gun v2",
-        Description = "Teleport to and grab the gun if available",
-        Callback = function()
-            local player = game.Players.LocalPlayer
+local player = game.Players.LocalPlayer
 
-            if not IsAlive(player) then
-                SendNotif("You're not alive ", "Please wait for the new round to grab the gun.", 3)
-                return
-            end
+local function IsPlayerEligible()
+    if not IsAlive(player) then
+        SendNotif("You're not alive", "Please wait for the new round to grab the gun.", 3)
+        return false
+    end
 
-            if player.Backpack:FindFirstChild("Gun") or (player.Character and player.Character:FindFirstChild("Gun")) then
-                SendNotif("You already have a gun", "Lollll.", 3)
-                return
-            end
+    if player.Backpack:FindFirstChild("Gun") or (player.Character and player.Character:FindFirstChild("Gun")) then
+        SendNotif("You already have a gun", "Lollll.", 3)
+        return false
+    end
+    
+    if player.Backpack:FindFirstChild("Knife") then
+        SendNotif("You have a knife", "Auto Grab Gun is disabled because you have a knife.", 3)
+        return false
+    end
 
-            if player.Character then
-                local gundr = workspace:FindFirstChild("GunDrop")
-                if gundr then
-                    local oldpos = player.Character.HumanoidRootPart.CFrame
-                    repeat
-                        player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(90), math.rad(0), math.rad(0))
-                        task.wait()
-                        player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(-90), math.rad(0), math.rad(0))
-                        task.wait()
-                    until not gundr:IsDescendantOf(workspace)
-                    player.Character.HumanoidRootPart.CFrame = oldpos
-                    oldpos = false
-                    player.Character.Humanoid:ChangeState(1)
-                    button.Text = "Grab Gun (Gotcha)"
-                else
-                    SendNotif("Gun not Found", "Wait for the Sheriff's death to grab the gun.", 3)
-                end
-            end
+    return true
+end
+
+local function GrabGun()
+    if not IsPlayerEligible() then return end
+
+    if player.Character then
+        local gundr = workspace:FindFirstChild("GunDrop")
+        if gundr then
+            local oldpos = player.Character.HumanoidRootPart.CFrame
+            repeat
+                player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(90), math.rad(0), math.rad(0))
+                task.wait()
+                player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(-90), math.rad(0), math.rad(0))
+                task.wait()
+            until not gundr:IsDescendantOf(workspace)
+            player.Character.HumanoidRootPart.CFrame = oldpos
+            player.Character.Humanoid:ChangeState(1)
+            SendNotif("Grab Gun", "Gotcha.", 3)
+        else
+            SendNotif("Gun not Found", "Wait for the Sheriff's death to grab the gun.", 3)
         end
-})
-        
-Tabs.Combat:AddButton({
-        Title = "Grab gun",
-        Description = "Tp to Gun",
-        Callback = function()
-            local Player = game.Players.LocalPlayer
-            
-            -- Check if the Player is alive
-            if not IsAlive(Player) then
-                SendNotif("You're not alive", "Please wait for the new round to grab the gun.", 3)
-                return
-            end
+    end
+end
 
-            local currentX = Player.Character.HumanoidRootPart.CFrame.X
-            local currentY = Player.Character.HumanoidRootPart.CFrame.Y
-            local currentZ = Player.Character.HumanoidRootPart.CFrame.Z
-            
-            if workspace:FindFirstChild("GunDrop") then
-                Player.Character.HumanoidRootPart.CFrame = workspace:FindFirstChild("GunDrop").CFrame
-                wait(0.30)
-                Player.Character.HumanoidRootPart.CFrame = CFrame.new(currentX, currentY, currentZ)
-            else
-                SendNotif("Gun not Found", "Wait for the Sheriff's death to grab the gun.", 3)
-            end
-        end
+Tabs.Combat:AddButton({
+    Title = "Grab Gun v2",
+    Description = "Teleport to and grab the gun if available",
+    Callback = GrabGun
 })
+
+local AutoGrabEnabled = false
+
+local Toggle = Tabs.Combat:AddToggle("AutoGrab", {Title = "Auto Grab Gun", Default = false })
+
+Toggle:OnChanged(function(value)
+    AutoGrabEnabled = value
+end)
+
+workspace.ChildAdded:Connect(function(child)
+    if AutoGrabEnabled and child.Name == "GunDrop" then
+        GrabGun()
+    end
+end)
+
+Options.AutoGrab:SetValue(false)
        
 
         
@@ -1285,36 +1287,39 @@ game.Players.PlayerRemoving:Connect(UpdateDropdownA)
 
 local lp = game.Players.LocalPlayer
 
-function VoidSafe() 
-            -- Check if the "Safe Void Path" part already exists in the workspace
-            if not workspace:FindFirstChild("Safe Void Path") then
-                -- Create and configure the part
-                local safePart = Instance.new("Part")
-                safePart.Name = "Safe Void Path"
-                safePart.CFrame = CFrame.new(99999, 99995, 99999)
-                safePart.Anchored = true
-                safePart.Size = Vector3.new(300, 0.1, 300)
-                safePart.Transparency = 0.5
+-- Define the VoidSafe function
+function VoidSafe()
+    -- Check if the "Safe Void Path" part already exists in the workspace
+    if not workspace:FindFirstChild("Safe Void Path") then
+        -- Create and configure the part
+        local safePart = Instance.new("Part")
+        safePart.Name = "Safe Void Path"
+        safePart.CFrame = CFrame.new(99999, 99995, 99999)
+        safePart.Anchored = true
+        safePart.Size = Vector3.new(300, 0.1, 300)
+        safePart.Transparency = 0.5
 
-                -- Parent the part to the workspace
-                safePart.Parent = workspace
-            else
-                warn("Safe Void Path already exists in the workspace")
-            end
+        -- Parent the part to the workspace
+        safePart.Parent = workspace
+    else
+        warn("Safe Void Path already exists in the workspace")
+    end
 
-            -- Teleport the local Player to the specified coordinates
-            if lp.Character and lp.Character:FindFirstChild("HumanoidRootPart") then
-                lp.Character.HumanoidRootPart.CFrame = CFrame.new(99999, 100000, 99999)
-            else
-                warn("Local Player character or HumanoidRootPart not found")
-            end
+    -- Teleport the local player to the specified coordinates
+    local lp = game.Players.LocalPlayer
+    if lp.Character and lp.Character:FindFirstChild("HumanoidRootPart") then
+        lp.Character.HumanoidRootPart.CFrame = CFrame.new(99999, 100000, 99999)
+    else
+        warn("Local player character or HumanoidRootPart not found")
+    end
 end
 
+-- Add a button to the teleport tab with the VoidSafe callback
 Tabs.Teleport:AddButton({
-        Title = "Void (Safe)",
-        Description = "",
-        Callback = VoidSafe
-        })
+    Title = "Void (Safe)",
+    Description = "",
+    Callback = VoidSafe
+})
         
 Tabs.Teleport:AddButton({
             Title = "TP to Secret Room",
@@ -1977,6 +1982,16 @@ Toggle:OnChanged(function(value)
         end
 end)
 
+Options.FEInvisible:SetValue(false)
+
+local Toggle = Tabs.Troll:AddToggle("AutoFEInvi", {Title = "Auto FE Invisible if Murderer is near", Default = false })
+
+Toggle:OnChanged(function(value)
+        
+end)
+
+Options.AutoFEInvi:SetValue(false)
+
 if lp.Character then
         setup_character(lp.Character)
         if isinvisible then
@@ -2366,19 +2381,31 @@ end)
 
 Options.AntiAFK:SetValue(false)
 
+local Void = false
+local Toggle = Tabs.AutoFarm:AddToggle("TPtoVoid", {Title = "Teleport to Void if done collecting coins(Only for Coin or Egg only)", Default = false })
+
+local Void -- Declare a variable to hold the connection for anti-AFK
+
+Toggle:OnChanged(function(value)
+Void = value
+
+end)
+
+Options.TPtoVoid:SetValue(false)
+
 local moveSpeed = 50
-local delay= math.random(1.7,2.1)
+local delay = math.random(1.7, 2.1)
 -- Create a slider for teleport walk speed
 local Slider = Tabs.AutoFarm:AddSlider("TweenSpeed", {
-Title = "Change AutoFarm Speed",
-Description = "NOTE: The higher the value can be kick faster.",
-Default = moveSpeed,
-Min = 10,
-Max = 100,
-Rounding = 1,
-Callback = function(Value)
+    Title = "Change AutoFarm Speed",
+    Description = "NOTE: The higher the value can be kick faster.",
+    Default = moveSpeed,
+    Min = 10,
+    Max = 100,
+    Rounding = 1,
+    Callback = function(Value)
         moveSpeed = Value
-end
+    end
 })
 
 -- Ensure slider initial value is set correctly
@@ -2386,19 +2413,24 @@ Slider:SetValue(moveSpeed)
 
 -- Create a slider for teleport walk speed
 local SDelay = Tabs.AutoFarm:AddSlider("ChangeDelay", {
-Title = "Change AutoFarm Speed",
-Description = "NOTE: Make sure you change the tween speed to 10-20 so it wouldn't kick faster",
-Default = delay,
-Min = 0.1,
-Max = 10,
-Rounding = 1,
-Callback = function(Value)
+    Title = "Change AutoFarm Delay",
+    Description = "NOTE: Make sure you change the tween speed to 10-20 so it wouldn't kick faster",
+    Default = delay,
+    Min = 0.1,
+    Max = 10,
+    Rounding = 1,
+    Callback = function(Value)
         delay = Value
-end
+        if delay < 1.5 then
+            moveSpeed = math.random(10, 20)
+        else
+            moveSpeed = 50  -- or whatever your default value should be
+        end
+    end
 })
 
 -- Ensure slider initial value is set correctly
-Slider:SetValue(moveSpeed)
+SDelay:SetValue(delay)
 
 
 local Players = game:GetService("Players")
@@ -2493,16 +2525,18 @@ local function moveToCoinServer()
         if isAutoFarming and not isMovingToCoin then
             -- Use coroutine to prevent blocking
             coroutine.wrap(moveToCoinServer)()
+            
         end
     else
         print("Coin not found. Searching for Coin_Server...")
         isMovingToCoin = false
+        
         wait(1)  -- Wait for a short period before searching again (customize as needed)
 
         -- If auto farming is enabled and not currently moving towards a coin, continue searching for the nearest coin
         if isAutoFarming and not isMovingToCoin then
             coroutine.wrap(moveToCoinServer)()
-            VoidSafe()
+            
         end
     end
 end
@@ -2681,6 +2715,11 @@ local function moveToCoinServer()
     else
         print("[ AshbornnHub ] Coin not Found.. Searching again...")
         isMovingToCoin = false
+        
+        if Void then
+        wait(1)
+        VoidSafe()
+        end
         wait(1)  -- Wait for a short period before searching again (customize as needed)
 
         -- If auto farming is enabled and not currently moving towards a coin, continue searching for the nearest coin
@@ -2867,6 +2906,11 @@ local function moveToCoinServer()
     else
         print("[ AshbornnHub ] Searching for eggs..")
         isMovingToCoin = false
+        isAutoFarming = false
+        if Void then
+        wait(1)
+        VoidSafe()
+        end
         wait(1)  -- Wait for a short period before searching again (customize as needed)
 
         -- If auto farming is enabled and not currently moving towards a coin, continue searching for the nearest coin
@@ -3229,17 +3273,17 @@ local ButtonsS = Tabs.Buttons:AddSection("Button Shortcuts")
 
 -- Constants for file handling
 local SAVED_POSITIONS = {
-FEInviButtonPerk = "AshbornnHub/MM2/PerkFEInviButtPos.json",
-FEInviButton = "AshbornnHub/MM2/FEInviButPos.json",
-AFCoinButton = "AshbornnHub/MM2/AFCoin.json",
-InviButton = "AshbornnHub/MM2/InviButPos.json"
+    FEInviButtonPerk = "AshbornnHub/MM2/PerkFEInviButtPos.json",
+    FEInviButton = "AshbornnHub/MM2/FEInviButPos.json",
+    AFCoinButton = "AshbornnHub/MM2/AFCoin.json",
+    InviButton = "AshbornnHub/MM2/InviButPos.json"
 }
 
 local DEFAULT_POSITIONS = {
-FEInviButtonPerk = UDim2.new(0.5, -0.5, 0.5, -37.5),
-FEInviButton = UDim2.new(0.5, -0.5, 0.5, -37.5),
-AFCoinButton = UDim2.new(0.5, 0.5, 0.5, -60.5),
-InviButton = UDim2.new(0.5, 100, 0.5, 37.5)
+    FEInviButtonPerk = UDim2.new(0.5, -0.5, 0.5, -37.5),
+    FEInviButton = UDim2.new(0.5, -0.5, 0.5, -37.5),
+    AFCoinButton = UDim2.new(0.5, 0.5, 0.5, -60.5),
+    InviButton = UDim2.new(0.5, 100, 0.5, 37.5)
 }
 
 local screenGuis = {}
@@ -3247,8 +3291,8 @@ local savedPositions = {}
 
 -- Function to save the position to file
 local function savePosition(buttonType)
-local screenGui = screenGuis[buttonType]
-if screenGui then
+    local screenGui = screenGuis[buttonType]
+    if screenGui then
         local positionData = {
             X = savedPositions[buttonType].X.Scale,
             XOffset = savedPositions[buttonType].X.Offset,
@@ -3261,83 +3305,87 @@ if screenGui then
         if not success then
             warn("Failed to save position:", error)
         end
-end
+    end
 end
 
 -- Function to load the position from file
 local function loadPosition(buttonType)
-local success, data = pcall(function()
+    local success, data = pcall(function()
         return readfile(SAVED_POSITIONS[buttonType])
-end)
-if success then
+    end)
+    if success then
         local positionData = game:GetService("HttpService"):JSONDecode(data)
         if positionData then
             savedPositions[buttonType] = UDim2.new(positionData.X, positionData.XOffset, positionData.Y, positionData.YOffset)
             return
         end
-end
-savedPositions[buttonType] = DEFAULT_POSITIONS[buttonType]
+    end
+    savedPositions[buttonType] = DEFAULT_POSITIONS[buttonType]
 end
 
 -- Function to create the GUI
 local function createGui(buttonType, buttonText, toggleOption, remoteEvent)
--- Create a ScreenGui
-local screenGui = Instance.new("ScreenGui")
-screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
-screenGuis[buttonType] = screenGui
+    -- Create a ScreenGui
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+    screenGuis[buttonType] = screenGui
 
--- Create a Frame
-local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, InputWidth.Value, 0, InputHeight.Value)
-frame.Position = savedPositions[buttonType]
-frame.AnchorPoint = Vector2.new(0.5, 0.5)
-frame.BackgroundTransparency = TColorpicker.Transparency
-frame.BackgroundColor3 = TColorpicker.Value
-frame.Parent = screenGui
+    -- Create a Frame
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(0, InputWidth.Value, 0, InputHeight.Value)
+    frame.Position = savedPositions[buttonType]
+    frame.AnchorPoint = Vector2.new(0.5, 0.5)
+    frame.BackgroundTransparency = TColorpicker.Transparency
+    frame.BackgroundColor3 = TColorpicker.Value
+    frame.Parent = screenGui
 
--- Add UICorner to Frame
-local uiCornerFrame = Instance.new("UICorner")
-uiCornerFrame.CornerRadius = UDim.new(0, 15)
-uiCornerFrame.Parent = frame
+    -- Add UICorner to Frame
+    local uiCornerFrame = Instance.new("UICorner")
+    uiCornerFrame.CornerRadius = UDim.new(0, 15)
+    uiCornerFrame.Parent = frame
 
--- Create a Button
-local button = Instance.new("TextButton")
-button.Size = UDim2.new(0, 160, 0, 40)
-button.Position = UDim2.new(0.5, 0, 0.5, 0)
-button.AnchorPoint = Vector2.new(0.5, 0.5)
-button.BackgroundTransparency = 1
-button.Text = buttonText
-button.TextSize = InputTSize.Value
-button.TextColor3 = Color3.fromRGB(255, 255, 255)
-button.Parent = frame
+    -- Create a Button
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(0, 160, 0, 40)
+    button.Position = UDim2.new(0.5, 0, 0.5, 0)
+    button.AnchorPoint = Vector2.new(0.5, 0.5)
+    button.BackgroundTransparency = 1
+    button.Text = buttonText
+    button.TextSize = InputTSize.Value
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    button.Parent = frame
 
--- Function to toggle button text based on the toggle option
-local function toggleButtonText()
+    -- Function to toggle button text based on the toggle option
+    local function toggleButtonText()
         if toggleOption.Value then
             button.Text = buttonText .. " [ON]"
-            game:GetService("ReplicatedStorage").Remotes.Gameplay[remoteEvent]:FireServer(true)
+            if remoteEvent then
+                game:GetService("ReplicatedStorage").Remotes.Gameplay[remoteEvent]:FireServer(true)
+            end
         else
             button.Text = buttonText .. " [OFF]"
-            game:GetService("ReplicatedStorage").Remotes.Gameplay[remoteEvent]:FireServer(false)
+            if remoteEvent then
+                game:GetService("ReplicatedStorage").Remotes.Gameplay[remoteEvent]:FireServer(false)
+            end
         end
-end
+    end
 
--- Connect the button click event to the toggle function
-button.MouseButton1Click:Connect(function()
+    -- Connect the button click event to the toggle function
+    button.MouseButton1Click:Connect(function()
         toggleOption:SetValue(not toggleOption.Value)
         toggleButtonText()
-end)
+    end)
 
--- Make the Frame draggable
-local dragging, dragInput, dragStart, startPos
+    -- Make the Frame draggable
+    local dragging, dragInput, dragStart, startPos
 
-local function update(input)
+    local function update(input)
         local delta = input.Position - dragStart
         frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
         savedPositions[buttonType] = frame.Position
-end
+    end
 
-frame.InputBegan:Connect(function(input)
+    frame.InputBegan:Connect(function(input)
         if not LockFrames and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
             dragging = true
             dragStart = input.Position
@@ -3350,76 +3398,76 @@ frame.InputBegan:Connect(function(input)
                 end
             end)
         end
-end)
+    end)
 
-frame.InputChanged:Connect(function(input)
+    frame.InputChanged:Connect(function(input)
         if not LockFrames and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
             dragInput = input
         end
-end)
+    end)
 
-UserInputService.InputChanged:Connect(function(input)
+    UserInputService.InputChanged:Connect(function(input)
         if not LockFrames and input == dragInput and dragging then
             update(input)
         end
-end)
+    end)
 
--- Update button text based on the initial value of the toggle option
-toggleButtonText()
+    -- Update button text based on the initial value of the toggle option
+    toggleButtonText()
 end
 
 -- Function to handle GUI creation and destruction
 local function handleToggle(buttonType, value, buttonText, toggleOption, remoteEvent)
-if value then
+    if value then
         createGui(buttonType, buttonText, toggleOption, remoteEvent)
-else
+    else
         if screenGuis[buttonType] then
             screenGuis[buttonType]:Destroy()
             screenGuis[buttonType] = nil
             savePosition(buttonType)
         end
-end
+    end
 end
 
 -- Load saved positions
 for buttonType in pairs(SAVED_POSITIONS) do
-loadPosition(buttonType)
+    loadPosition(buttonType)
 end
 
 -- Define Toggle and Option mappings
 local toggles = {
-FEInviButtonPerk = Tabs.Buttons:AddToggle("FEInviButtonPerk", {Title = "FE invisible Button + Invisible(Need Ghost Perk)", Default = false}),
-FEInviButton = Tabs.Buttons:AddToggle("FEInviButton", {Title = "FE Invisible Button Only", Default = false}),
-InviButton = Tabs.Buttons:AddToggle("InviButton", {Title = "Invisible Button (Need Ghost Perk)", Default = false}),
-AFCoinButton = Tabs.Buttons:AddToggle("AFCoinButton", {Title = "Auto Farm Coin Button Toggle", Default = false})
+    FEInviButtonPerk = Tabs.Buttons:AddToggle("FEInviButtonPerk", {Title = "FE invisible Button + Invisible(Need Ghost Perk)", Default = false}),
+    FEInviButton = Tabs.Buttons:AddToggle("FEInviButton", {Title = "FE Invisible Button Only", Default = false}),
+    InviButton = Tabs.Buttons:AddToggle("InviButton", {Title = "Invisible Button (Need Ghost Perk)", Default = false}),
+    AFCoinButton = Tabs.Buttons:AddToggle("AFCoinButton", {Title = "Auto Farm Coin Button Toggle", Default = false})
 }
 
 local toggleOptions = {
-FEInviButtonPerk = Options.FEInvisible,
-FEInviButton = Options.FEInvisible,
-AFCoinButton = Options.AutoFarmCoin,
-InviButton = Options.Invisible
+    FEInviButtonPerk = Options.FEInvisible,
+    FEInviButton = Options.FEInvisible,
+    AFCoinButton = Options.AutoFarmCoin,
+    InviButton = Options.Invisible
 }
 
 -- Connect toggle state changes to handleToggle
 for buttonType, toggle in pairs(toggles) do
-local buttonText, remoteEvent
-if buttonType == "FEInviButtonPerk" then
+    local buttonText, remoteEvent
+    if buttonType == "FEInviButtonPerk" then
         buttonText = "(Ghost Perk) +\nFE Invisible is"
         remoteEvent = "Stealth"
-elseif buttonType == "FEInviButton" then
+    elseif buttonType == "FEInviButton" then
         buttonText = "FE Invisible is"
         remoteEvent = "Stealth"
-elseif buttonType == "AFCoinButton" then
+    elseif buttonType == "AFCoinButton" then
         buttonText = "Auto Farm Coin is"
         remoteEvent = nil
-elseif buttonType == "InviButton" then
+    elseif buttonType == "InviButton" then
         buttonText = "Invisible is"
         remoteEvent = "Stealth"
-end
-toggle:OnChanged(function(value)
+    end
+    toggle:OnChanged(function(value)
         handleToggle(buttonType, value, buttonText, toggleOptions[buttonType], remoteEvent)
-end)
+    end)
 end
 
 -- Set the initial state of the toggles
@@ -3429,7 +3477,7 @@ Options.Invisible:SetValue(false)
 -- Ensure the GUI persists across respawns
 local Player = game.Players.LocalPlayer
 Player.CharacterAdded:Connect(function()
-for buttonType, toggle in pairs(toggles) do
+    for buttonType, toggle in pairs(toggles) do
         if toggle.Value then
             local buttonText, remoteEvent
             if buttonType == "FEInviButtonPerk" then
@@ -3440,27 +3488,16 @@ for buttonType, toggle in pairs(toggles) do
                 remoteEvent = "Stealth"
             elseif buttonType == "AFCoinButton" then
                 buttonText = "Auto Farm Coin is"
+                remoteEvent = false
             elseif buttonType == "InviButton" then
                 buttonText = "Invisible is"
                 remoteEvent = "Stealth"
             end
             createGui(buttonType, buttonText, toggleOptions[buttonType], remoteEvent)
         end
-end
+    end
 end)
 
-
-local Grab = "Grab Gun" -- Initialize Grab
-
-local function updateButtonText(button)
-local gunReady = workspace:FindFirstChild("GunDrop")
-if gunReady then
-        Grab = "Grab Gun (Ready)"
-else
-        Grab = "Grab Gun"
-end
-button.Text = Grab -- Update the button text
-end
 
 -- Function to handle GUI creation and destruction
 local function setupGui(toggleName, buttonTitle, buttonAction)
@@ -3614,35 +3651,7 @@ end
 
 -- Setup each GUI with respective actions
 setupGui("GrabGun", "Grab Gun", function()
-local player = game.Players.LocalPlayer
-
-if not IsAlive(player) then
-        SendNotif("You're not alive ", "Please wait for the new round to grab the gun.", 3)
-        return
-end
-
-if player.Backpack:FindFirstChild("Gun") or (player.Character and player.Character:FindFirstChild("Gun")) then
-        SendNotif("You already have a gun", "Lollll.", 3)
-        return
-end
-
-if player.Character then
-        local gundr = workspace:FindFirstChild("GunDrop")
-        if gundr then
-            local oldpos = player.Character.HumanoidRootPart.CFrame
-            repeat
-                player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(90), math.rad(0), math.rad(0))
-                task.wait()
-                player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(-90), math.rad(0), math.rad(0))
-                task.wait()
-            until not gundr:IsDescendantOf(workspace)
-            player.Character.HumanoidRootPart.CFrame = oldpos
-            oldpos = false
-            player.Character.Humanoid:ChangeState(1)
-        else
-            SendNotif("Gun not Found", "Wait for the Sheriff's death to grab the gun.", 3)
-        end
-end
+GrabGun()
 end)
 
 setupGui("ShootMurd", "TP Shoot Murd", function()
@@ -4176,40 +4185,7 @@ local commands = {
         ["/e k0"] = function() notifyAndSet(Options.AutoKillAll, false, "Auto Kill All Turned Off", "Auto Kill All has been turned off.") end,
         ["/e eg1"] = function() notifyAndSet(Options.ESPGun, true, "ESP Gun Turned On", "ESP Gun has been turned on.") end,
         ["/e eg2"] = function() notifyAndSet(Options.ESPGun, false, "ESP Gun Turned Off", "ESP Gun has been turned off.") end,
-        ["/e gg"] = function() 
-            local Player = game.Players.LocalPlayer
-
-if not IsAlive(Player) then
-SendNotif("You're not alive", "Please wait for the new round to grab the gun.", 3)
-return
-end
-
-if Player.Backpack:FindFirstChild("Gun") or (Player.Character and Player.Character:FindFirstChild("Gun")) then
-SendNotif("You already have a gun", "Lollll.", 3)
-return
-end
-
-if Player.Character then
-local gundr = workspace:FindFirstChild("GunDrop")
-if gundr then
-        local oldpos = Player.Character.HumanoidRootPart.CFrame
-        game:GetService("ReplicatedStorage").Remotes.Gameplay.Stealth:FireServer(true)
-        wait(2)
-        repeat
-            Player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(90), math.rad(0), math.rad(0))
-            task.wait()
-            Player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(-90), math.rad(0), math.rad(0))
-            task.wait()
-        until not gundr:IsDescendantOf(workspace)
-        game:GetService("ReplicatedStorage").Remotes.Gameplay.Stealth:FireServer(false)
-        Player.Character.HumanoidRootPart.CFrame = oldpos
-        oldpos = false
-        Player.Character.Humanoid:ChangeState(1)
-else
-        SendNotif("Gun not Found", "Wait for the Sheriff's death to grab the gun.", 3)
-end
-end
-end,
+        ["/e gg"] = GrabGun,
         ["lol"] = function()
             print("lol")
         end,
