@@ -42,8 +42,8 @@ local AntiFlingEnabled = false
 local playerAddedConnection = nil
 local localHeartbeatConnection = nil 
 
-local UIS = game:GetService("UserInputService")
-local Touchscreen = UIS.TouchEnabled
+local UserInputService = game:GetService("UserInputService")
+local Touchscreen = UserInputService.TouchEnabled
 getgenv().Ash_Device = Touchscreen and "Mobile" or "PC"
 local placeId = game.PlaceId
 local GameName = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name
@@ -81,102 +81,6 @@ Fluent:Notify({
         Content = content,
         Duration = time
 })
-end
-
-
-
-
--- Constants
-local Services = setmetatable({}, {
-        __index = function(Self, Index)
-            local NewService = game:GetService(Index)
-            if NewService then
-                Self[Index] = NewService
-            end
-            return NewService
-        end
-})
-
-local LocalPlayer = Services.Players.LocalPlayer
-
--- Functions
-local function CharacterAdded(Player)
-        local Character = Player.Character or Player.CharacterAdded:Wait()
-        local PrimaryPart = Character:WaitForChild("HumanoidRootPart")
-
-        local Detected = false
-
-        local function CheckFling()
-            if not (Character:IsDescendantOf(workspace) and PrimaryPart:IsDescendantOf(Character)) then
-                return
-            end
-
-            if PrimaryPart.AssemblyAngularVelocity.Magnitude > 50 or PrimaryPart.AssemblyLinearVelocity.Magnitude > 100 then
-                if not Detected then
-                    game.StarterGui:SetCore("ChatMakeSystemMessage", {
-                        Text = "Fling Exploit detected, Player: " .. tostring(Player);
-                        Color = Color3.fromRGB(255, 200, 0);
-                    })
-                end
-                Detected = true
-
-                for _, Part in ipairs(Character:GetDescendants()) do
-                    if Part:IsA("BasePart") then
-                        Part.CanCollide = false
-                        Part.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
-                        Part.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
-                        Part.CustomPhysicalProperties = PhysicalProperties.new(0, 0, 0)
-                    end
-                end
-
-                PrimaryPart.CanCollide = false
-                PrimaryPart.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
-                PrimaryPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
-                PrimaryPart.CustomPhysicalProperties = PhysicalProperties.new(0, 0, 0)
-            end
-        end
-
-        Services.RunService.Heartbeat:Connect(CheckFling)
-end
-
-local function OnPlayerAdded(Player)
-        if AntiFlingEnabled and Player ~= LocalPlayer then
-            CharacterAdded(Player)
-        end
-end
-
-local function NeutralizeLocalPlayer()
-local LastPosition = nil
-local lastChatTime = 0
-
-local function CheckLocalPlayerFling()
-        pcall(function()
-            local Character = LocalPlayer.Character
-            if Character then
-                local PrimaryPart = Character:FindFirstChild("HumanoidRootPart")
-                if PrimaryPart then
-                    if PrimaryPart.AssemblyLinearVelocity.Magnitude > 250 or PrimaryPart.AssemblyAngularVelocity.Magnitude > 250 then
-                        PrimaryPart.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
-                        PrimaryPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
-                        PrimaryPart.CFrame = LastPosition
-                        
-                        local currentTime = tick()
-                        if currentTime - lastChatTime >= 5 then
-                            game.StarterGui:SetCore("ChatMakeSystemMessage", {
-                                Text = "You were flung. Neutralizing velocity. Thanks Ashbornn for this.";
-                                Color = Color3.fromRGB(195, 115, 255);
-                            })
-                            lastChatTime = currentTime
-                        end
-                    else
-                        LastPosition = PrimaryPart.CFrame
-                    end
-                end
-            end
-        end)
-end
-
-return Services.RunService.Heartbeat:Connect(CheckLocalPlayerFling)
 end
 
 
@@ -525,6 +429,7 @@ local function GrabGun()
 
     if player.Character then
         local gundr = workspace:FindFirstChild("GunDrop")
+        FEInviToggle:SetValue(false)
         if gundr then
             local oldpos = player.Character.HumanoidRootPart.CFrame
             repeat
@@ -1866,29 +1771,7 @@ Tabs.LPlayer:AddButton({
 
 -------------------------------------------------------------------------------------TROLLING--------------------------------------------------------------------------------
 
-local Toggle = Tabs.Troll:AddToggle("AntiFling", {Title = "Anti Fling (You can't fling me)", Default = false })
 
-Toggle:OnChanged(function(enabled)
-        AntiFlingEnabled = enabled
-        if enabled then
-            playerAddedConnection = Services.Players.PlayerAdded:Connect(OnPlayerAdded)
-            for _, Player in ipairs(Services.Players:GetPlayers()) do
-                if Player ~= LocalPlayer then
-                    CharacterAdded(Player)
-                end
-            end
-            localHeartbeatConnection = NeutralizeLocalPlayer()
-        else
-            if playerAddedConnection then
-                playerAddedConnection:Disconnect()
-                playerAddedConnection = nil
-            end
-            if localHeartbeatConnection then
-                localHeartbeatConnection:Disconnect()
-                localHeartbeatConnection = nil
-            end
-        end
-end)
         
         if _G.cons then
         for _, v in pairs(_G.cons) do
@@ -2394,7 +2277,19 @@ local AutoFarmConfig = Tabs.AutoFarm:AddSection("Auto farm Configuration")
 local distanceM = 10
     local lp = Players.LocalPlayer
     
-    
+    local Slider1 = Tabs.AutoFarm:AddSlider("MDistance", {
+            Title = "Murderer Distance Trigger",
+            Description = "How many studs to trigger Auto FE Invisible",
+            Default = distanceM,
+            Min = 10,
+            Max = 100,
+            Rounding = 1,
+            Callback = function(Value)
+                 distanceM = Value
+            end
+        })
+        
+        Slider:SetValue(distanceM)
     local AutoToggle = Tabs.AutoFarm:AddToggle("AutoFEInvi", {Title = "Auto FE Invisible if Murderer is near", Default = false})
     
     local autoInvisible = false
@@ -2411,7 +2306,7 @@ local distanceM = 10
             local murderer = Players:FindFirstChild(Murder)
             if murderer and murderer.Character and lp.Character then
                 local distance = (murderer.Character.HumanoidRootPart.Position - lp.Character.HumanoidRootPart.Position).magnitude
-                if distance <= 10 then
+                if distance <= distanceM then
                     if not isinvisible then
                         FEInviToggle:SetValue(true)
                     end
@@ -2427,19 +2322,7 @@ local distanceM = 10
     RunService.RenderStepped:Connect(checkDistance)
     
 
-        local Slider1 = Tabs.AutoFarm:AddSlider("MDistance", {
-            Title = "Murderer Distance Trigger",
-            Description = "How many studs to trigger Auto FE Invisible",
-            Default = distanceM,
-            Min = 10,
-            Max = 100,
-            Rounding = 1,
-            Callback = function(Value)
-                 distanceM = Value
-            end
-        })
         
-        Slider:SetValue(distanceM)
 
 
 local Void = false
@@ -2456,6 +2339,7 @@ Options.TPtoVoid:SetValue(false)
 
 local moveSpeed = 50
 local delay = math.random(1.7, 2.1)
+
 -- Create a slider for teleport walk speed
 local Slider = Tabs.AutoFarm:AddSlider("TweenSpeed", {
     Title = "Change AutoFarm Speed",
@@ -2481,7 +2365,7 @@ local SDelay = Tabs.AutoFarm:AddSlider("ChangeDelay", {
     Max = 10,
     Rounding = 1,
     Callback = function(Value)
-        delay = Value
+        delay = tonumber(Value)  -- Ensure the delay is treated as a number
         if delay < 1.5 then
             moveSpeed = math.random(10, 20)
         else
@@ -3859,9 +3743,7 @@ end)
 
 local SheriffHacks = Tabs.Buttons:AddSection("Speed Hacks")
 
-local Player = game.Players.LocalPlayer
 local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
 local normalWalkSpeed = 16
 local tpWalkSpeed = 3  -- Initial speed value
 local tpwalking = false
@@ -4309,6 +4191,7 @@ Tabs.Settings:AddButton({
         -- Check if feedbackMessage is non-empty before sending
         if feedbackMessage and feedbackMessage ~= "" then
             sendFeedbackToDiscord(feedbackMessage)
+            SendNotif("Feedback has been Sent", "Thank you Enjoy the Script", 3)
             updateLastFeedbackTime()  -- Update cooldown timestamp
         else
             SendNotif("You cant send empty feedback loll", "Try again later", 3)
