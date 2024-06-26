@@ -403,20 +403,19 @@ do
 
 local SheriffHacks = Tabs.Combat:AddSection("Sheriff Hacks")
 
-local player = game.Players.LocalPlayer
 
 local function IsPlayerEligible()
-    if not IsAlive(player) then
+    if not IsAlive(Player) then
         SendNotif("You're not alive", "Please wait for the new round to grab the gun.", 3)
         return false
     end
 
-    if player.Backpack:FindFirstChild("Gun") or (player.Character and player.Character:FindFirstChild("Gun")) then
+    if Player.Backpack:FindFirstChild("Gun") or (Player.Character and Player.Character:FindFirstChild("Gun")) then
         SendNotif("You already have a gun", "Lollll.", 3)
         return false
     end
     
-    if player.Backpack:FindFirstChild("Knife") then
+    if Player.Backpack:FindFirstChild("Knife") then
         SendNotif("You have a knife", "Auto Grab Gun is disabled because you have a knife.", 3)
         return false
     end
@@ -427,19 +426,21 @@ end
 local function GrabGun()
     if not IsPlayerEligible() then return end
 
-    if player.Character then
+    if Player.Character then
         local gundr = workspace:FindFirstChild("GunDrop")
-        FEInviToggle:SetValue(false)
         if gundr then
-            local oldpos = player.Character.HumanoidRootPart.CFrame
+            local oldpos = Player.Character.HumanoidRootPart.CFrame
+            local startTime = os.clock()
+
             repeat
-                player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(90), math.rad(0), math.rad(0))
+                Player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(90), math.rad(0), math.rad(0))
                 task.wait()
-                player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(-90), math.rad(0), math.rad(0))
+                Player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(-90), math.rad(0), math.rad(0))
                 task.wait()
-            until not gundr:IsDescendantOf(workspace)
-            player.Character.HumanoidRootPart.CFrame = oldpos
-            player.Character.Humanoid:ChangeState(1)
+            until not gundr:IsDescendantOf(workspace) or (os.clock() - startTime) >= 3
+            
+            Player.Character.HumanoidRootPart.CFrame = oldpos
+            Player.Character.Humanoid:ChangeState(1)
             SendNotif("Grab Gun", "Gotcha.", 3)
         else
             SendNotif("Gun not Found", "Wait for the Sheriff's death to grab the gun.", 3)
@@ -452,6 +453,7 @@ Tabs.Combat:AddButton({
     Description = "Teleport to and grab the gun if available",
     Callback = GrabGun
 })
+
 
 local AutoGrabEnabled = false
 
@@ -761,57 +763,6 @@ end)
 
 Slider:SetValue(20)
 
-
-
-local autoKillAllToggle = Tabs.Combat:AddToggle("AutoKillAll", {Title = "Auto Kill All", Default = false})
-
-autoKillAllToggle:OnChanged(function(autokillall)
-    autokillallloop = autokillall
-    while autokillallloop do
-        function autoKillAllLoopFunction()
-            EquipTool()
-            wait()
-            local localCharacter = game.Players.LocalPlayer.Character
-            local knife = localCharacter and localCharacter:FindFirstChild("Knife")
-            if not knife then return end
-            wait()
-            for _, Player in ipairs(game.Players:GetPlayers()) do
-                if Player ~= game.Players.LocalPlayer then
-                    local playerCharacter = Player.Character
-                    local humanoidRootPart = playerCharacter and playerCharacter:FindFirstChild("HumanoidRootPart")
-                    
-                    if humanoidRootPart then
-                        local localUserId = game.Players.LocalPlayer.UserId
-                        local playerUserId = Player.UserId
-
-                        if monarchs[localUserId] then
-                            -- Monarch can kill everyone, including premiums
-                            Stab()
-                            firetouchinterest(humanoidRootPart, knife.Handle, 1)
-                            firetouchinterest(humanoidRootPart, knife.Handle, 0)
-                        elseif premiums[localUserId] and not monarchs[playerUserId] then
-                            -- Premium can kill others but not Monarchs
-                            Stab()
-                            firetouchinterest(humanoidRootPart, knife.Handle, 1)
-                            firetouchinterest(humanoidRootPart, knife.Handle, 0)
-                        elseif not premiums[localUserId] and not monarchs[localUserId] then
-                            -- Normal users can kill others but not Monarchs or Premiums
-                            Stab()
-                            firetouchinterest(humanoidRootPart, knife.Handle, 1)
-                            firetouchinterest(humanoidRootPart, knife.Handle, 0)
-                        end
-                    end
-                end
-            end
-            wait()
-        end
-        wait()
-        pcall(autoKillAllLoopFunction)
-    end
-end)
-
-Options.AutoKillAll:SetValue(false)
-
 local knifeAuraToggle = Tabs.Combat:AddToggle("KnifeAura", {Title = "Knife Aura", Default = false})
 
 knifeAuraToggle:OnChanged(function(knifeaura)
@@ -882,8 +833,54 @@ end)
 
 Options.KnifeAura:SetValue(false)
 
+local autoKillAllToggle = Tabs.Combat:AddToggle("AutoKillAll", {Title = "Auto Kill All", Default = false})
 
+autoKillAllToggle:OnChanged(function(autokillall)
+    autokillallloop = autokillall
+    while autokillallloop do
+        function autoKillAllLoopFunction()
+            EquipTool()
+            wait()
+            local localCharacter = game.Players.LocalPlayer.Character
+            local knife = localCharacter and localCharacter:FindFirstChild("Knife")
+            if not knife then return end
+            wait()
+            for _, Player in ipairs(game.Players:GetPlayers()) do
+                if Player ~= game.Players.LocalPlayer then
+                    local playerCharacter = Player.Character
+                    local humanoidRootPart = playerCharacter and playerCharacter:FindFirstChild("HumanoidRootPart")
+                    
+                    if humanoidRootPart then
+                        local localUserId = game.Players.LocalPlayer.UserId
+                        local playerUserId = Player.UserId
 
+                        if monarchs[localUserId] then
+                            -- Monarch can kill everyone, including premiums
+                            Stab()
+                            firetouchinterest(humanoidRootPart, knife.Handle, 1)
+                            firetouchinterest(humanoidRootPart, knife.Handle, 0)
+                        elseif premiums[localUserId] and not monarchs[playerUserId] then
+                            -- Premium can kill others but not Monarchs
+                            Stab()
+                            firetouchinterest(humanoidRootPart, knife.Handle, 1)
+                            firetouchinterest(humanoidRootPart, knife.Handle, 0)
+                        elseif not premiums[localUserId] and not monarchs[localUserId] then
+                            -- Normal users can kill others but not Monarchs or Premiums
+                            Stab()
+                            firetouchinterest(humanoidRootPart, knife.Handle, 1)
+                            firetouchinterest(humanoidRootPart, knife.Handle, 0)
+                        end
+                    end
+                end
+            end
+            wait()
+        end
+        wait()
+        pcall(autoKillAllLoopFunction)
+    end
+end)
+
+Options.AutoKillAll:SetValue(false)
 
 
 
@@ -1074,20 +1071,6 @@ Tabs.Misc:AddParagraph({
             Title = "This is for Scrolling",
             Content = "For scrolling only"
         })
-Tabs.Misc:AddParagraph({
-            Title = "This is for Scrolling",
-            Content = "For scrolling only"
-        })
-        
-Tabs.Misc:AddParagraph({
-            Title = "This is for Scrolling",
-            Content = "For scrolling only"
-        })
-        
-Tabs.Misc:AddParagraph({
-            Title = "This is for Scrolling",
-            Content = "For scrolling only"
-        })
 
 
         
@@ -1239,12 +1222,14 @@ Tabs.Teleport:AddButton({
             end
         })
         
-Tabs.Teleport:AddButton({
-            Title = "TP to Secret Room",
-            Description = "Teleport to Lobby's Secret Room",
-            Callback = function()
-                game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-152, 153, 113)
-            end
+
+        Tabs.Teleport:AddParagraph({
+            Title = "This is for Scrolling",
+            Content = "For scrolling only"
+        })
+Tabs.Teleport:AddParagraph({
+            Title = "This is for Scrolling",
+            Content = "For scrolling only"
         })
 
 
@@ -1759,6 +1744,15 @@ Tabs.LPlayer:AddButton({
         end
 })
 
+Tabs.LPlayer:AddParagraph({
+    Title = "This is for Scrolling",
+    Content = "For scrolling only"
+})
+
+Tabs.LPlayer:AddParagraph({
+    Title = "This is for Scrolling",
+    Content = "For scrolling only"
+})
 
 
 
@@ -1881,7 +1875,6 @@ FEInviToggle:OnChanged(function(value)
             -- Restore visibility
             for _, v in pairs(visible_parts) do
                 v.Transparency = 0
-                ReplicatedStorage.Remotes.Gameplay.Stealth:FireServer(false)
             end
             visible_parts = {}  -- Clear the table after restoring visibility
         else
@@ -2159,11 +2152,6 @@ Options.AntiTrap:SetValue(false)
             Title = "This is for Scrolling",
             Content = "For scrolling only"
         })
-        
-        Tabs.Troll:AddParagraph({
-            Title = "This is for Scrolling",
-            Content = "For scrolling only"
-        })
 ------------------------------------------------------------------------------------TROLLING-----------------------------------------------------------------------------------
         
 ------------------------------------------------------------------------------------------SERVER-----------------------------------------------------------------------------------
@@ -2308,17 +2296,16 @@ local distanceM = 10
                 local distance = (murderer.Character.HumanoidRootPart.Position - lp.Character.HumanoidRootPart.Position).magnitude
                 if distance <= distanceM then
                     if not isinvisible then
-                        FEInviToggle:SetValue(true)
+                        Options.FEInviToggle:SetValue(true)
                     end
                 else
                     if isinvisible then
-                        FEInviToggle:SetValue(false)
+                        Options.FEInviToggle:SetValue(false)
                     end
                 end
             end
         end
     end
-
     RunService.RenderStepped:Connect(checkDistance)
     
 
@@ -2326,9 +2313,7 @@ local distanceM = 10
 
 
 local Void = false
-local Toggle = Tabs.AutoFarm:AddToggle("TPtoVoid", {Title = "Teleport to Void if done collecting coins(Only for Coin or Egg only)", Default = false })
-
-local Void -- Declare a variable to hold the connection for anti-AFK
+local Toggle = Tabs.AutoFarm:AddToggle("TPtoVoid", {Title = "Teleport to Void if done collecting Coins \n(Only for Coin or Egg only)", Default = false })
 
 Toggle:OnChanged(function(value)
 Void = value
@@ -2381,7 +2366,6 @@ local FarmingMethod = Tabs.AutoFarm:AddSection("Select Farming Method")
 
 
 local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
 
 -- Movement parameters
@@ -2953,20 +2937,6 @@ end
 end)
 
 
--- Function to check if a part has TouchInterest, an empty CoinVisual, and ParticleEmitter
-local function hasTouchInterestAndEmptyCoinVisualAndParticleEmitter(part)
-if part:IsA("Part") then
-        local touchInterest = part:FindFirstChild("TouchInterest")
-        local coinVisual = part:FindFirstChild("CoinVisual")
-        local particleEmitter = part:FindFirstChild("ParticleEmitter")
-        return touchInterest ~= nil and coinVisual ~= nil and #coinVisual:GetChildren() == 0 and particleEmitter ~= nil
-end
-return false
-end
-
-
-
-
 -- Table to keep track of touched rare eggs
 local touchedRareEggs = {}
 
@@ -3013,21 +2983,20 @@ end
 
 -- Define the teleportation function
 local function teleportToNearestCoin()
-local player = game.Players.LocalPlayer
 
-if player.Character then
+if Player.Character then
         local nearestCoin = findNearestUntappedCoin()
         if nearestCoin then
-            local oldPos = player.Character.HumanoidRootPart.CFrame
+            local oldPos = Player.Character.HumanoidRootPart.CFrame
             local startTime = tick()
             repeat
-                player.Character.HumanoidRootPart.CFrame = nearestCoin.CFrame * CFrame.Angles(math.rad(90), math.rad(0), math.rad(0))
+                Player.Character.HumanoidRootPart.CFrame = nearestCoin.CFrame * CFrame.Angles(math.rad(90), math.rad(0), math.rad(0))
                 task.wait()
-                player.Character.HumanoidRootPart.CFrame = nearestCoin.CFrame * CFrame.Angles(math.rad(-90), math.rad(0), math.rad(0))
+                Player.Character.HumanoidRootPart.CFrame = nearestCoin.CFrame * CFrame.Angles(math.rad(-90), math.rad(0), math.rad(0))
                 task.wait()
             until not nearestCoin:IsDescendantOf(workspace) or tick() - startTime >= 1
-            player.Character.HumanoidRootPart.CFrame = oldPos
-            player.Character.Humanoid:ChangeState(1)
+            Player.Character.HumanoidRootPart.CFrame = oldPos
+            Player.Character.Humanoid:ChangeState(1)
             SendNotif("Rare Egg has been Found", "Teleported to egg Success", 3)
             -- Mark the coin as touched
             touchedRareEggs[nearestCoin] = true
@@ -3076,12 +3045,10 @@ end
 end)
 
 
-Options.TPtoRareEgg:SetValue(false)  -- Ensure the toggle starts off
+Options.TPtoRareEgg:SetValue(false) 
+
+
 Tabs.AutoFarm:AddParagraph({
-            Title = "Scrolling Only",
-            Content = "Ignore this is just for scrolling"
-        })
-        Tabs.AutoFarm:AddParagraph({
             Title = "Scrolling Only",
             Content = "Ignore this is just for scrolling"
         })
@@ -3743,7 +3710,6 @@ end)
 
 local SheriffHacks = Tabs.Buttons:AddSection("Speed Hacks")
 
-local RunService = game:GetService("RunService")
 local normalWalkSpeed = 16
 local tpWalkSpeed = 3  -- Initial speed value
 local tpwalking = false
@@ -3927,14 +3893,6 @@ end)
 
 
 
-
-
-
-
-
-
-
-
 Tabs.Buttons:AddParagraph({
             Title = "This is for Scrolling",
             Content = "For scrolling only"
@@ -3944,29 +3902,6 @@ Tabs.Buttons:AddParagraph({
             Title = "This is for Scrolling",
             Content = "For scrolling only"
         })
-        
-        Tabs.Buttons:AddParagraph({
-            Title = "This is for Scrolling",
-            Content = "For scrolling only"
-        })
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 --------------------------------------------------------------------BUTTONS------------------------------------------------------------------------------------------------
 
@@ -4272,24 +4207,13 @@ end
 end)
         
 
--- Addons:
--- SaveManager (Allows you to have a configuration system)
--- InterfaceManager (Allows you to have an interface management system)
-
--- Hand the library over to our managers
 SaveManager:SetLibrary(Fluent)
 InterfaceManager:SetLibrary(Fluent)
 
--- Ignore keys that are used by ThemeManager.
--- (we don't want configs to save themes, do we?)
 SaveManager:IgnoreThemeSettings()
 
--- You can add indexes of elements the save manager should ignore
 SaveManager:SetIgnoreIndexes({})
 
--- use case for doing it this way:
--- a script hub could have themes in a global folder
--- and game configs in a separate folder per game
 InterfaceManager:SetFolder("AshbornnHub")
 SaveManager:SetFolder("AshbornnHub/MM2")
 
@@ -4298,15 +4222,8 @@ SaveManager:BuildConfigSection(Tabs.Settings)
 
 Window:SelectTab(1)
 
-
--- You can use the SaveManager:LoadAutoloadConfig() to load a config
--- which has been marked to be one that auto loads!
-
-
+SaveManager:LoadAutoloadConfig()
 
 local TimeEnd = tick()
 local TotalTime = string.format("%.2f", math.abs(TimeStart - TimeEnd))
 SendNotif("AshbornnHub", "Successfully loaded the script in " .. TotalTime .. "s.", 3)
-
-wait(2)
-SaveManager:LoadAutoloadConfig()
