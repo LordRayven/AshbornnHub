@@ -2262,7 +2262,7 @@ end)
 Options.AntiAFK:SetValue(false)
 local AutoFarmConfig = Tabs.AutoFarm:AddSection("Auto farm Configuration")
 
-local distanceM = 10
+local distanceM = 20
     local lp = Players.LocalPlayer
     
     local Slider1 = Tabs.AutoFarm:AddSlider("MDistance", {
@@ -2296,11 +2296,11 @@ local distanceM = 10
                 local distance = (murderer.Character.HumanoidRootPart.Position - lp.Character.HumanoidRootPart.Position).magnitude
                 if distance <= distanceM then
                     if not isinvisible then
-                        Options.FEInviToggle:SetValue(true)
+                        Options.FEInvisible:SetValue(true)
                     end
                 else
                     if isinvisible then
-                        Options.FEInviToggle:SetValue(false)
+                        Options.FEInvisible:SetValue(false)
                     end
                 end
             end
