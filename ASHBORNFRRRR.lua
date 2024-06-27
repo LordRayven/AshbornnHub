@@ -1859,7 +1859,7 @@ local function ghost_parts()
         for _, v in pairs(lp.Character:GetChildren()) do
             if v:IsA("BasePart") and v.Name ~= "HumanoidRootPart" then
                 table.insert(visible_parts, v)
-                v.Transparency = 1
+                v.Transparency = 0.5
                 ReplicatedStorage.Remotes.Gameplay.Stealth:FireServer(true)
             end
         end
@@ -1884,6 +1884,14 @@ FEInviToggle:OnChanged(function(value)
 end)
 
 Options.FEInvisible:SetValue(false)
+
+if lp.Character then
+        setup_character(lp.Character)
+        if isinvisible then
+            ghost_parts()
+        end
+end
+
 
 
         
@@ -2262,7 +2270,7 @@ end)
 Options.AntiAFK:SetValue(false)
 local AutoFarmConfig = Tabs.AutoFarm:AddSection("Auto farm Configuration")
 
-local distanceM = 20
+local distanceM = 0
     local lp = Players.LocalPlayer
     
     local Slider1 = Tabs.AutoFarm:AddSlider("MDistance", {
@@ -2274,19 +2282,32 @@ local distanceM = 20
             Rounding = 1,
             Callback = function(Value)
                  distanceM = Value
+                 
             end
         })
         
         Slider:SetValue(distanceM)
     local AutoToggle = Tabs.AutoFarm:AddToggle("AutoFEInvi", {Title = "Auto FE Invisible if Murderer is near", Default = false})
+local autoInvisible = false
+
+AutoToggle:OnChanged(function(value)
+    autoInvisible = value
     
-    local autoInvisible = false
-    
-    AutoToggle:OnChanged(function(value)
-        autoInvisible = value
-    end)
-    
-    Options.AutoFEInvi:SetValue(false)
+    if Murder then
+        local murdererPlayer = game.Players[Murder]
+        local murdererCharacter = murdererPlayer and murdererPlayer.Character
+        if murdererCharacter and murdererCharacter:FindFirstChild("HumanoidRootPart") then
+            local localUserId = Player.UserId
+            local murdererUserId = murdererPlayer.UserId
+            
+            -- Check if the local player is the murderer
+            if localUserId == murdererUserId then
+                autoInvisible = false
+                Options.AutoFEInvi:SetValue(false)
+            end
+        end
+    end
+end)
     
     -- Function to check the distance between local player and murderer
     local function checkDistance()
