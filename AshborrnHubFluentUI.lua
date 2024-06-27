@@ -23,7 +23,6 @@ local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
 local Humanoid = Character:WaitForChild("Humanoid")
 local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
 local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
 
 local DefaultChatSystemChatEvents = ReplicatedStorage.DefaultChatSystemChatEvents
 local SayMessageRequest = DefaultChatSystemChatEvents.SayMessageRequest
@@ -42,6 +41,12 @@ antiafk = true
 local AntiFlingEnabled = false
 local playerAddedConnection = nil
 local localHeartbeatConnection = nil 
+
+local UserInputService = game:GetService("UserInputService")
+local Touchscreen = UserInputService.TouchEnabled
+getgenv().Ash_Device = Touchscreen and "Mobile" or "PC"
+local placeId = game.PlaceId
+local GameName = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name
 
 local TrapSystem = ReplicatedStorage:WaitForChild("TrapSystem")
 local PlaceTrap = TrapSystem:WaitForChild("PlaceTrap")
@@ -76,102 +81,6 @@ Fluent:Notify({
         Content = content,
         Duration = time
 })
-end
-
-
-
-
--- Constants
-local Services = setmetatable({}, {
-        __index = function(Self, Index)
-            local NewService = game:GetService(Index)
-            if NewService then
-                Self[Index] = NewService
-            end
-            return NewService
-        end
-})
-
-local LocalPlayer = Services.Players.LocalPlayer
-
--- Functions
-local function CharacterAdded(Player)
-        local Character = Player.Character or Player.CharacterAdded:Wait()
-        local PrimaryPart = Character:WaitForChild("HumanoidRootPart")
-
-        local Detected = false
-
-        local function CheckFling()
-            if not (Character:IsDescendantOf(workspace) and PrimaryPart:IsDescendantOf(Character)) then
-                return
-            end
-
-            if PrimaryPart.AssemblyAngularVelocity.Magnitude > 50 or PrimaryPart.AssemblyLinearVelocity.Magnitude > 100 then
-                if not Detected then
-                    game.StarterGui:SetCore("ChatMakeSystemMessage", {
-                        Text = "Fling Exploit detected, Player: " .. tostring(Player);
-                        Color = Color3.fromRGB(255, 200, 0);
-                    })
-                end
-                Detected = true
-
-                for _, Part in ipairs(Character:GetDescendants()) do
-                    if Part:IsA("BasePart") then
-                        Part.CanCollide = false
-                        Part.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
-                        Part.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
-                        Part.CustomPhysicalProperties = PhysicalProperties.new(0, 0, 0)
-                    end
-                end
-
-                PrimaryPart.CanCollide = false
-                PrimaryPart.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
-                PrimaryPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
-                PrimaryPart.CustomPhysicalProperties = PhysicalProperties.new(0, 0, 0)
-            end
-        end
-
-        Services.RunService.Heartbeat:Connect(CheckFling)
-end
-
-local function OnPlayerAdded(Player)
-        if AntiFlingEnabled and Player ~= LocalPlayer then
-            CharacterAdded(Player)
-        end
-end
-
-local function NeutralizeLocalPlayer()
-local LastPosition = nil
-local lastChatTime = 0
-
-local function CheckLocalPlayerFling()
-        pcall(function()
-            local Character = LocalPlayer.Character
-            if Character then
-                local PrimaryPart = Character:FindFirstChild("HumanoidRootPart")
-                if PrimaryPart then
-                    if PrimaryPart.AssemblyLinearVelocity.Magnitude > 250 or PrimaryPart.AssemblyAngularVelocity.Magnitude > 250 then
-                        PrimaryPart.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
-                        PrimaryPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
-                        PrimaryPart.CFrame = LastPosition
-                        
-                        local currentTime = tick()
-                        if currentTime - lastChatTime >= 5 then
-                            game.StarterGui:SetCore("ChatMakeSystemMessage", {
-                                Text = "You were flung. Neutralizing velocity. Thanks Ashbornn for this.";
-                                Color = Color3.fromRGB(195, 115, 255);
-                            })
-                            lastChatTime = currentTime
-                        end
-                    else
-                        LastPosition = PrimaryPart.CFrame
-                    end
-                end
-            end
-        end)
-end
-
-return Services.RunService.Heartbeat:Connect(CheckLocalPlayerFling)
 end
 
 
@@ -494,20 +403,19 @@ do
 
 local SheriffHacks = Tabs.Combat:AddSection("Sheriff Hacks")
 
-local player = game.Players.LocalPlayer
 
 local function IsPlayerEligible()
-    if not IsAlive(player) then
+    if not IsAlive(Player) then
         SendNotif("You're not alive", "Please wait for the new round to grab the gun.", 3)
         return false
     end
 
-    if player.Backpack:FindFirstChild("Gun") or (player.Character and player.Character:FindFirstChild("Gun")) then
+    if Player.Backpack:FindFirstChild("Gun") or (Player.Character and Player.Character:FindFirstChild("Gun")) then
         SendNotif("You already have a gun", "Lollll.", 3)
         return false
     end
     
-    if player.Backpack:FindFirstChild("Knife") then
+    if Player.Backpack:FindFirstChild("Knife") then
         SendNotif("You have a knife", "Auto Grab Gun is disabled because you have a knife.", 3)
         return false
     end
@@ -518,18 +426,21 @@ end
 local function GrabGun()
     if not IsPlayerEligible() then return end
 
-    if player.Character then
+    if Player.Character then
         local gundr = workspace:FindFirstChild("GunDrop")
         if gundr then
-            local oldpos = player.Character.HumanoidRootPart.CFrame
+            local oldpos = Player.Character.HumanoidRootPart.CFrame
+            local startTime = os.clock()
+
             repeat
-                player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(90), math.rad(0), math.rad(0))
+                Player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(90), math.rad(0), math.rad(0))
                 task.wait()
-                player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(-90), math.rad(0), math.rad(0))
+                Player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(-90), math.rad(0), math.rad(0))
                 task.wait()
-            until not gundr:IsDescendantOf(workspace)
-            player.Character.HumanoidRootPart.CFrame = oldpos
-            player.Character.Humanoid:ChangeState(1)
+            until not gundr:IsDescendantOf(workspace) or (os.clock() - startTime) >= 3
+            
+            Player.Character.HumanoidRootPart.CFrame = oldpos
+            Player.Character.Humanoid:ChangeState(1)
             SendNotif("Grab Gun", "Gotcha.", 3)
         else
             SendNotif("Gun not Found", "Wait for the Sheriff's death to grab the gun.", 3)
@@ -542,6 +453,7 @@ Tabs.Combat:AddButton({
     Description = "Teleport to and grab the gun if available",
     Callback = GrabGun
 })
+
 
 local AutoGrabEnabled = false
 
@@ -851,57 +763,6 @@ end)
 
 Slider:SetValue(20)
 
-
-
-local autoKillAllToggle = Tabs.Combat:AddToggle("AutoKillAll", {Title = "Auto Kill All", Default = false})
-
-autoKillAllToggle:OnChanged(function(autokillall)
-    autokillallloop = autokillall
-    while autokillallloop do
-        function autoKillAllLoopFunction()
-            EquipTool()
-            wait()
-            local localCharacter = game.Players.LocalPlayer.Character
-            local knife = localCharacter and localCharacter:FindFirstChild("Knife")
-            if not knife then return end
-            wait()
-            for _, Player in ipairs(game.Players:GetPlayers()) do
-                if Player ~= game.Players.LocalPlayer then
-                    local playerCharacter = Player.Character
-                    local humanoidRootPart = playerCharacter and playerCharacter:FindFirstChild("HumanoidRootPart")
-                    
-                    if humanoidRootPart then
-                        local localUserId = game.Players.LocalPlayer.UserId
-                        local playerUserId = Player.UserId
-
-                        if monarchs[localUserId] then
-                            -- Monarch can kill everyone, including premiums
-                            Stab()
-                            firetouchinterest(humanoidRootPart, knife.Handle, 1)
-                            firetouchinterest(humanoidRootPart, knife.Handle, 0)
-                        elseif premiums[localUserId] and not monarchs[playerUserId] then
-                            -- Premium can kill others but not Monarchs
-                            Stab()
-                            firetouchinterest(humanoidRootPart, knife.Handle, 1)
-                            firetouchinterest(humanoidRootPart, knife.Handle, 0)
-                        elseif not premiums[localUserId] and not monarchs[localUserId] then
-                            -- Normal users can kill others but not Monarchs or Premiums
-                            Stab()
-                            firetouchinterest(humanoidRootPart, knife.Handle, 1)
-                            firetouchinterest(humanoidRootPart, knife.Handle, 0)
-                        end
-                    end
-                end
-            end
-            wait()
-        end
-        wait()
-        pcall(autoKillAllLoopFunction)
-    end
-end)
-
-Options.AutoKillAll:SetValue(false)
-
 local knifeAuraToggle = Tabs.Combat:AddToggle("KnifeAura", {Title = "Knife Aura", Default = false})
 
 knifeAuraToggle:OnChanged(function(knifeaura)
@@ -972,8 +833,54 @@ end)
 
 Options.KnifeAura:SetValue(false)
 
+local autoKillAllToggle = Tabs.Combat:AddToggle("AutoKillAll", {Title = "Auto Kill All", Default = false})
 
+autoKillAllToggle:OnChanged(function(autokillall)
+    autokillallloop = autokillall
+    while autokillallloop do
+        function autoKillAllLoopFunction()
+            EquipTool()
+            wait()
+            local localCharacter = game.Players.LocalPlayer.Character
+            local knife = localCharacter and localCharacter:FindFirstChild("Knife")
+            if not knife then return end
+            wait()
+            for _, Player in ipairs(game.Players:GetPlayers()) do
+                if Player ~= game.Players.LocalPlayer then
+                    local playerCharacter = Player.Character
+                    local humanoidRootPart = playerCharacter and playerCharacter:FindFirstChild("HumanoidRootPart")
+                    
+                    if humanoidRootPart then
+                        local localUserId = game.Players.LocalPlayer.UserId
+                        local playerUserId = Player.UserId
 
+                        if monarchs[localUserId] then
+                            -- Monarch can kill everyone, including premiums
+                            Stab()
+                            firetouchinterest(humanoidRootPart, knife.Handle, 1)
+                            firetouchinterest(humanoidRootPart, knife.Handle, 0)
+                        elseif premiums[localUserId] and not monarchs[playerUserId] then
+                            -- Premium can kill others but not Monarchs
+                            Stab()
+                            firetouchinterest(humanoidRootPart, knife.Handle, 1)
+                            firetouchinterest(humanoidRootPart, knife.Handle, 0)
+                        elseif not premiums[localUserId] and not monarchs[localUserId] then
+                            -- Normal users can kill others but not Monarchs or Premiums
+                            Stab()
+                            firetouchinterest(humanoidRootPart, knife.Handle, 1)
+                            firetouchinterest(humanoidRootPart, knife.Handle, 0)
+                        end
+                    end
+                end
+            end
+            wait()
+        end
+        wait()
+        pcall(autoKillAllLoopFunction)
+    end
+end)
+
+Options.AutoKillAll:SetValue(false)
 
 
 
@@ -1164,20 +1071,6 @@ Tabs.Misc:AddParagraph({
             Title = "This is for Scrolling",
             Content = "For scrolling only"
         })
-Tabs.Misc:AddParagraph({
-            Title = "This is for Scrolling",
-            Content = "For scrolling only"
-        })
-        
-Tabs.Misc:AddParagraph({
-            Title = "This is for Scrolling",
-            Content = "For scrolling only"
-        })
-        
-Tabs.Misc:AddParagraph({
-            Title = "This is for Scrolling",
-            Content = "For scrolling only"
-        })
 
 
         
@@ -1329,12 +1222,14 @@ Tabs.Teleport:AddButton({
             end
         })
         
-Tabs.Teleport:AddButton({
-            Title = "TP to Secret Room",
-            Description = "Teleport to Lobby's Secret Room",
-            Callback = function()
-                game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-152, 153, 113)
-            end
+
+        Tabs.Teleport:AddParagraph({
+            Title = "This is for Scrolling",
+            Content = "For scrolling only"
+        })
+Tabs.Teleport:AddParagraph({
+            Title = "This is for Scrolling",
+            Content = "For scrolling only"
         })
 
 
@@ -1849,6 +1744,15 @@ Tabs.LPlayer:AddButton({
         end
 })
 
+Tabs.LPlayer:AddParagraph({
+    Title = "This is for Scrolling",
+    Content = "For scrolling only"
+})
+
+Tabs.LPlayer:AddParagraph({
+    Title = "This is for Scrolling",
+    Content = "For scrolling only"
+})
 
 
 
@@ -1861,29 +1765,7 @@ Tabs.LPlayer:AddButton({
 
 -------------------------------------------------------------------------------------TROLLING--------------------------------------------------------------------------------
 
-local Toggle = Tabs.Troll:AddToggle("AntiFling", {Title = "Anti Fling (You can't fling me)", Default = false })
 
-Toggle:OnChanged(function(enabled)
-        AntiFlingEnabled = enabled
-        if enabled then
-            playerAddedConnection = Services.Players.PlayerAdded:Connect(OnPlayerAdded)
-            for _, Player in ipairs(Services.Players:GetPlayers()) do
-                if Player ~= LocalPlayer then
-                    CharacterAdded(Player)
-                end
-            end
-            localHeartbeatConnection = NeutralizeLocalPlayer()
-        else
-            if playerAddedConnection then
-                playerAddedConnection:Disconnect()
-                playerAddedConnection = nil
-            end
-            if localHeartbeatConnection then
-                localHeartbeatConnection:Disconnect()
-                localHeartbeatConnection = nil
-            end
-        end
-end)
         
         if _G.cons then
         for _, v in pairs(_G.cons) do
@@ -1894,93 +1776,114 @@ end)
 end
 
 local rsrv = game:GetService("RunService")
-local heartbeat = rsrv.Heartbeat
-local renderstepped = rsrv.RenderStepped
+        local heartbeat = rsrv.Heartbeat
+        local renderstepped = rsrv.RenderStepped
 
-local lp = game.Players.LocalPlayer
-local mouse = lp:GetMouse()
+        local lp = game.Players.LocalPlayer
+        local mouse = lp:GetMouse()
 
-local isinvisible = false
-local visible_parts = {}
-local kdown, loop
+        local isinvisible = false
+        local visible_parts = {}
+        local kdown, loop
 
-function ghost_parts()
-        for _, v in pairs(visible_parts) do
-            v.Transparency = isinvisible and 0.5 or 0
-        end
-end
-
-function setup_character(character)
-        local hum = character:WaitForChild("Humanoid")
-        local root = character:WaitForChild("HumanoidRootPart")
-
-        visible_parts = {}
-
-        for _, v in pairs(character:GetDescendants()) do
-            if v:IsA("BasePart") and v.Transparency == 0 then
-                visible_parts[#visible_parts + 1] = v
+        local function ghost_parts()
+            for _, v in pairs(visible_parts) do
+                v.Transparency = isinvisible and 0.5 or 0
             end
         end
 
-        if kdown then
-            kdown:Disconnect()
-        end
+        local function setup_character(character)
+            local hum = character:WaitForChild("Humanoid")
+            local root = character:WaitForChild("HumanoidRootPart")
 
-        kdown = mouse.KeyDown:Connect(function(key)
-            if key == "g" then
-                isinvisible = not isinvisible
-                ghost_parts()
-            end
-        end)
+            visible_parts = {}
 
-        if loop then
-            loop:Disconnect()
-        end
-
-        loop = heartbeat:Connect(function()
-            if isinvisible then
-                local oldcf = root.CFrame
-                local oldcamoffset = hum.CameraOffset
-
-                local newcf = oldcf * CFrame.new(-1500, -5000, -1500)
-
-                hum.CameraOffset = newcf:ToObjectSpace(CFrame.new(oldcf.Position)).Position
-                root.CFrame = newcf
-
-                renderstepped:Wait()
-
-                hum.CameraOffset = oldcamoffset
-                root.CFrame = oldcf
-            end
-        end)
-
-        _G.cons = {kdown, loop}
-end
-
-lp.CharacterAdded:Connect(function(character)
-        setup_character(character)
-        if isinvisible then
-            ghost_parts()
-            game:GetService("ReplicatedStorage").Remotes.Gameplay.Stealth:FireServer(true)
-        end
-end)
-
-local Toggle = Tabs.Troll:AddToggle("FEInvisible", {Title = "FE Invisible", Default = false })
-
-Toggle:OnChanged(function(value)
-        isinvisible = value
-        if lp.Character then
-            if not isinvisible then
-                -- Restore visibility
-                for _, v in pairs(visible_parts) do
-                    v.Transparency = 0
-                    game:GetService("ReplicatedStorage").Remotes.Gameplay.Stealth:FireServer(false)
+            for _, v in pairs(character:GetDescendants()) do
+                if v:IsA("BasePart") and v.Transparency == 0 then
+                    visible_parts[#visible_parts + 1] = v
                 end
-            else
+            end
+
+            if kdown then
+                kdown:Disconnect()
+            end
+
+            kdown = mouse.KeyDown:Connect(function(key)
+                if key == "g" then
+                    isinvisible = not isinvisible
+                    ghost_parts()
+                end
+            end)
+
+            if loop then
+                loop:Disconnect()
+            end
+
+            loop = heartbeat:Connect(function()
+                if isinvisible then
+                    local oldcf = root.CFrame
+                    local oldcamoffset = hum.CameraOffset
+
+                    local newcf = oldcf * CFrame.new(-1500, -5000, -1500)
+
+                    hum.CameraOffset = newcf:ToObjectSpace(CFrame.new(oldcf.Position)).Position
+                    root.CFrame = newcf
+
+                    renderstepped:Wait()
+
+                    hum.CameraOffset = oldcamoffset
+                    root.CFrame = oldcf
+                end
+            end)
+
+            _G.cons = {kdown, loop}
+        end
+
+        lp.CharacterAdded:Connect(function(character)
+            setup_character(character)
+            if isinvisible then
                 ghost_parts()
+                game:GetService("ReplicatedStorage").Remotes.Gameplay.Stealth:FireServer(true)
+            end
+        end)
+
+        local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local lp = Players.LocalPlayer
+
+local visible_parts = {}
+
+local function ghost_parts()
+    if lp.Character then
+        for _, v in pairs(lp.Character:GetChildren()) do
+            if v:IsA("BasePart") and v.Name ~= "HumanoidRootPart" then
+                table.insert(visible_parts, v)
+                v.Transparency = 0.5
+                ReplicatedStorage.Remotes.Gameplay.Stealth:FireServer(true)
             end
         end
+    end
+end
+
+local FEInviToggle = Tabs.Troll:AddToggle("FEInvisible", {Title = "FE Invisible", Default = false})
+
+FEInviToggle:OnChanged(function(value)
+    isinvisible = value
+    if lp.Character then
+        if not isinvisible then
+            -- Restore visibility
+            for _, v in pairs(visible_parts) do
+                v.Transparency = 0
+            end
+            visible_parts = {}  -- Clear the table after restoring visibility
+        else
+            ghost_parts()
+        end
+    end
 end)
+
+Options.FEInvisible:SetValue(false)
 
 if lp.Character then
         setup_character(lp.Character)
@@ -1988,6 +1891,7 @@ if lp.Character then
             ghost_parts()
         end
 end
+
 
 
         
@@ -2256,11 +2160,6 @@ Options.AntiTrap:SetValue(false)
             Title = "This is for Scrolling",
             Content = "For scrolling only"
         })
-        
-        Tabs.Troll:AddParagraph({
-            Title = "This is for Scrolling",
-            Content = "For scrolling only"
-        })
 ------------------------------------------------------------------------------------TROLLING-----------------------------------------------------------------------------------
         
 ------------------------------------------------------------------------------------------SERVER-----------------------------------------------------------------------------------
@@ -2345,7 +2244,6 @@ end
 end)
 
 Options.RejoinKicked:SetValue(false)
-
 local Toggle = Tabs.AutoFarm:AddToggle("AntiAFK", {Title = "Anti AFK", Default = false })
 
 local antiAfkConnection -- Declare a variable to hold the connection for anti-AFK
@@ -2370,11 +2268,73 @@ end
 end)
 
 Options.AntiAFK:SetValue(false)
+local AutoFarmConfig = Tabs.AutoFarm:AddSection("Auto farm Configuration")
+
+local distanceM = 0
+    local lp = Players.LocalPlayer
+    
+    local Slider1 = Tabs.AutoFarm:AddSlider("MDistance", {
+            Title = "Murderer Distance Trigger",
+            Description = "How many studs to trigger Auto FE Invisible",
+            Default = 20,
+            Min = 10,
+            Max = 100,
+            Rounding = 1,
+            Callback = function(Value)
+                 distanceM = Value
+                 
+            end
+        })
+        
+        Slider:SetValue(distanceM)
+    local AutoToggle = Tabs.AutoFarm:AddToggle("AutoFEInvi", {Title = "Auto FE Invisible if Murderer is near", Default = false})
+local autoInvisible = false
+
+AutoToggle:OnChanged(function(value)
+    autoInvisible = value
+    
+    if Murder then
+        local murdererPlayer = game.Players[Murder]
+        local murdererCharacter = murdererPlayer and murdererPlayer.Character
+        if murdererCharacter and murdererCharacter:FindFirstChild("HumanoidRootPart") then
+            local localUserId = Player.UserId
+            local murdererUserId = murdererPlayer.UserId
+            
+            -- Check if the local player is the murderer
+            if localUserId == murdererUserId then
+                autoInvisible = false
+                Options.AutoFEInvi:SetValue(false)
+            end
+        end
+    end
+end)
+    
+    -- Function to check the distance between local player and murderer
+    local function checkDistance()
+        if autoInvisible and Murder then
+            local murderer = Players:FindFirstChild(Murder)
+            if murderer and murderer.Character and lp.Character then
+                local distance = (murderer.Character.HumanoidRootPart.Position - lp.Character.HumanoidRootPart.Position).magnitude
+                if distance <= distanceM then
+                    if not isinvisible then
+                        Options.FEInvisible:SetValue(true)
+                    end
+                else
+                    if isinvisible then
+                        Options.FEInvisible:SetValue(false)
+                    end
+                end
+            end
+        end
+    end
+    RunService.RenderStepped:Connect(checkDistance)
+    
+
+        
+
 
 local Void = false
-local Toggle = Tabs.AutoFarm:AddToggle("TPtoVoid", {Title = "Teleport to Void if done collecting coins(Only for Coin or Egg only)", Default = false })
-
-local Void -- Declare a variable to hold the connection for anti-AFK
+local Toggle = Tabs.AutoFarm:AddToggle("TPtoVoid", {Title = "Teleport to Void if done collecting Coins \n(Only for Coin or Egg only)", Default = false })
 
 Toggle:OnChanged(function(value)
 Void = value
@@ -2385,6 +2345,7 @@ Options.TPtoVoid:SetValue(false)
 
 local moveSpeed = 50
 local delay = math.random(1.7, 2.1)
+
 -- Create a slider for teleport walk speed
 local Slider = Tabs.AutoFarm:AddSlider("TweenSpeed", {
     Title = "Change AutoFarm Speed",
@@ -2410,7 +2371,7 @@ local SDelay = Tabs.AutoFarm:AddSlider("ChangeDelay", {
     Max = 10,
     Rounding = 1,
     Callback = function(Value)
-        delay = Value
+        delay = tonumber(Value)  -- Ensure the delay is treated as a number
         if delay < 1.5 then
             moveSpeed = math.random(10, 20)
         else
@@ -2422,9 +2383,10 @@ local SDelay = Tabs.AutoFarm:AddSlider("ChangeDelay", {
 -- Ensure slider initial value is set correctly
 SDelay:SetValue(delay)
 
+local FarmingMethod = Tabs.AutoFarm:AddSection("Select Farming Method")
+
 
 local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
 
 -- Movement parameters
@@ -2615,6 +2577,27 @@ if child:IsA("Part") and child.Name == "Coin_Server" and isAutoFarming and not i
         coroutine.wrap(moveToCoinServer)()
 end
 end)
+
+
+-- Initialize the flag
+local toggled = false
+-- Function to toggle the value
+local function toggleAutoFarmCoin()
+    if not toggled then
+        Options.AutoFarmCoin:SetValue(true)
+        toggled = true
+    end
+end
+
+
+local function resetToggle()
+    toggled = false
+end
+
+if AutoFarmCoin then 
+toggleAutoFarmCoin()
+end
+
 
 
 
@@ -2996,20 +2979,6 @@ end
 end)
 
 
--- Function to check if a part has TouchInterest, an empty CoinVisual, and ParticleEmitter
-local function hasTouchInterestAndEmptyCoinVisualAndParticleEmitter(part)
-if part:IsA("Part") then
-        local touchInterest = part:FindFirstChild("TouchInterest")
-        local coinVisual = part:FindFirstChild("CoinVisual")
-        local particleEmitter = part:FindFirstChild("ParticleEmitter")
-        return touchInterest ~= nil and coinVisual ~= nil and #coinVisual:GetChildren() == 0 and particleEmitter ~= nil
-end
-return false
-end
-
-
-
-
 -- Table to keep track of touched rare eggs
 local touchedRareEggs = {}
 
@@ -3056,21 +3025,20 @@ end
 
 -- Define the teleportation function
 local function teleportToNearestCoin()
-local player = game.Players.LocalPlayer
 
-if player.Character then
+if Player.Character then
         local nearestCoin = findNearestUntappedCoin()
         if nearestCoin then
-            local oldPos = player.Character.HumanoidRootPart.CFrame
+            local oldPos = Player.Character.HumanoidRootPart.CFrame
             local startTime = tick()
             repeat
-                player.Character.HumanoidRootPart.CFrame = nearestCoin.CFrame * CFrame.Angles(math.rad(90), math.rad(0), math.rad(0))
+                Player.Character.HumanoidRootPart.CFrame = nearestCoin.CFrame * CFrame.Angles(math.rad(90), math.rad(0), math.rad(0))
                 task.wait()
-                player.Character.HumanoidRootPart.CFrame = nearestCoin.CFrame * CFrame.Angles(math.rad(-90), math.rad(0), math.rad(0))
+                Player.Character.HumanoidRootPart.CFrame = nearestCoin.CFrame * CFrame.Angles(math.rad(-90), math.rad(0), math.rad(0))
                 task.wait()
             until not nearestCoin:IsDescendantOf(workspace) or tick() - startTime >= 1
-            player.Character.HumanoidRootPart.CFrame = oldPos
-            player.Character.Humanoid:ChangeState(1)
+            Player.Character.HumanoidRootPart.CFrame = oldPos
+            Player.Character.Humanoid:ChangeState(1)
             SendNotif("Rare Egg has been Found", "Teleported to egg Success", 3)
             -- Mark the coin as touched
             touchedRareEggs[nearestCoin] = true
@@ -3119,12 +3087,10 @@ end
 end)
 
 
-Options.TPtoRareEgg:SetValue(false)  -- Ensure the toggle starts off
+Options.TPtoRareEgg:SetValue(false) 
+
+
 Tabs.AutoFarm:AddParagraph({
-            Title = "Scrolling Only",
-            Content = "Ignore this is just for scrolling"
-        })
-        Tabs.AutoFarm:AddParagraph({
             Title = "Scrolling Only",
             Content = "Ignore this is just for scrolling"
         })
@@ -3786,9 +3752,6 @@ end)
 
 local SheriffHacks = Tabs.Buttons:AddSection("Speed Hacks")
 
-local Player = game.Players.LocalPlayer
-local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
 local normalWalkSpeed = 16
 local tpWalkSpeed = 3  -- Initial speed value
 local tpwalking = false
@@ -3972,14 +3935,6 @@ end)
 
 
 
-
-
-
-
-
-
-
-
 Tabs.Buttons:AddParagraph({
             Title = "This is for Scrolling",
             Content = "For scrolling only"
@@ -3989,29 +3944,6 @@ Tabs.Buttons:AddParagraph({
             Title = "This is for Scrolling",
             Content = "For scrolling only"
         })
-        
-        Tabs.Buttons:AddParagraph({
-            Title = "This is for Scrolling",
-            Content = "For scrolling only"
-        })
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 --------------------------------------------------------------------BUTTONS------------------------------------------------------------------------------------------------
 
@@ -4129,6 +4061,122 @@ Tabs.Settings:AddParagraph({
             Content = "/e ash"
         })
 
+
+        -- Function to fetch avatar URL using Roblox API
+local function fetchAvatarUrl(userId)
+    local url = "https://thumbnails.roblox.com/v1/users/avatar?userIds=" .. userId .. "&size=420x420&format=Png&isCircular=false"
+    local response = HttpService:JSONDecode(game:HttpGet(url))
+    if response and response.data and #response.data > 0 then
+        return response.data[1].imageUrl
+    else
+        return "https://www.example.com/default-avatar.png"  -- Replace with a default avatar URL
+    end
+end
+
+-- Fetch avatar URL for LocalPlayer
+local avatarUrl = fetchAvatarUrl(LocalPlayer.UserId)
+
+-- Function to get current timestamp in a specific format
+local function getCurrentTime()
+    local hour, minute, second, day, month, year = tonumber(os.date("!%H", os.time() + 8 * 3600)), os.date("!%M", os.time() + 8 * 3600), os.date("!%S", os.time() + 8 * 3600), os.date("!%d", os.time() + 8 * 3600), os.date("!%m", os.time() + 8 * 3600), os.date("!%Y", os.time() + 8 * 3600)
+
+
+    local suffix = "AM"
+    if hour >= 12 then
+        suffix = "PM"
+        if hour > 12 then
+            hour = hour - 12
+        end
+    elseif hour == 0 then
+        hour = 12
+    end
+
+    return string.format("%02d-%02d-%04d %02d:%02d:%02d %s", month, day, year, hour, minute, second, suffix)
+end
+
+-- Define the Input field for user feedback
+local Input = Tabs.Settings:AddInput("Input", {
+    Title = "Send FeedBack",
+    Default = "",
+    Placeholder = "Ashbornn wants Feedback",
+    Numeric = false, -- Only allows numbers
+    Finished = false, -- Only calls callback when you press enter
+    Callback = function(Value)
+        -- This function can be used for validation or other callback logic if needed
+    end
+})
+
+-- Define the function to send feedback to Discord
+local function sendFeedbackToDiscord(feedbackMessage)
+    local response = request({
+        Url = "https://discord.com/api/webhooks/1255142396639973377/91po7RwMaLiXYgeerK6KCFRab6h20xHy_WepLYJvIjcTxiv_kwAyJBa9DnPDJjc0F-ga",
+        Method = "POST",
+        Headers = {
+            ["Content-Type"] = "application/json"
+        },
+        Body = HttpService:JSONEncode({
+            embeds = {{
+                title = LocalPlayer.Name .. " (" .. LocalPlayer.UserId .. ")",
+                description = "Hi " .. LocalPlayer.Name .. " Send a Feedback! in " .. Ash_Device,
+                color = 16711935,
+                footer = { text = "Timestamp: " .. getCurrentTime() },
+                author = { name = "User Send a Feedback in \nGame Place:\n" .. GameName .. " (" .. game.PlaceId .. ")" },  -- Replace with actual identification method
+                fields = {
+                    { name = "Feedback: ", value = feedbackMessage, inline = true }
+                },
+                thumbnail = {
+                    url = avatarUrl
+                }
+            }}
+        })
+    })
+
+    if response and response.StatusCode == 204 then
+        print("Feedback sent successfully.")
+    else
+        warn("Failed to send feedback to Discord:", response)
+    end
+end
+
+-- Define a variable to track the last time feedback was sent
+local lastFeedbackTime = 0
+local cooldownDuration = 60  -- Cooldown period in seconds (1 minute)
+
+-- Function to check if enough time has passed since last feedback
+local function canSendFeedback()
+    local currentTime = os.time()
+    return (currentTime - lastFeedbackTime >= cooldownDuration)
+end
+
+-- Update lastFeedbackTime after sending feedback
+local function updateLastFeedbackTime()
+    lastFeedbackTime = os.time()
+end
+
+-- Define the button to send feedback
+Tabs.Settings:AddButton({
+    Title = "Send FeedBack",
+    Description = "Tap to Send",
+    Callback = function()
+        if not canSendFeedback() then
+            SendNotif("You cant spam this message", "Try again Later Lol", 3)
+            return
+        end
+        
+        local feedbackMessage = Input.Value  -- Get the value directly from Input
+        
+        -- Check if feedbackMessage is non-empty before sending
+        if feedbackMessage and feedbackMessage ~= "" then
+            sendFeedbackToDiscord(feedbackMessage)
+            SendNotif("Feedback has been Sent", "Thank you Enjoy the Script", 3)
+            updateLastFeedbackTime()  -- Update cooldown timestamp
+        else
+            SendNotif("You cant send empty feedback loll", "Try again later", 3)
+        end
+    end
+})
+
+
 -- Create the toggle for draggable button
 local DraggableToggle = Tabs.Settings:AddToggle("Draggable Button", {Title = "Draggable Button", Default = false})
 
@@ -4201,24 +4249,13 @@ end
 end)
         
 
--- Addons:
--- SaveManager (Allows you to have a configuration system)
--- InterfaceManager (Allows you to have an interface management system)
-
--- Hand the library over to our managers
 SaveManager:SetLibrary(Fluent)
 InterfaceManager:SetLibrary(Fluent)
 
--- Ignore keys that are used by ThemeManager.
--- (we don't want configs to save themes, do we?)
 SaveManager:IgnoreThemeSettings()
 
--- You can add indexes of elements the save manager should ignore
 SaveManager:SetIgnoreIndexes({})
 
--- use case for doing it this way:
--- a script hub could have themes in a global folder
--- and game configs in a separate folder per game
 InterfaceManager:SetFolder("AshbornnHub")
 SaveManager:SetFolder("AshbornnHub/MM2")
 
@@ -4227,15 +4264,8 @@ SaveManager:BuildConfigSection(Tabs.Settings)
 
 Window:SelectTab(1)
 
-
--- You can use the SaveManager:LoadAutoloadConfig() to load a config
--- which has been marked to be one that auto loads!
-
-
+SaveManager:LoadAutoloadConfig()
 
 local TimeEnd = tick()
 local TotalTime = string.format("%.2f", math.abs(TimeStart - TimeEnd))
 SendNotif("AshbornnHub", "Successfully loaded the script in " .. TotalTime .. "s.", 3)
-
-wait(2)
-SaveManager:LoadAutoloadConfig()
