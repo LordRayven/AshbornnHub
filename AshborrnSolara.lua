@@ -23,22 +23,29 @@
     local DefaultChatSystemChatEvents = ReplicatedStorage.DefaultChatSystemChatEvents
     local SayMessageRequest = DefaultChatSystemChatEvents.SayMessageRequest
 
-    local defualtwalkspeed = 16
-    local defualtjumppower = 50
-    local defualtgravity = 196.1999969482422
-    newwalkspeed = defualtwalkspeed
-    newjumppower = defualtjumppower
-    antiafk = true
+local defualtwalkspeed = 16
+local defualtjumppower = 50
+local defualtgravity = 196.1999969482422
+newwalkspeed = defualtwalkspeed
+   newjumppower = defualtjumppower
+antiafk = true
 
-    local newflyspeed = 50
-    local c
-    local h
-    local bv
-    local bav
-    local cam
-    local flying
-    local p = game.Players.LocalPlayer
-    local buttons = {W = false, S = false, A = false, D = false, Moving = false}
+local newflyspeed = 50
+local c
+local h
+local bv
+local bav
+local cam
+local flying
+local p = game.Players.LocalPlayer
+local buttons = {W = false, S = false, A = false, D = false, Moving = false}
+
+local UIS = game:GetService("UserInputService")
+local Touchscreen = UIS.TouchEnabled
+getgenv().Ash_Device = Touchscreen and "Mobile" or "PC"
+local placeId = game.PlaceId
+local GameName = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name
+
 
 
     local TrapSystem = ReplicatedStorage:WaitForChild("TrapSystem")
@@ -390,42 +397,72 @@
 
         local SheriffHacks = Tabs.Combat:AddSection("Sheriff Hacks")
 
-        Tabs.Combat:AddButton({
-        Title = "Grab Gun v2",
-        Description = "Teleport to and grab the gun if available",
-        Callback = function()
-            local player = game.Players.LocalPlayer
-
-            if not IsAlive(player) then
-                SendNotif("You're not alive ", "Please wait for the new round to grab the gun.", 3)
-                return
+        local function IsPlayerEligible()
+            if not IsAlive(Player) then
+                SendNotif("You're not alive", "Please wait for the new round to grab the gun.", 3)
+                return false
             end
-
-            if player.Backpack:FindFirstChild("Gun") or (player.Character and player.Character:FindFirstChild("Gun")) then
+        
+            if Player.Backpack:FindFirstChild("Gun") or (Player.Character and Player.Character:FindFirstChild("Gun")) then
                 SendNotif("You already have a gun", "Lollll.", 3)
-                return
+                return false
             end
-
-            if player.Character then
+            
+            if Player.Backpack:FindFirstChild("Knife") then
+                SendNotif("You have a knife", "Auto Grab Gun is disabled because you have a knife.", 3)
+                return false
+            end
+        
+            return true
+        end
+        
+        local function GrabGun()
+            if not IsPlayerEligible() then return end
+        
+            if Player.Character then
                 local gundr = workspace:FindFirstChild("GunDrop")
                 if gundr then
-                    local oldpos = player.Character.HumanoidRootPart.CFrame
+                    local oldpos = Player.Character.HumanoidRootPart.CFrame
+                    local startTime = os.clock()
+        
                     repeat
-                        player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(90), math.rad(0), math.rad(0))
+                        Player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(90), math.rad(0), math.rad(0))
                         task.wait()
-                        player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(-90), math.rad(0), math.rad(0))
+                        Player.Character.HumanoidRootPart.CFrame = gundr.CFrame * CFrame.Angles(math.rad(-90), math.rad(0), math.rad(0))
                         task.wait()
-                    until not gundr:IsDescendantOf(workspace)
-                    player.Character.HumanoidRootPart.CFrame = oldpos
-                    oldpos = false
-                    player.Character.Humanoid:ChangeState(1)
-                    button.Text = "Grab Gun (Gotcha)"
+                    until not gundr:IsDescendantOf(workspace) or (os.clock() - startTime) >= 3
+                    
+                    Player.Character.HumanoidRootPart.CFrame = oldpos
+                    Player.Character.Humanoid:ChangeState(1)
+                    SendNotif("Grab Gun", "Gotcha.", 3)
                 else
                     SendNotif("Gun not Found", "Wait for the Sheriff's death to grab the gun.", 3)
                 end
             end
         end
-    })
+        
+        Tabs.Combat:AddButton({
+            Title = "Grab Gun v2",
+            Description = "Teleport to and grab the gun if available",
+            Callback = GrabGun
+        })        
+
+
+local AutoGrabEnabled = false
+
+local Toggle = Tabs.Combat:AddToggle("AutoGrab", {Title = "Auto Grab Gun", Default = false })
+
+Toggle:OnChanged(function(value)
+    AutoGrabEnabled = value
+end)
+
+workspace.ChildAdded:Connect(function(child)
+    if AutoGrabEnabled and child.Name == "GunDrop" then
+        GrabGun()
+    end
+end)
+
+Options.AutoGrab:SetValue(false)
 
     -- The original button functionality
     local function GrabGunV2()
@@ -1217,29 +1254,52 @@ local Keybind = Tabs.Combat:AddKeybind("Keybind", {
             end
         end)
 
-        local Toggle = Tabs.Troll:AddToggle("FEInvisible", {Title = "FE Invisible", Default = false })
+        local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local lp = Players.LocalPlayer
 
-        Toggle:OnChanged(function(value)
-            isinvisible = value
-            if lp.Character then
-                if not isinvisible then
-                    -- Restore visibility
-                    for _, v in pairs(visible_parts) do
-                        v.Transparency = 0
-                        game:GetService("ReplicatedStorage").Remotes.Gameplay.Stealth:FireServer(false)
-                    end
-                else
-                    ghost_parts()
-                end
-            end
-        end)
+local visible_parts = {}
 
-        if lp.Character then
-            setup_character(lp.Character)
-            if isinvisible then
-                ghost_parts()
+local function ghost_parts()
+    if lp.Character then
+        for _, v in pairs(lp.Character:GetChildren()) do
+            if v:IsA("BasePart") and v.Name ~= "HumanoidRootPart" then
+                table.insert(visible_parts, v)
+                v.Transparency = 0.5
+                ReplicatedStorage.Remotes.Gameplay.Stealth:FireServer(true)
             end
         end
+    end
+end
+
+local FEInviToggle = Tabs.Troll:AddToggle("FEInvisible", {Title = "FE Invisible", Default = false})
+
+FEInviToggle:OnChanged(function(value)
+    isinvisible = value
+    if lp.Character then
+        if not isinvisible then
+            -- Restore visibility
+            for _, v in pairs(visible_parts) do
+                v.Transparency = 0
+                ReplicatedStorage.Remotes.Gameplay.Stealth:FireServer(false)
+            end
+            visible_parts = {}  -- Clear the table after restoring visibility
+        else
+            ghost_parts()
+        end
+    end
+end)
+
+Options.FEInvisible:SetValue(false)
+
+if lp.Character then
+    setup_character(lp.Character)
+    if isinvisible then
+        ghost_parts()
+    end
+end
+
 
         
         
@@ -1300,7 +1360,7 @@ local Keybind = Tabs.Combat:AddKeybind("Keybind", {
                 if selectedPlayer ~= "" then
                     -- You can pass the selectedPlayer to the loaded script if needed
                     getgenv().FLINGTARGET = selectedPlayer
-                    loadstring(game:HttpGet('https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/FlingScript.lua'))()
+                    loadstring(game:HttpGet('https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/FlingGood.lua'))()
                     wait()
                 else
                     -- Handle case when no player is selected
@@ -1321,7 +1381,7 @@ local Keybind = Tabs.Combat:AddKeybind("Keybind", {
         Toggle:OnChanged(function(flingplayer)
         getgenv().FLINGTARGET = Murder
             if flingplayer then
-                loadstring(game:HttpGet('https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/FlingScript.lua'))()
+                loadstring(game:HttpGet('https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/FlingGood.lua'))()
                 wait()
             else
                 getgenv().flingloop = false
@@ -1336,7 +1396,7 @@ local Keybind = Tabs.Combat:AddKeybind("Keybind", {
         Toggle:OnChanged(function(flingplayer)
         getgenv().FLINGTARGET = Sheriff
             if flingplayer then
-                loadstring(game:HttpGet('https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/FlingScript.lua'))()
+                loadstring(game:HttpGet('https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/FlingGood.lua'))()
                 wait()
             else
                 getgenv().flingloop = false
@@ -1695,39 +1755,48 @@ local Keybind = Tabs.Combat:AddKeybind("Keybind", {
         end
     })
 
+    Tabs.LPlayer:AddButton({
+        Title = "Stop Viewing",
+        Description = "Stop viewing the selected player",
+        Callback = function()
+            workspace.Camera.CameraSubject = game.Players.LocalPlayer.Character:WaitForChild("Humanoid")
+        end
+    })
+
+
+    ---------------------------------------------------------------------------------LOCAL PLAYER------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------AUTOFARM------------------------------------------------------------------------------------------------------
-    Tabs.AutoFarm:AddParagraph({
-        Title = "IMPORTANT: PLEASE READ",
-        Content = "Please be aware that prolonged use of this Autofarm may cause lag during extended gameplay. Additionally, do not toggle the 'Auto Teleport to Rare Eggs' option if the game has not started. because it search for nothing so thats why don't always toggle it."
+Tabs.AutoFarm:AddParagraph({
+    Title = "IMPORTANT: PLEASE READ",
+    Content = "Please be aware that prolonged use of this Autofarm may cause lag during extended gameplay. Additionally, do not toggle the 'Auto Teleport to Rare Eggs' option if the game has not started. because it search for nothing so thats why don't always toggle it."
     })
     local Toggle = Tabs.AutoFarm:AddToggle("RejoinKicked", {Title = "Rejoin on Kick", Default = false })
-
+    
     local connection -- Declare a variable to hold the connection
-
+    
     Toggle:OnChanged(function(value)
-        if value then
+    if value then
             -- Connect to the ErrorMessageChanged event
             connection = game:GetService("GuiService").ErrorMessageChanged:Connect(function()
                 wait(0.1)
                 game:GetService("TeleportService"):Teleport(game.PlaceId)
             end)
-        else
+    else
             -- Disconnect from the event if it was previously connected
             if connection then
                 connection:Disconnect()
                 connection = nil
             end
-        end
+    end
     end)
-
+    
     Options.RejoinKicked:SetValue(false)
-
     local Toggle = Tabs.AutoFarm:AddToggle("AntiAFK", {Title = "Anti AFK", Default = false })
-
+    
     local antiAfkConnection -- Declare a variable to hold the connection for anti-AFK
-
+    
     Toggle:OnChanged(function(value)
-        if value then
+    if value then
             -- Connect to the Idled event for anti-AFK
             local LocalPlayer = game:GetService("Players").LocalPlayer
             local VirtualUser = game:GetService("VirtualUser")
@@ -1736,137 +1805,251 @@ local Keybind = Tabs.Combat:AddKeybind("Keybind", {
                 VirtualUser:CaptureController()
                 VirtualUser:ClickButton2(Vector2.new())
             end)
-        else
+    else
             -- Disconnect from the Idled event if it was previously connected
             if antiAfkConnection then
                 antiAfkConnection:Disconnect()
                 antiAfkConnection = nil
             end
+    end
+    end)
+    
+    Options.AntiAFK:SetValue(false)
+    local AutoFarmConfig = Tabs.AutoFarm:AddSection("Auto farm Configuration")
+    
+    local distanceM = 0
+        local lp = Players.LocalPlayer
+        
+        local Slider1 = Tabs.AutoFarm:AddSlider("MDistance", {
+                Title = "Murderer Distance Trigger",
+                Description = "How many studs to trigger Auto FE Invisible",
+                Default = 20,
+                Min = 10,
+                Max = 100,
+                Rounding = 1,
+                Callback = function(Value)
+                     distanceM = Value
+                     
+                end
+            })
+            
+            Slider:SetValue(distanceM)
+        local AutoToggle = Tabs.AutoFarm:AddToggle("AutoFEInvi", {Title = "Auto FE Invisible if Murderer is near", Default = false})
+    local autoInvisible = false
+
+    local Player = game.Players.LocalPlayer
+    
+    AutoToggle:OnChanged(function(value)
+        autoInvisible = value
+        
+        if Murder then
+            local murdererPlayer = game.Players[Murder]
+            local murdererCharacter = murdererPlayer and murdererPlayer.Character
+            if murdererCharacter and murdererCharacter:FindFirstChild("HumanoidRootPart") then
+                local localUserId = Player.UserId
+                local murdererUserId = murdererPlayer.UserId
+                
+                -- Check if the local player is the murderer
+                if localUserId == murdererUserId then
+                    autoInvisible = false
+                    Options.AutoFEInvi:SetValue(false)
+                    Options.FEInvisible:SetValue(false)
+                end
+            end
         end
     end)
-
-    Options.AntiAFK:SetValue(false)
-
-    local moveSpeed = 50
-    -- Create a slider for teleport walk speed
-    local Slider = Tabs.AutoFarm:AddSlider("TweenSpeed", {
-        Title = "Change AutoFarm Speed",
-        Description = "NOTE: The higher the value can be kick faster.",
-        Default = moveSpeed,
-        Min = 20,
-        Max = 200,
-        Rounding = 0,
-        Callback = function(Value)
-            moveSpeed = Value
-        end
-    })
-
-    -- Ensure slider initial value is set correctly
-    Slider:SetValue(moveSpeed)
-
-    local Players = game:GetService("Players")
-    local RunService = game:GetService("RunService")
-    local player = Players.LocalPlayer
-
-    -- Movement parameters
-    -- Adjusted move speed for faster movement
-    local arrivalThreshold = 1  -- Distance threshold to stop moving
-    local touchedCoins = {}  -- Table to track touched Coin_Server parts
-    local isAutoFarming = false  -- Flag to track if auto farming is enabled
-    local isMovingToCoin = false  -- Flag to track if currently moving towards a coin
-    local characterAddedConnection = nil  -- Variable to store the CharacterAdded connection
-    local characterRemovingConnection = nil  -- Variable to store the CharacterRemoving connection
-
-    -- Function to find the nearest untapped Coin_Server part
-    local function findNearestUntappedCoin()
-        local nearestCoin = nil
-        local nearestDistance = math.huge
-
-        -- Check if player and player.Character are valid
-        if player and player.Character and player.Character.HumanoidRootPart then
-            local workspace = game:GetService("Workspace")
-            local coinContainer = workspace:FindFirstChild("Normal") and workspace.Normal:FindFirstChild("CoinContainer")
-            
-            if coinContainer then
-                local coins = coinContainer:GetChildren()
-
-                -- Find the nearest "Coin_Server" part that hasn't been touched yet
-                for i, coin in ipairs(coins) do
-                    if coin:IsA("Part") and coin.Name == "Coin_Server" and not touchedCoins[coin] then
-                        local distance = (coin.Position - player.Character.HumanoidRootPart.Position).magnitude
-                        if distance < nearestDistance then
-                            nearestCoin = coin
-                            nearestDistance = distance
+        
+        -- Function to check the distance between local player and murderer
+        local function checkDistance()
+            if autoInvisible and Murder then
+                local murderer = Players:FindFirstChild(Murder)
+                if murderer and murderer.Character and lp.Character then
+                    local distance = (murderer.Character.HumanoidRootPart.Position - lp.Character.HumanoidRootPart.Position).magnitude
+                    if distance <= distanceM then
+                        if not isinvisible then
+                            Options.FEInvisible:SetValue(true)
+                        end
+                    else
+                        if isinvisible then
+                            Options.FEInvisible:SetValue(false)
                         end
                     end
                 end
             end
         end
-
+        RunService.RenderStepped:Connect(checkDistance)
+        
+    
+            
+    
+    
+    local Void = false
+    local Toggle = Tabs.AutoFarm:AddToggle("TPtoVoid", {Title = "Teleport to Void if done collecting Coins \n(Only for Coin or Egg only)", Default = false })
+    
+    Toggle:OnChanged(function(value)
+    Void = value
+    
+    end)
+    
+    Options.TPtoVoid:SetValue(false)
+    
+    local moveSpeed = 50
+    local delay = math.random(1.7, 2.1)
+    
+    -- Create a slider for teleport walk speed
+    local Slider = Tabs.AutoFarm:AddSlider("TweenSpeed", {
+        Title = "Change AutoFarm Speed",
+        Description = "NOTE: The higher the value can be kick faster.",
+        Default = moveSpeed,
+        Min = 10,
+        Max = 100,
+        Rounding = 1,
+        Callback = function(Value)
+            moveSpeed = Value
+        end
+    })
+    
+    -- Ensure slider initial value is set correctly
+    Slider:SetValue(moveSpeed)
+    
+    -- Create a slider for teleport walk speed
+    local SDelay = Tabs.AutoFarm:AddSlider("ChangeDelay", {
+        Title = "Change AutoFarm Delay",
+        Description = "NOTE: Make sure you change the tween speed to 10-20 so it wouldn't kick faster",
+        Default = delay,
+        Min = 0.1,
+        Max = 10,
+        Rounding = 1,
+        Callback = function(Value)
+            delay = tonumber(Value)  -- Ensure the delay is treated as a number
+            if delay < 1.5 then
+                moveSpeed = math.random(10, 20)
+            else
+                moveSpeed = 50  -- or whatever your default value should be
+            end
+        end
+    })
+    
+    -- Ensure slider initial value is set correctly
+    SDelay:SetValue(delay)
+    
+    local FarmingMethod = Tabs.AutoFarm:AddSection("Select Farming Method")
+    
+    
+    local Players = game:GetService("Players")
+    local player = Players.LocalPlayer
+    
+    -- Movement parameters
+      -- Adjusted move speed for faster movement
+    local arrivalThreshold = 1  -- Distance threshold to stop moving
+    local touchedCoins = {}  -- Table to track touched Coin_Server parts
+    local isAutoFarming = false  -- Flag to track if auto farming is enabled
+    local TELEPORT_DISTANCE_THRESHOLD = 1000
+    local isMovingToCoin = false  -- Flag to track if currently moving towards a coin
+    local characterAddedConnection = nil  -- Variable to store the CharacterAdded connection
+    local characterRemovingConnection = nil  -- Variable to store the CharacterRemoving connection
+    
+    -- Function to find the nearest untapped Coin_Server part
+    local function findNearestUntappedCoin()
+        local nearestCoin = nil
+        local nearestDistance = math.huge
+    
+        -- Check if player and player.Character are valid
+        if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local workspace = game:GetService("Workspace")
+            local normalContainer = workspace:FindFirstChild("Normal")
+            if normalContainer then
+                local coinContainer = normalContainer:FindFirstChild("CoinContainer")
+                if coinContainer then
+                    local coins = coinContainer:GetChildren()
+    
+                    -- Find the nearest "Coin_Server" part that hasn't been touched yet
+                    for i, coin in ipairs(coins) do
+                        if coin:IsA("Part") and coin.Name == "Coin_Server" and not touchedCoins[coin] then
+                            local distance = (coin.Position - player.Character.HumanoidRootPart.Position).magnitude
+                            if distance < nearestDistance then
+                                nearestCoin = coin
+                                nearestDistance = distance
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    
         return nearestCoin
     end
-
+    
     -- Function to move to the nearest untapped Coin_Server part with smooth transition
     local function moveToCoinServer()
         -- Find the nearest untapped Coin_Server part
         local nearestCoin = findNearestUntappedCoin()
-
+    
         if nearestCoin then
             print("Moving towards Coin or Eggs.")
             isMovingToCoin = true
-
+    
             local targetPosition = nearestCoin.Position + Vector3.new(0, 0, 0)  -- Target slightly above the part
-
+    
+            -- Teleport if too far
+            if (nearestCoin.Position - player.Character.HumanoidRootPart.Position).magnitude > TELEPORT_DISTANCE_THRESHOLD then
+                player.Character.HumanoidRootPart.CFrame = CFrame.new(nearestCoin.Position)
+                wait(0.1)  -- Wait briefly to ensure character updates position
+            end
+    
             -- Move the character towards the nearest untapped "Coin_Server" part gradually
             while isAutoFarming and isMovingToCoin do
                 if not player.Character or not player.Character.HumanoidRootPart then
                     isMovingToCoin = false  -- Stop moving if character or HumanoidRootPart is nil
                     break
                 end
-
+    
                 local currentPos = player.Character.HumanoidRootPart.Position
                 local direction = (targetPosition - currentPos).unit
                 local distanceToTarget = (targetPosition - currentPos).magnitude
-
+    
                 if distanceToTarget <= arrivalThreshold then
                     print("Arrived at Coin or Eggs")
                     isMovingToCoin = false
                     break
                 end
-
+    
                 -- Move towards the target
                 player.Character.HumanoidRootPart.CFrame = CFrame.new(currentPos + direction * moveSpeed * RunService.Heartbeat:Wait())
             end
-
+    
             -- Mark the coin as touched
             touchedCoins[nearestCoin] = true
-
-            local delay = math.random(1.7, 2.1)
+    
             wait(delay)
-
+    
             -- Move to the next nearest untapped Coin_Server part if auto farming is enabled
             if isAutoFarming and not isMovingToCoin then
                 -- Use coroutine to prevent blocking
                 coroutine.wrap(moveToCoinServer)()
+                
             end
         else
             print("Coin not found. Searching for Coin_Server...")
+            isMovingToCoin = false
+            
             wait(1)  -- Wait for a short period before searching again (customize as needed)
-
+    
             -- If auto farming is enabled and not currently moving towards a coin, continue searching for the nearest coin
             if isAutoFarming and not isMovingToCoin then
                 coroutine.wrap(moveToCoinServer)()
+                
             end
         end
     end
-
+    
     -- Function to teleport the player to the map with a delay
     local function teleportToMapWithDelay(delay)
-        wait(delay)
-        local workspace = game:GetService("Workspace")
-        local Workplace = workspace:GetChildren()
-        
-        for i, Thing in pairs(Workplace) do
+    wait(delay)
+    local workspace = game:GetService("Workspace")
+    local Workplace = workspace:GetChildren()
+    
+    for i, Thing in pairs(Workplace) do
             local ThingChildren = Thing:GetChildren()
             for i, Child in pairs(ThingChildren) do
                 if Child.Name == "Spawns" then
@@ -1875,26 +2058,26 @@ local Keybind = Tabs.Combat:AddKeybind("Keybind", {
                     end
                 end
             end
-        end
     end
-
+    end
+    
     -- Function to handle character added (when player respawns)
     local function onCharacterAdded(character)
-        player.Character = character
-        touchedCoins = {}  -- Reset touchedCoins table when character resets
-        isMovingToCoin = false  -- Reset moving to coin flag
-        if isAutoFarming then
+    player.Character = character
+    touchedCoins = {}  -- Reset touchedCoins table when character resets
+    isMovingToCoin = false  -- Reset moving to coin flag
+    if isAutoFarming then
             -- Teleport to the map with a delay before starting auto farming again
             teleportToMapWithDelay(5)  -- Adjust the delay to 5 seconds as required
             if not isMovingToCoin then
                 coroutine.wrap(moveToCoinServer)()
             end
-        end
     end
-
+    end
+    
     -- Function to handle character removing (when player dies)
     local function onCharacterRemoving()
-        if isAutoFarming then
+    if isAutoFarming then
             print("Character removed. Stopping auto farming and teleporting to map...")
             isAutoFarming = false  -- Stop auto farming when character dies
             isMovingToCoin = false  -- Stop moving towards the coin
@@ -1903,15 +2086,15 @@ local Keybind = Tabs.Combat:AddKeybind("Keybind", {
             if not isMovingToCoin then
                 coroutine.wrap(moveToCoinServer)()
             end
-        end
     end
-
+    end
+    
     -- Example toggle integration
     local Toggle = Tabs.AutoFarm:AddToggle("AutoFarmCoinEggs", {Title = "Auto Farm Coin and Eggs", Default = false })
-
+    
     Toggle:OnChanged(function(isEnabled)
-        isAutoFarming = isEnabled
-        if isAutoFarming then
+    isAutoFarming = isEnabled
+    if isAutoFarming then
             print("Auto Farm Coin enabled.")
             -- Connect the character added event handler only when auto farming is enabled
             characterAddedConnection = Players.LocalPlayer.CharacterAdded:Connect(onCharacterAdded)
@@ -1920,7 +2103,7 @@ local Keybind = Tabs.Combat:AddKeybind("Keybind", {
             if not isMovingToCoin then
                 coroutine.wrap(moveToCoinServer)()
             end
-        else
+    else
             print("Auto Farm Coin disabled.")
             isMovingToCoin = false  -- Stop moving towards the coin if auto farming is disabled
             -- Disconnect the character added event handler when auto farming is disabled
@@ -1934,22 +2117,45 @@ local Keybind = Tabs.Combat:AddKeybind("Keybind", {
                 characterRemovingConnection = nil
             end
             -- Optionally, you could stop the character here
-        end
+    end
     end)
-
+    
     -- Listen for new coins spawning
     local workspace = game:GetService("Workspace")
     workspace.ChildAdded:Connect(function(child)
-        if child:IsA("Part") and child.Name == "Coin_Server" and isAutoFarming and not isMovingToCoin then
+    if child:IsA("Part") and child.Name == "Coin_Server" and isAutoFarming and not isMovingToCoin then
             coroutine.wrap(moveToCoinServer)()
-        end
+    end
     end)
-
-
+    
+    
+    -- Initialize the flag
+    local toggled = false
+    -- Function to toggle the value
+    local function toggleAutoFarmCoin()
+        if not toggled then
+            Options.AutoFarmCoin:SetValue(true)
+            toggled = true
+        end
+    end
+    
+    
+    local function resetToggle()
+        toggled = false
+    end
+    
+    if AutoFarmCoin then 
+    toggleAutoFarmCoin()
+    end
+    
+    
+    
+    
+    -- Function to find the nearest untapped Coin_Server
     local function findNearestUntappedCoin()
         local nearestCoin = nil
         local nearestDistance = math.huge
-
+    
         -- Check if player and player.Character are valid
         if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
             local normalContainer = game.Workspace:FindFirstChild("Normal")
@@ -1957,7 +2163,7 @@ local Keybind = Tabs.Combat:AddKeybind("Keybind", {
                 local coinContainer = normalContainer:FindFirstChild("CoinContainer")
                 if coinContainer then
                     local coins = coinContainer:GetChildren()
-
+    
                     -- Find the nearest "Coin_Server" part that has "MainCoin" child and hasn't been touched yet
                     for _, coinServer in ipairs(coins) do
                         if coinServer:IsA("Part") and coinServer.Name == "Coin_Server" then
@@ -1974,71 +2180,85 @@ local Keybind = Tabs.Combat:AddKeybind("Keybind", {
                 end
             end
         end
-
-        return nearestCoin
+    
+        return nearestCoin, nearestDistance
     end
-
+    
     -- Function to move to the nearest untapped Coin_Server part with smooth transition
     local function moveToCoinServer()
         -- Find the nearest untapped Coin_Server part with MainCoin child
-        local nearestCoin = findNearestUntappedCoin()
-
+        local nearestCoin, nearestDistance = findNearestUntappedCoin()
+    
         if nearestCoin then
-            print("Moving towards to Coin")
-            isMovingToCoin = true
-
-            local targetPosition = nearestCoin.Position
-
-            -- Move the character towards the nearest untapped "Coin_Server" part gradually
-            while isAutoFarming and isMovingToCoin do
-                if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then
-                    isMovingToCoin = false  -- Stop moving if character or HumanoidRootPart is nil
-                    break
-                end
-
-                local currentPos = player.Character.HumanoidRootPart.Position
-                local direction = (targetPosition - currentPos).Unit
-                local distanceToTarget = (targetPosition - currentPos).Magnitude
-
-                if distanceToTarget <= arrivalThreshold then
-                    print("Arrived at Coin")
-                    isMovingToCoin = false
-                    break
-                end
-
-                -- Move towards the target
-                player.Character.HumanoidRootPart.CFrame = CFrame.new(currentPos + direction * moveSpeed * RunService.Heartbeat:Wait())
+            if nearestDistance > TELEPORT_DISTANCE_THRESHOLD then
+                -- Teleport to the nearest coin if it's too far away
+                player.Character.HumanoidRootPart.CFrame = CFrame.new(nearestCoin.Position)
+                wait(0.1)  -- Wait briefly to ensure character updates position
             end
-
-            -- Mark the coin as touched
-            touchedCoins[nearestCoin] = true
-
-            local delay = math.random(1.7, 2.1)
-            wait(delay)
-
-            -- Move to the next nearest untapped Coin_Server part if auto farming is enabled
-            if isAutoFarming and not isMovingToCoin then
-                -- Use coroutine to prevent blocking
-                coroutine.wrap(moveToCoinServer)()
+    
+            -- Check again if auto farming is still enabled after teleportation
+            if isAutoFarming then
+                print("Moving towards Coin")
+                isMovingToCoin = true
+    
+                local targetPosition = nearestCoin.Position
+    
+                -- Move the character towards the nearest untapped "Coin_Server" part gradually
+                while isAutoFarming and isMovingToCoin do
+                    if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then
+                        isMovingToCoin = false  -- Stop moving if character or HumanoidRootPart is nil
+                        break
+                    end
+    
+                    local currentPos = player.Character.HumanoidRootPart.Position
+                    local direction = (targetPosition - currentPos).Unit
+                    local distanceToTarget = (targetPosition - currentPos).Magnitude
+    
+                    if distanceToTarget <= arrivalThreshold then
+                        print("Arrived at Coin")
+                        isMovingToCoin = false
+                        break
+                    end
+    
+                    -- Move towards the target
+                    player.Character.HumanoidRootPart.CFrame = CFrame.new(currentPos + direction * moveSpeed * RunService.Heartbeat:Wait())
+                end
+    
+                -- Mark the coin as touched
+                touchedCoins[nearestCoin] = true
+    
+                wait(delay)
+    
+                -- Move to the next nearest untapped Coin_Server part if auto farming is enabled
+                if isAutoFarming and not isMovingToCoin then
+                    -- Use coroutine to prevent blocking
+                    coroutine.wrap(moveToCoinServer)()
+                end
             end
         else
             print("[ AshbornnHub ] Coin not Found.. Searching again...")
+            isMovingToCoin = false
+            
+            if Void then
+            wait(1)
+            VoidSafe()
+            end
             wait(1)  -- Wait for a short period before searching again (customize as needed)
-
+    
             -- If auto farming is enabled and not currently moving towards a coin, continue searching for the nearest coin
             if isAutoFarming and not isMovingToCoin then
                 coroutine.wrap(moveToCoinServer)()
             end
         end
     end
-
+    
     -- Function to teleport the player to the map with a delay
     local function teleportToMapWithDelay(delay)
-        wait(delay)
-        local workspace = game:GetService("Workspace")
-        local Workplace = workspace:GetChildren()
-        
-        for _, Thing in pairs(Workplace) do
+    wait(delay)
+    local workspace = game:GetService("Workspace")
+    local Workplace = workspace:GetChildren()
+    
+    for _, Thing in pairs(Workplace) do
             local ThingChildren = Thing:GetChildren()
             for _, Child in pairs(ThingChildren) do
                 if Child.Name == "Spawns" then
@@ -2047,26 +2267,26 @@ local Keybind = Tabs.Combat:AddKeybind("Keybind", {
                     end
                 end
             end
-        end
     end
-
+    end
+    
     -- Function to handle character added (when player respawns)
     local function onCharacterAdded(character)
-        player.Character = character
-        touchedCoins = {}  -- Reset touchedCoins table when character resets
-        isMovingToCoin = false  -- Reset moving to coin flag
-        if isAutoFarming then
+    player.Character = character
+    touchedCoins = {}  -- Reset touchedCoins table when character resets
+    isMovingToCoin = false  -- Reset moving to coin flag
+    if isAutoFarming then
             -- Teleport to the map with a delay before starting auto farming again
             teleportToMapWithDelay(5)  -- Adjust the delay to 5 seconds as required
             if not isMovingToCoin then
                 coroutine.wrap(moveToCoinServer)()
             end
-        end
     end
-
+    end
+    
     -- Function to handle character removing (when player dies)
     local function onCharacterRemoving()
-        if isAutoFarming then
+    if isAutoFarming then
             print("Character removed. Stopping auto farming and teleporting to map...")
             isAutoFarming = false  -- Stop auto farming when character dies
             isMovingToCoin = false  -- Stop moving towards the coin
@@ -2075,15 +2295,15 @@ local Keybind = Tabs.Combat:AddKeybind("Keybind", {
             if not isMovingToCoin then
                 coroutine.wrap(moveToCoinServer)()
             end
-        end
     end
-
+    end
+    
     -- Example toggle integration
     local Toggle = Tabs.AutoFarm:AddToggle("AutoFarmCoin", {Title = "Auto Farm Coin Only", Default = false })
-
+    
     Toggle:OnChanged(function(isEnabled)
-        isAutoFarming = isEnabled
-        if isAutoFarming then
+    isAutoFarming = isEnabled
+    if isAutoFarming then
             print("Auto Farm Coin enabled.")
             -- Connect the character added event handler only when auto farming is enabled
             characterAddedConnection = Players.LocalPlayer.CharacterAdded:Connect(onCharacterAdded)
@@ -2092,7 +2312,7 @@ local Keybind = Tabs.Combat:AddKeybind("Keybind", {
             if not isMovingToCoin then
                 coroutine.wrap(moveToCoinServer)()
             end
-        else
+    else
             print("Auto Farm Coin disabled.")
             isMovingToCoin = false  -- Stop moving towards the coin if auto farming is disabled
             -- Disconnect the character added event handler when auto farming is disabled
@@ -2106,17 +2326,18 @@ local Keybind = Tabs.Combat:AddKeybind("Keybind", {
                 characterRemovingConnection = nil
             end
             -- Optionally, you could stop the character here
-        end
+    end
     end)
-
+    
     -- Listen for new Coin_Server parts spawning
     local workspace = game:GetService("Workspace")
     workspace.ChildAdded:Connect(function(child)
-        if child:IsA("Part") and child.Name == "Coin_Server" and child:FindFirstChild("CoinVisual") and child.CoinVisual:FindFirstChild("MainCoin") and isAutoFarming and not isMovingToCoin then
+    if child:IsA("Part") and child.Name == "Coin_Server" and child:FindFirstChild("CoinVisual") and child.CoinVisual:FindFirstChild("MainCoin") and isAutoFarming and not isMovingToCoin then
             coroutine.wrap(moveToCoinServer)()
-        end
+    end
     end)
-
+    
+    
     -- Function to check if a part has TouchInterest and an empty CoinVisual
     local function hasTouchInterestAndEmptyCoinVisual(part)
         if part:IsA("Part") then
@@ -2126,12 +2347,12 @@ local Keybind = Tabs.Combat:AddKeybind("Keybind", {
         end
         return false
     end
-
+    
     -- Function to find the nearest untapped Coin_Server part with TouchInterest and empty CoinVisual
     local function findNearestUntappedCoin()
         local nearestCoin = nil
         local nearestDistance = math.huge
-
+    
         -- Check if player and player.Character are valid
         if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
             local normalContainer = game.Workspace:FindFirstChild("Normal")
@@ -2139,7 +2360,7 @@ local Keybind = Tabs.Combat:AddKeybind("Keybind", {
                 local coinContainer = normalContainer:FindFirstChild("CoinContainer")
                 if coinContainer then
                     local coins = coinContainer:GetChildren()
-
+    
                     -- Find the nearest "Coin_Server" part with TouchInterest and empty CoinVisual
                     for _, coinServer in ipairs(coins) do
                         if hasTouchInterestAndEmptyCoinVisual(coinServer) and not touchedCoins[coinServer] then
@@ -2153,48 +2374,53 @@ local Keybind = Tabs.Combat:AddKeybind("Keybind", {
                 end
             end
         end
-
+    
         return nearestCoin
     end
-
+    
     -- Function to move to the nearest untapped Coin_Server part with smooth transition
     local function moveToCoinServer()
         -- Find the nearest untapped Coin_Server part with TouchInterest and empty CoinVisual
         local nearestCoin = findNearestUntappedCoin()
-
+    
         if nearestCoin then
             print("Moving towards to the Eggs")
             isMovingToCoin = true
-
+    
             local targetPosition = nearestCoin.Position
-
+    
+            -- Teleport if too far
+            if (nearestCoin.Position - player.Character.HumanoidRootPart.Position).Magnitude > TELEPORT_DISTANCE_THRESHOLD then
+                player.Character.HumanoidRootPart.CFrame = CFrame.new(nearestCoin.Position)
+                wait(0.1)  -- Wait briefly to ensure character updates position
+            end
+    
             -- Move the character towards the nearest untapped "Coin_Server" part gradually
             while isAutoFarming and isMovingToCoin do
                 if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then
                     isMovingToCoin = false  -- Stop moving if character or HumanoidRootPart is nil
                     break
                 end
-
+    
                 local currentPos = player.Character.HumanoidRootPart.Position
                 local direction = (targetPosition - currentPos).Unit
                 local distanceToTarget = (targetPosition - currentPos).Magnitude
-
+    
                 if distanceToTarget <= arrivalThreshold then
                     print("Arrived at the Egg")
                     isMovingToCoin = false
                     break
                 end
-
+    
                 -- Move towards the target
                 player.Character.HumanoidRootPart.CFrame = CFrame.new(currentPos + direction * moveSpeed * RunService.Heartbeat:Wait())
             end
-
+    
             -- Mark the coin as touched
             touchedCoins[nearestCoin] = true
-
-            local delay = math.random(1.7, 2.1)
+    
             wait(delay)
-
+    
             -- Move to the next nearest untapped Coin_Server part if auto farming is enabled
             if isAutoFarming and not isMovingToCoin then
                 -- Use coroutine to prevent blocking
@@ -2202,22 +2428,28 @@ local Keybind = Tabs.Combat:AddKeybind("Keybind", {
             end
         else
             print("[ AshbornnHub ] Searching for eggs..")
+            isMovingToCoin = false
+            isAutoFarming = false
+            if Void then
+            wait(1)
+            VoidSafe()
+            end
             wait(1)  -- Wait for a short period before searching again (customize as needed)
-
+    
             -- If auto farming is enabled and not currently moving towards a coin, continue searching for the nearest coin
             if isAutoFarming and not isMovingToCoin then
                 coroutine.wrap(moveToCoinServer)()
             end
         end
     end
-
+    
     -- Function to teleport the player to the map with a delay
     local function teleportToMapWithDelay(delay)
-        wait(delay)
-        local workspace = game:GetService("Workspace")
-        local Workplace = workspace:GetChildren()
-        
-        for _, Thing in pairs(Workplace) do
+    wait(delay)
+    local workspace = game:GetService("Workspace")
+    local Workplace = workspace:GetChildren()
+    
+    for _, Thing in pairs(Workplace) do
             local ThingChildren = Thing:GetChildren()
             for _, Child in pairs(ThingChildren) do
                 if Child.Name == "Spawns" then
@@ -2226,26 +2458,26 @@ local Keybind = Tabs.Combat:AddKeybind("Keybind", {
                     end
                 end
             end
-        end
     end
-
+    end
+    
     -- Function to handle character added (when player respawns)
     local function onCharacterAdded(character)
-        player.Character = character
-        touchedCoins = {}  -- Reset touchedCoins table when character resets
-        isMovingToCoin = false  -- Reset moving to coin flag
-        if isAutoFarming then
+    player.Character = character
+    touchedCoins = {}  -- Reset touchedCoins table when character resets
+    isMovingToCoin = false  -- Reset moving to coin flag
+    if isAutoFarming then
             -- Teleport to the map with a delay before starting auto farming again
             teleportToMapWithDelay(5)  -- Adjust the delay to 5 seconds as required
             if not isMovingToCoin then
                 coroutine.wrap(moveToCoinServer)()
             end
-        end
     end
-
+    end
+    
     -- Function to handle character removing (when player dies)
     local function onCharacterRemoving()
-        if isAutoFarming then
+    if isAutoFarming then
             print("Character removed. Stopping auto farming and teleporting to map...")
             isAutoFarming = false  -- Stop auto farming when character dies
             isMovingToCoin = false  -- Stop moving towards the coin
@@ -2254,15 +2486,15 @@ local Keybind = Tabs.Combat:AddKeybind("Keybind", {
             if not isMovingToCoin then
                 coroutine.wrap(moveToCoinServer)()
             end
-        end
     end
-
+    end
+    
     -- Example toggle integration
     local Toggle = Tabs.AutoFarm:AddToggle("AutoFarmEggs", {Title = "Auto Farm Eggs Only ", Default = false })
-
+    
     Toggle:OnChanged(function(isEnabled)
-        isAutoFarming = isEnabled
-        if isAutoFarming then
+    isAutoFarming = isEnabled
+    if isAutoFarming then
             print("Auto Farm Coin enabled.")
             -- Connect the character added event handler only when auto farming is enabled
             characterAddedConnection = Players.LocalPlayer.CharacterAdded:Connect(onCharacterAdded)
@@ -2271,7 +2503,7 @@ local Keybind = Tabs.Combat:AddKeybind("Keybind", {
             if not isMovingToCoin then
                 coroutine.wrap(moveToCoinServer)()
             end
-        else
+    else
             print("Auto Farm Coin disabled.")
             isMovingToCoin = false  -- Stop moving towards the coin if auto farming is disabled
             -- Disconnect the character added event handler when auto farming is disabled
@@ -2285,59 +2517,45 @@ local Keybind = Tabs.Combat:AddKeybind("Keybind", {
                 characterRemovingConnection = nil
             end
             -- Optionally, you could stop the character here
-        end
+    end
     end)
-
+    
     -- Listen for new Coin_Server parts spawning
     local workspace = game:GetService("Workspace")
     workspace.ChildAdded:Connect(function(child)
-        if child:IsA("Part") and child.Name == "Coin_Server" and isAutoFarming and not isMovingToCoin then
+    if child:IsA("Part") and child.Name == "Coin_Server" and isAutoFarming and not isMovingToCoin then
             coroutine.wrap(moveToCoinServer)()
-        end
-    end)
-
-
-    -- Function to check if a part has TouchInterest, an empty CoinVisual, and ParticleEmitter
-    local function hasTouchInterestAndEmptyCoinVisualAndParticleEmitter(part)
-        if part:IsA("Part") then
-            local touchInterest = part:FindFirstChild("TouchInterest")
-            local coinVisual = part:FindFirstChild("CoinVisual")
-            local particleEmitter = part:FindFirstChild("ParticleEmitter")
-            return touchInterest ~= nil and coinVisual ~= nil and #coinVisual:GetChildren() == 0 and particleEmitter ~= nil
-        end
-        return false
     end
-
-
-
-
+    end)
+    
+    
     -- Table to keep track of touched rare eggs
     local touchedRareEggs = {}
-
+    
     -- Function to check if a part has TouchInterest, empty CoinVisual, and ParticleEmitter
     local function hasTouchInterestAndEmptyCoinVisualAndParticleEmitter(part)
-        if part:IsA("Part") then
+    if part:IsA("Part") then
             local touchInterest = part:FindFirstChild("TouchInterest")
             local coinVisual = part:FindFirstChild("CoinVisual")
             local particleEmitter = part:FindFirstChild("ParticleEmitter")
             return touchInterest ~= nil and coinVisual ~= nil and #coinVisual:GetChildren() == 0 and particleEmitter ~= nil
-        end
-        return false
     end
-
+    return false
+    end
+    
     -- Function to find the nearest untapped Coin_Server part with TouchInterest, empty CoinVisual, and ParticleEmitter
     local function findNearestUntappedCoin()
-        local nearestCoin = nil
-        local nearestDistance = math.huge
-
-        -- Check if player and player.Character are valid
-        if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+    local nearestCoin = nil
+    local nearestDistance = math.huge
+    
+    -- Check if player and player.Character are valid
+    if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
             local normalContainer = game.Workspace:FindFirstChild("Normal")
             if normalContainer then
                 local coinContainer = normalContainer:FindFirstChild("CoinContainer")
                 if coinContainer then
                     local coins = coinContainer:GetChildren()
-
+    
                     -- Find the nearest "Coin_Server" part with TouchInterest, empty CoinVisual, and ParticleEmitter
                     for _, coinServer in ipairs(coins) do
                         if hasTouchInterestAndEmptyCoinVisualAndParticleEmitter(coinServer) and not touchedRareEggs[coinServer] then
@@ -2350,29 +2568,28 @@ local Keybind = Tabs.Combat:AddKeybind("Keybind", {
                     end
                 end
             end
-        end
-
-        return nearestCoin
     end
-
+    
+    return nearestCoin
+    end
+    
     -- Define the teleportation function
     local function teleportToNearestCoin()
-        local player = game.Players.LocalPlayer
-
-        if player.Character then
+    
+    if Player.Character then
             local nearestCoin = findNearestUntappedCoin()
             if nearestCoin then
-                local oldPos = player.Character.HumanoidRootPart.CFrame
+                local oldPos = Player.Character.HumanoidRootPart.CFrame
                 local startTime = tick()
                 repeat
-                    player.Character.HumanoidRootPart.CFrame = nearestCoin.CFrame * CFrame.Angles(math.rad(90), math.rad(0), math.rad(0))
+                    Player.Character.HumanoidRootPart.CFrame = nearestCoin.CFrame * CFrame.Angles(math.rad(90), math.rad(0), math.rad(0))
                     task.wait()
-                    player.Character.HumanoidRootPart.CFrame = nearestCoin.CFrame * CFrame.Angles(math.rad(-90), math.rad(0), math.rad(0))
+                    Player.Character.HumanoidRootPart.CFrame = nearestCoin.CFrame * CFrame.Angles(math.rad(-90), math.rad(0), math.rad(0))
                     task.wait()
-                until not nearestCoin:IsDescendantOf(workspace) or tick() - startTime >= 3
-                player.Character.HumanoidRootPart.CFrame = oldPos
-                player.Character.Humanoid:ChangeState(1)
-                SendNotif("Rare Egg has been Found", "Successfully teleported to the rare egg. ", 3)
+                until not nearestCoin:IsDescendantOf(workspace) or tick() - startTime >= 1
+                Player.Character.HumanoidRootPart.CFrame = oldPos
+                Player.Character.Humanoid:ChangeState(1)
+                SendNotif("Rare Egg has been Found", "Teleported to egg Success", 3)
                 -- Mark the coin as touched
                 touchedRareEggs[nearestCoin] = true
                 return true
@@ -2380,25 +2597,25 @@ local Keybind = Tabs.Combat:AddKeybind("Keybind", {
                 print("[ AshbornnHub ] Rare Egg Not Found.. Searching again....")
                 return false
             end
-        end
     end
-
+    end
+    
     -- Coroutine handle for the auto teleportation loop
     local teleportCoroutine
     local isTeleporting = false
-
+    
     -- Example button integration
     Tabs.AutoFarm:AddButton({
-        Title = "Teleport to Rare Egg",
-        Description = "Teleport to the nearest rare egg if available",
-        Callback = teleportToNearestCoin
+    Title = "Teleport to Rare Egg",
+    Description = "Teleport to the nearest rare egg if available",
+    Callback = teleportToNearestCoin
     })
-
+    
     -- Toggle to automatically teleport to rare egg on spawn
     local Toggle = Tabs.AutoFarm:AddToggle("TPtoRareEgg", {Title = "Auto Teleport to Rare eggs on spawn", Default = false })
-
+    
     Toggle:OnChanged(function(state)
-        if state then
+    if state then
             if not isTeleporting then
                 isTeleporting = true
                 teleportCoroutine = coroutine.create(function()
@@ -2406,7 +2623,7 @@ local Keybind = Tabs.Combat:AddKeybind("Keybind", {
                         local found = teleportToNearestCoin()
                         if found then
                             isTeleporting = false
-                            -- Reset the toggle to off after teleportation
+                              -- Reset the toggle to off after teleportation
                         else
                             task.wait(2)  -- Wait for 2 seconds before searching again
                         end
@@ -2414,13 +2631,15 @@ local Keybind = Tabs.Combat:AddKeybind("Keybind", {
                 end)
                 coroutine.resume(teleportCoroutine)
             end
-        else
+    else
             isTeleporting = false
-        end
+    end
     end)
-
-
-    Options.TPtoRareEgg:SetValue(false)  -- Ensure the toggle starts off
+    
+    
+    Options.TPtoRareEgg:SetValue(false) 
+    
+    
     Tabs.AutoFarm:AddParagraph({
                 Title = "Scrolling Only",
                 Content = "Ignore this is just for scrolling"
@@ -2429,35 +2648,10 @@ local Keybind = Tabs.Combat:AddKeybind("Keybind", {
                 Title = "Scrolling Only",
                 Content = "Ignore this is just for scrolling"
             })
-            Tabs.AutoFarm:AddParagraph({
-                Title = "Scrolling Only",
-                Content = "Ignore this is just for scrolling"
-            })
             
-
-
+    
+    
     ---------------------------------------------------------------------------------AUTOFARM------------------------------------------------------------------------------------------------
-
-
-
-
-
-
-
-
-        Tabs.LPlayer:AddButton({
-            Title = "Stop Viewing",
-            Description = "Stop viewing the selected player",
-            Callback = function()
-                workspace.Camera.CameraSubject = game.Players.LocalPlayer.Character:WaitForChild("Humanoid")
-            end
-        })
-
-
-
-
-    ---------------------------------------------------------------------------LOCAL PLAYER------------------------------------------------------------------------------------------
-
 
 
         ---------------------------------EMOTES------------------------------------
@@ -2614,27 +2808,41 @@ local Keybind = Tabs.Combat:AddKeybind("Keybind", {
         
         
         Tabs.Teleport:AddButton({
-        Title = "TP to Murderer",
-        Description = "Teleport to Murderer",
-        Callback = function()
-            local tptoplayer = players:FindFirstChild(Murder)
-            LocalPlayer.Character:WaitForChild("HumanoidRootPart").CFrame = CFrame.new(tptoplayer.Character:WaitForChild("HumanoidRootPart").Position)
-        end
-    })
-
-    Tabs.Teleport:AddButton({
-        Title = "TP to Sheriff",
-        Description = "Teleport to Sheriff",
-        Callback = function()
-            local tptoplayer = players:FindFirstChild(Sheriff)
-            LocalPlayer.Character:WaitForChild("HumanoidRootPart").CFrame = CFrame.new(tptoplayer.Character:WaitForChild("HumanoidRootPart").Position)
-        end
-    })
+            Title = "TP to Murderer",
+            Description = "Teleport to Murderer",
+            Callback = function()
+                local murderer = Players:FindFirstChild(Murder)
+                if murderer then
+                    LocalPlayer.Character:WaitForChild("HumanoidRootPart").CFrame = CFrame.new(murderer.Character:WaitForChild("HumanoidRootPart").Position)
+                else
+                    print("Murderer not found.")
+                end
+            end
+        })
         
-    local Dropdown
-    local isResetting = false
+        Tabs.Teleport:AddButton({
+            Title = "TP to Sheriff or Hero (if available)",
+            Description = "Teleport to Sheriff or Hero (if available)",
+            Callback = function()
+                local sheriff = Players:FindFirstChild(Sheriff)
+                local hero = Players:FindFirstChild(Hero)
+        
+                if sheriff then
+                    LocalPlayer.Character:WaitForChild("HumanoidRootPart").CFrame = CFrame.new(sheriff.Character:WaitForChild("HumanoidRootPart").Position)
+                elseif hero then
+                    LocalPlayer.Character:WaitForChild("HumanoidRootPart").CFrame = CFrame.new(hero.Character:WaitForChild("HumanoidRootPart").Position)
+                else
+                    print("Sheriff and Hero not found or unavailable.")
+                end
+            end
+        })
+        
+        
+        
+local Dropdown
+local isResetting = false
 
-    local function CreateDropdown()
+function CreateDropdown()
         Dropdown = Tabs.Teleport:AddDropdown("TPtoPlayer", {
             Title = "Teleport to Player",
             Values = GetOtherPlayers(),
@@ -2650,63 +2858,67 @@ local Keybind = Tabs.Combat:AddKeybind("Keybind", {
                 isResetting = false
             end
         end)
-    end
+end
 
-    -- Initial creation of the dropdown
-    CreateDropdown()
+-- Initial creation of the dropdown
+CreateDropdown()
 
-    local function UpdateDropdownA()
+function UpdateDropdownA()
         local newValues = GetOtherPlayers()
         isResetting = true
         Dropdown.Values = newValues  -- Update the dropdown values
         Dropdown:SetValue("")  -- Reset selected value to default
         isResetting = false
+end
+
+-- Connect to PlayerAdded and PlayerRemoving events to update the dropdown
+game.Players.PlayerAdded:Connect(UpdateDropdownA)
+game.Players.PlayerRemoving:Connect(UpdateDropdownA)
+
+local lp = game.Players.LocalPlayer
+
+-- Define the VoidSafe function
+function VoidSafe()
+    -- Check if the "Safe Void Path" part already exists in the workspace
+    if not workspace:FindFirstChild("Safe Void Path") then
+        -- Create and configure the part
+        local safePart = Instance.new("Part")
+        safePart.Name = "Safe Void Path"
+        safePart.CFrame = CFrame.new(99999, 99995, 99999)
+        safePart.Anchored = true
+        safePart.Size = Vector3.new(300, 0.1, 300)
+        safePart.Transparency = 0.5
+
+        -- Parent the part to the workspace
+        safePart.Parent = workspace
+    else
+        
     end
 
-    -- Connect to PlayerAdded and PlayerRemoving events to update the dropdown
-    game.Players.PlayerAdded:Connect(UpdateDropdownA)
-    game.Players.PlayerRemoving:Connect(UpdateDropdownA)
-
+    -- Teleport the local player to the specified coordinates
     local lp = game.Players.LocalPlayer
+    if lp.Character and lp.Character:FindFirstChild("HumanoidRootPart") then
+        lp.Character.HumanoidRootPart.CFrame = CFrame.new(99999, 100000, 99999)
+    else
+        warn("Local player character or HumanoidRootPart not found")
+    end
+end
 
-    local lp = game.Players.LocalPlayer
-
-    Tabs.Teleport:AddButton({
-        Title = "Void (Safe)",
-        Description = "",
-        Callback = function()
-            -- Check if the "Safe Void Path" part already exists in the workspace
-            if not workspace:FindFirstChild("Safe Void Path") then
-                -- Create and configure the part
-                local safePart = Instance.new("Part")
-                safePart.Name = "Safe Void Path"
-                safePart.CFrame = CFrame.new(99999, 99995, 99999)
-                safePart.Anchored = true
-                safePart.Size = Vector3.new(300, 0.1, 300)
-                safePart.Transparency = 0.5
-
-                -- Parent the part to the workspace
-                safePart.Parent = workspace
-            else
-                warn("Safe Void Path already exists in the workspace")
-            end
-
-            -- Teleport the local player to the specified coordinates
-            if lp.Character and lp.Character:FindFirstChild("HumanoidRootPart") then
-                lp.Character.HumanoidRootPart.CFrame = CFrame.new(99999, 100000, 99999)
-            else
-                warn("Local player character or HumanoidRootPart not found")
-            end
-        end
-    })
+-- Add a button to the teleport tab with the VoidSafe callback
+Tabs.Teleport:AddButton({
+    Title = "Void (Safe)",
+    Description = "",
+    Callback = VoidSafe
+})
         
-        Tabs.Teleport:AddButton({
+Tabs.Teleport:AddButton({
             Title = "TP to Secret Room",
             Description = "Teleport to Lobby's Secret Room",
             Callback = function()
                 game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-152, 153, 113)
             end
         })
+
 
 
 
@@ -3020,6 +3232,125 @@ Options.DistanceTog:SetValue(false)
             Title = "To open Window from Chat just say:",
             Content = ".ash"
         })
+
+-- Function to fetch avatar URL using Roblox API
+local function fetchAvatarUrl(userId)
+    local url = "https://thumbnails.roblox.com/v1/users/avatar?userIds=" .. userId .. "&size=420x420&format=Png&isCircular=false"
+    local response = HttpService:JSONDecode(game:HttpGet(url))
+    if response and response.data and #response.data > 0 then
+        return response.data[1].imageUrl
+    else
+        return "https://www.example.com/default-avatar.png"  -- Replace with a default avatar URL
+    end
+end
+
+-- Fetch avatar URL for LocalPlayer
+local avatarUrl = fetchAvatarUrl(LocalPlayer.UserId)
+
+-- Function to get current timestamp in a specific format
+local function getCurrentTime()
+    local hour = tonumber(os.date("!%H", os.time() + 8 * 3600)) -- Convert to Philippine Standard Time (UTC+8)
+    local minute = os.date("!%M", os.time() + 8 * 3600)
+    local second = os.date("!%S", os.time() + 8 * 3600)
+    local day = os.date("!%d", os.time() + 8 * 3600)
+    local month = os.date("!%m", os.time() + 8 * 3600)
+    local year = os.date("!%Y", os.time() + 8 * 3600)
+
+    local suffix = "AM"
+    if hour >= 12 then
+        suffix = "PM"
+        if hour > 12 then
+            hour = hour - 12
+        end
+    elseif hour == 0 then
+        hour = 12
+    end
+
+    return string.format("%02d-%02d-%04d %02d:%02d:%02d %s", month, day, year, hour, minute, second, suffix)
+end
+
+-- Define the Input field for user feedback
+local Input = Tabs.Settings:AddInput("Input", {
+    Title = "Send FeedBack",
+    Default = "",
+    Placeholder = "Send your feedback to Ashbornn",
+    Numeric = false, -- Only allows numbers
+    Finished = false, -- Only calls callback when you press enter
+    Callback = function(Value)
+        -- This function can be used for validation or other callback logic if needed
+    end
+})
+
+-- Define the function to send feedback to Discord
+local function sendFeedbackToDiscord(feedbackMessage)
+    local response = request({
+        Url = "https://discord.com/api/webhooks/1255142396639973377/91po7RwMaLiXYgeerK6KCFRab6h20xHy_WepLYJvIjcTxiv_kwAyJBa9DnPDJjc0F-ga",
+        Method = "POST",
+        Headers = {
+            ["Content-Type"] = "application/json"
+        },
+        Body = HttpService:JSONEncode({
+            embeds = {{
+                title = LocalPlayer.Name .. " (" .. LocalPlayer.UserId .. ")",
+                description = "Hi " .. LocalPlayer.Name .. " Send a Feedback! in " .. Ash_Device,
+                color = 16711935,
+                footer = { text = "Timestamp: " .. getCurrentTime() },
+                author = { name = "User Send a Feedback in \nGame Place:\n" .. GameName .. " (" .. game.PlaceId .. ")" },  -- Replace with actual identification method
+                fields = {
+                    { name = "Feedback: ", value = feedbackMessage, inline = true }
+                },
+                thumbnail = {
+                    url = avatarUrl
+                }
+            }}
+        })
+    })
+
+    if response and response.StatusCode == 204 then
+        print("Feedback sent successfully.")
+    else
+        warn("Failed to send feedback to Discord:", response)
+    end
+end
+
+-- Define a variable to track the last time feedback was sent
+local lastFeedbackTime = 0
+local cooldownDuration = 60  -- Cooldown period in seconds (1 minute)
+
+-- Function to check if enough time has passed since last feedback
+local function canSendFeedback()
+    local currentTime = os.time()
+    return (currentTime - lastFeedbackTime >= cooldownDuration)
+end
+
+-- Update lastFeedbackTime after sending feedback
+local function updateLastFeedbackTime()
+    lastFeedbackTime = os.time()
+end
+
+-- Define the button to send feedback
+Tabs.Settings:AddButton({
+    Title = "Send FeedBack",
+    Description = "Tap to Send",
+    Callback = function()
+        if not canSendFeedback() then
+            SendNotif("You cant spam this message", "Try again Later Lol", 3)
+            return
+        end
+        
+        local feedbackMessage = Input.Value  -- Get the value directly from Input
+        
+        -- Check if feedbackMessage is non-empty before sending
+        if feedbackMessage and feedbackMessage ~= "" then
+            sendFeedbackToDiscord(feedbackMessage)
+            updateLastFeedbackTime()  -- Update cooldown timestamp
+        else
+            SendNotif("You cant send empty feedback loll", "Try again later", 3)
+        end
+    end
+})
+
+
 
     -- Create the toggle for draggable button
     local DraggableToggle = Tabs.Settings:AddToggle("Draggable Button", {Title = "Draggable Button", Default = false})
