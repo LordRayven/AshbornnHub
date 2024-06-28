@@ -2287,6 +2287,7 @@ local distanceM = 0
         })
         
         Slider:SetValue(distanceM)
+        
     local AutoToggle = Tabs.AutoFarm:AddToggle("AutoFEInvi", {Title = "Auto FE Invisible if Murderer is near", Default = false})
 local autoInvisible = false
 
@@ -2294,40 +2295,70 @@ AutoToggle:OnChanged(function(value)
     autoInvisible = value
     
     if Murder then
-        local murdererPlayer = game.Players[Murder]
-        local murdererCharacter = murdererPlayer and murdererPlayer.Character
-        if murdererCharacter and murdererCharacter:FindFirstChild("HumanoidRootPart") then
-            local localUserId = Player.UserId
-            local murdererUserId = murdererPlayer.UserId
-            
-            -- Check if the local player is the murderer
-            if localUserId == murdererUserId then
-                autoInvisible = false
-                Options.AutoFEInvi:SetValue(false)
-            end
-        end
-    end
-end)
-    
-    -- Function to check the distance between local player and murderer
-    local function checkDistance()
-        if autoInvisible and Murder then
-            local murderer = Players:FindFirstChild(Murder)
-            if murderer and murderer.Character and lp.Character then
-                local distance = (murderer.Character.HumanoidRootPart.Position - lp.Character.HumanoidRootPart.Position).magnitude
-                if distance <= distanceM then
-                    if not isinvisible then
-                        Options.FEInvisible:SetValue(true)
-                    end
-                else
-                    if isinvisible then
-                        Options.FEInvisible:SetValue(false)
-                    end
+        local murdererPlayer = Players:FindFirstChild(Murder)
+        if murdererPlayer then
+            local murdererCharacter = murdererPlayer.Character
+            if murdererCharacter and murdererCharacter:FindFirstChild("HumanoidRootPart") then
+                local localUserId = Player.UserId
+                local murdererUserId = murdererPlayer.UserId
+                
+                -- Check if the local player is the murderer
+                if localUserId == murdererUserId then
+                    autoInvisible = false
+                    Options.AutoFEInvi:SetValue(false)
+                    Options.FEInvisible:SetValue(false)
                 end
             end
         end
     end
-    RunService.RenderStepped:Connect(checkDistance)
+end)
+
+Options.AutoFEInvi:SetValue(false)
+
+-- Function to check if the local player has a knife or the role of Murder
+local function checkLocalPlayerRole()
+    local character = Player.Character
+    if character then
+        -- Check if the local player has a knife
+        local hasKnife = character:FindFirstChild("Knife")
+        -- Check if the local player's role is Murder
+        local isMurderer = Murder == Player.Name
+        
+        if hasKnife or isMurderer then
+            autoInvisible = false
+            Options.AutoFEInvi:SetValue(false)
+            Options.FEInvisible:SetValue(false)
+        end
+    end
+end
+
+-- Function to check the distance between local player and murderer
+local function checkDistance()
+    if autoInvisible and Murder then
+        local murderer = Players:FindFirstChild(Murder)
+        if murderer and murderer.Character and lp.Character then
+            local distance = (murderer.Character.HumanoidRootPart.Position - lp.Character.HumanoidRootPart.Position).magnitude
+            if distance <= distanceM then
+                if not isinvisible then
+                    Options.FEInvisible:SetValue(true)
+                end
+            else
+                if isinvisible then
+                    Options.FEInvisible:SetValue(false)
+                end
+            end
+        end
+    end
+end
+
+-- Call the role check function initially
+checkLocalPlayerRole()
+
+-- Connect the distance check function to RenderStepped
+RunService.RenderStepped:Connect(checkDistance)
+
+-- Optionally, you may want to periodically check the local player's role
+RunService.RenderStepped:Connect(checkLocalPlayerRole)
     
 
         
