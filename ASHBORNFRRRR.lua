@@ -2329,6 +2329,12 @@ local function checkLocalPlayerRole()
             autoInvisible = false
             Options.AutoFEInvi:SetValue(false)
             Options.FEInvisible:SetValue(false)
+        else
+            -- Enable AutoFEInvi if AutoFarmCoin or AutoFarmEggs is true
+            if Options.AutoFarmCoin.Value or Options.AutoFarmEggs.Value then
+                autoInvisible = true
+                Options.AutoFEInvi:SetValue(true)
+            end
         end
     end
 end
@@ -2359,8 +2365,10 @@ local function checkDistance()
     end
 end
 
--- Call the role check function initially
-checkLocalPlayerRole()
+-- Call the role check function initially after a short delay to ensure Options are initialized
+delay(0.1, function()
+    checkLocalPlayerRole()
+end)
 
 -- Connect the distance check function to RenderStepped
 RunService.RenderStepped:Connect(checkDistance)
