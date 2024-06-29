@@ -45,6 +45,7 @@ local Touchscreen = UIS.TouchEnabled
 getgenv().Ash_Device = Touchscreen and "Mobile" or "PC"
 local placeId = game.PlaceId
 local GameName = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name
+queueteleport = (syn and syn.queue_on_teleport) or queue_on_teleport or (fluxus and fluxus.queue_on_teleport)
 
 
 
@@ -1749,6 +1750,40 @@ Tabs.AutoFarm:AddParagraph({
     end)
     
     Options.RejoinKicked:SetValue(false)
+
+    local TeleportConnection = nil
+local TeleportCheck = false
+
+-- Assuming Tabs, AutoFarm, and Options are predefined in your script environment
+local Toggle = Tabs.AutoFarm:AddToggle("AutoExec", {Title = "AutoExec on Kicked", Default = false })
+
+Toggle:OnChanged(function(enabled)
+    Options.AutoExec:SetValue(enabled)
+    
+    if enabled then
+        -- Connect the OnTeleport event handler
+        TeleportConnection = Players.LocalPlayer.OnTeleport:Connect(function(State)
+            if KeepInfYield and (not TeleportCheck) and queueteleport then
+                TeleportCheck = true
+                queueteleport("loadstring(game:HttpGet('https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/AshMain.lua'))()")
+            end
+        end)
+    else
+        -- Disconnect the OnTeleport event handler
+        if TeleportConnection then
+            TeleportConnection:Disconnect()
+            TeleportConnection = nil
+        end
+        TeleportCheck = false
+    end
+end)
+
+Options.AutoExec:SetValue(false) -- Assuming this sets an initial state
+
+
+
+
+
     local Toggle = Tabs.AutoFarm:AddToggle("AntiAFK", {Title = "Anti AFK", Default = false })
     
     local antiAfkConnection -- Declare a variable to hold the connection for anti-AFK
@@ -1775,78 +1810,69 @@ Tabs.AutoFarm:AddParagraph({
     Options.AntiAFK:SetValue(false)
     local AutoFarmConfig = Tabs.AutoFarm:AddSection("Auto farm Configuration")
     
-    local distanceM = 0
-        local lp = Players.LocalPlayer
-        
-        local Slider1 = Tabs.AutoFarm:AddSlider("MDistance", {
-                Title = "Murderer Distance Trigger",
-                Description = "How many studs to trigger Auto FE Invisible",
-                Default = 20,
-                Min = 10,
-                Max = 100,
-                Rounding = 1,
-                Callback = function(Value)
-                     distanceM = Value
-                     
-                end
-            })
-            
-            Slider:SetValue(distanceM)
-            
 
-            
-            -- Initialize the AutoToggle for "AutoFEInvi"
-local AutoToggle = Tabs.AutoFarm:AddToggle("AutoFEInvi", {Title = "Auto FE Invisible if Murderer is near", Default = false})
+    -- Initialize required services
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+-- Initialize variables
+local distanceM = 0
 local autoInvisible = false
+local isinvisible = false
 
-AutoToggle:OnChanged(function(value)
-    autoInvisible = value
+-- Add UI Elements
+local AutoFarmConfig = Tabs.AutoFarm:AddSection("Auto farm Configuration")
 
-    if autoInvisible and Murder then
-        local murdererPlayer = Players:FindFirstChild(Murder)
-        if murdererPlayer then
-            local murdererCharacter = murdererPlayer.Character
-            if murdererCharacter and murdererCharacter:FindFirstChild("HumanoidRootPart") then
-                local localUserId = Players.LocalPlayer.UserId
-                local murdererUserId = murdererPlayer.UserId
-
-                -- Check if the local player is the murderer
-                if localUserId == murdererUserId then
-                    autoInvisible = false
-                    Options.AutoFEInvi:SetValue(false)
-                    Options.FEInvisible:SetValue(false)
-                end
-            end
-        end
+local Slider1 = Tabs.AutoFarm:AddSlider("MDistance", {
+    Title = "Murderer Distance Trigger",
+    Description = "How many studs to trigger Auto FE Invisible",
+    Default = distanceM,
+    Min = 0,
+    Max = 100,
+    Rounding = 1,
+    Callback = function(Value)
+        distanceM = Value
+        
     end
-end)
+})
+
+Slider1:SetValue(distanceM)
+
+local AutoToggle = Tabs.AutoFarm:AddToggle("AutoFEInvi", {
+    Title = "Auto FE Invisible if Murderer is near",
+    Default = false,
+    Callback = function(value)
+        autoInvisible = value
+        
+    end
+})
 
 Options.AutoFEInvi:SetValue(false)
 
--- Function to check if the local player has a knife or the role of Murderer
+-- Function to check the player's role
 local function checkLocalPlayerRole()
     local character = Players.LocalPlayer.Character
     if character then
-        -- Check if the local player has a knife
         local hasKnife = character:FindFirstChild("Knife") ~= nil
-        -- Check if the local player's role is Murderer
         local isMurderer = Murder == Players.LocalPlayer.Name
 
         if hasKnife or isMurderer then
             autoInvisible = false
             Options.AutoFEInvi:SetValue(false)
             Options.FEInvisible:SetValue(false)
+            isinvisible = false
+            
         else
-            -- Enable AutoFEInvi if AutoFarmCoin or AutoFarmEggs is true
-            if Options.AutoFarmCoin and Options.AutoFarmCoin.Value or Options.AutoFarmEggs and Options.AutoFarmEggs.Value then
+            if (Options.AutoFarmCoin and Options.AutoFarmCoin.Value) or (Options.AutoFarmEggs and Options.AutoFarmEggs.Value) then
                 autoInvisible = true
                 Options.AutoFEInvi:SetValue(true)
+                
             end
         end
     end
 end
 
--- Function to check the distance between the local player and the murderer
+-- Function to check the distance between the player and the murderer
 local function checkDistance()
     if autoInvisible and Murder then
         local murdererPlayer = Players:FindFirstChild(Murder)
@@ -1858,30 +1884,40 @@ local function checkDistance()
 
             if murdererRootPart and localRootPart then
                 local distance = (murdererRootPart.Position - localRootPart.Position).Magnitude
+                
                 if distance <= distanceM then
                     if not isinvisible then
                         Options.FEInvisible:SetValue(true)
+                        isinvisible = true
+                        
                     end
                 else
                     if isinvisible then
                         Options.FEInvisible:SetValue(false)
+                        isinvisible = false
+                        
                     end
                 end
+            else
+                
             end
+        else
+            
         end
+    else
+        
     end
 end
 
--- Call the role check function initially after a short delay to ensure Options are initialized
+-- Call the role check function initially after a short delay to ensure options are initialized
 delay(0.1, function()
     checkLocalPlayerRole()
 end)
 
--- Connect the distance check function to RenderStepped
+-- Connect functions to RenderStepped
 RunService.RenderStepped:Connect(checkDistance)
-
--- Periodically check the local player's role
 RunService.RenderStepped:Connect(checkLocalPlayerRole)
+
 
 
         
