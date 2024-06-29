@@ -2270,27 +2270,32 @@ end)
 Options.AntiAFK:SetValue(false)
 local AutoFarmConfig = Tabs.AutoFarm:AddSection("Auto farm Configuration")
 
-local distanceM = 0
-    local lp = Players.LocalPlayer
-    
-    local Slider1 = Tabs.AutoFarm:AddSlider("MDistance", {
-            Title = "Murderer Distance Trigger",
-            Description = "How many studs to trigger Auto FE Invisible",
-            Default = distanceM,
-            Min = 10,
-            Max = 100,
-            Rounding = 1,
-            Callback = function(Value)
-                 distanceM = Value
-                 
-            end
-        })
-        
-        Slider:SetValue(distanceM)
-        
-    -- Initialize the AutoToggle for "AutoFEInvi"
-local AutoToggle = Tabs.AutoFarm:AddToggle("AutoFEInvi", {Title = "Auto FE Invisible if Murderer is near", Default = false})
+local distanceM = 20
+local lp = Players.LocalPlayer
 local autoInvisible = false
+local isinvisible = false
+local Murder = nil
+
+local AutoFarmConfig = Tabs.AutoFarm:AddSection("Auto farm Configuration")
+
+local Slider1 = Tabs.AutoFarm:AddSlider("MDistance", {
+    Title = "Murderer Distance Trigger",
+    Description = "How many studs to trigger Auto FE Invisible",
+    Default = 20,
+    Min = 10,
+    Max = 100,
+    Rounding = 1,
+    Callback = function(Value)
+        distanceM = Value
+    end
+})
+
+Slider1:SetValue(distanceM)
+
+local AutoToggle = Tabs.AutoFarm:AddToggle("AutoFEInvi", {
+    Title = "Auto FE Invisible if Murderer is near",
+    Default = false
+})
 
 AutoToggle:OnChanged(function(value)
     autoInvisible = value
@@ -2303,7 +2308,6 @@ AutoToggle:OnChanged(function(value)
                 local localUserId = Players.LocalPlayer.UserId
                 local murdererUserId = murdererPlayer.UserId
 
-                -- Check if the local player is the murderer
                 if localUserId == murdererUserId then
                     autoInvisible = false
                     Options.AutoFEInvi:SetValue(false)
@@ -2316,13 +2320,10 @@ end)
 
 Options.AutoFEInvi:SetValue(false)
 
--- Function to check if the local player has a knife or the role of Murderer
 local function checkLocalPlayerRole()
     local character = Players.LocalPlayer.Character
     if character then
-        -- Check if the local player has a knife
         local hasKnife = character:FindFirstChild("Knife") ~= nil
-        -- Check if the local player's role is Murderer
         local isMurderer = Murder == Players.LocalPlayer.Name
 
         if hasKnife or isMurderer then
@@ -2330,8 +2331,7 @@ local function checkLocalPlayerRole()
             Options.AutoFEInvi:SetValue(false)
             Options.FEInvisible:SetValue(false)
         else
-            -- Enable AutoFEInvi if AutoFarmCoin or AutoFarmEggs is true
-            if Options.AutoFarmCoin.Value or Options.AutoFarmEggs.Value then
+            if (Options.AutoFarmCoin and Options.AutoFarmCoin.Value) or (Options.AutoFarmEggs and Options.AutoFarmEggs.Value) then
                 autoInvisible = true
                 Options.AutoFEInvi:SetValue(true)
             end
@@ -2339,7 +2339,6 @@ local function checkLocalPlayerRole()
     end
 end
 
--- Function to check the distance between the local player and the murderer
 local function checkDistance()
     if autoInvisible and Murder then
         local murdererPlayer = Players:FindFirstChild(Murder)
@@ -2365,16 +2364,13 @@ local function checkDistance()
     end
 end
 
--- Call the role check function initially after a short delay to ensure Options are initialized
 delay(0.1, function()
     checkLocalPlayerRole()
 end)
 
--- Connect the distance check function to RenderStepped
 RunService.RenderStepped:Connect(checkDistance)
-
--- Periodically check the local player's role
 RunService.RenderStepped:Connect(checkLocalPlayerRole)
+
 
     
 
