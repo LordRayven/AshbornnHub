@@ -99,12 +99,12 @@ local function CreateEsp(Player)
 
     local function UpdateEsp()
         local localPlayer = Players.LocalPlayer
-        if Player.Character and Player.Character:FindFirstChild("Humanoid") and Player.Character:FindFirstChild("HumanoidRootPart") and Player.Character.Humanoid.Health > 0 and Player.Character:FindFirstChild("Head") and localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        if Player.Character and Player.Character:FindFirstChild("Humanoid") and Player.Character:FindFirstChild("HumanoidRootPart") and Player.Character:FindFirstChild("Head") and Player.Character.Humanoid.Health > 0 and localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart") then
             local HeadPos, IsVisible = workspace.CurrentCamera:WorldToViewportPoint(Player.Character.Head.Position + Vector3.new(0, 2, 0))
             local height = 60
 
             if Config.Names then
-                local playerDistance = Config.Distance and (localPlayer.Character.HumanoidRootPart.Position - Player.Character.HumanoidRootPart.Position).Magnitude or nil
+                local playerDistance = Config.Distance and (localPlayer.Character.HumanoidRootPart.Position - Player.Character.HumanoidRootPart.Position).Magnitude or 0
 
                 Title.Visible = IsVisible
                 Title.Center = true
@@ -127,8 +127,12 @@ local function CreateEsp(Player)
                 Name.Visible = IsVisible
                 if IsAlive(Player) then
                     Name.Color = getRoleColor(Player)
+                elseif premiums[Player.UserId] then
+                    Name.Color = Color3.fromRGB(13, 0, 255) -- Dark blue for premiums when not alive
+                elseif monarchs[Player.UserId] then
+                    Name.Color = Color3.fromRGB(128, 0, 128) -- Purple for monarchs when not alive
                 else
-                    Name.Color = Color3.fromRGB(100, 100, 100) -- Gray color if not alive
+                    Name.Color = Color3.fromRGB(128, 128, 128) -- Gray color if not alive
                 end
                 Name.Text = Config.Distance and Player.Name .. " " .. string.format("%.1f", playerDistance) .. "m" or Player.Name
                 Name.Center = true
@@ -144,11 +148,6 @@ local function CreateEsp(Player)
         else
             Title.Visible = false
             Name.Visible = false
-            if not Player then
-                Title:Remove()
-                Name:Remove()
-                return false
-            end
         end
         return true
     end
