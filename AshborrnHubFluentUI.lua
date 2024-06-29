@@ -180,11 +180,37 @@ end
 end
 
 function UpdateHighlights()
-for _, v in pairs(game.Players:GetPlayers()) do
+    local premiums = {
+        [6069697086] = true,
+        [4072731377] = true,
+        [6150337449] = true,
+        [1571371222] = true,
+        [2911976621] = true,
+        [2729297689] = true,
+        [6150320395] = true,
+        [301098121] = true,
+        [773902683] = true,
+        [671905963] = true,
+        [3129701628] = true,
+        [3063352401] = true,
+        [3129413184] = true
+    }
+
+    local monarchs = {
+        [129215104] = true,
+        [6135258891] = true,
+        [290931] = true
+    }
+
+    for _, v in pairs(game.Players:GetPlayers()) do
         if v ~= game:GetService("Players").LocalPlayer and v.Character ~= nil and v.Character:FindFirstChild("HumanoidRootPart") and v.Character:FindFirstChild("ESP_Highlight") then
             local Highlight = v.Character:FindFirstChild("ESP_Highlight")
-            if v.UserId == 290931 or v.UserId == 129215104 then
+            
+            if monarchs[v.UserId] then
                 Highlight.FillColor = Color3.fromRGB(128, 0, 128) -- Purple color
+                Highlight.FillTransparency = applyesptrans
+            elseif premiums[v.UserId] then
+                Highlight.FillColor = Color3.fromRGB(0, 0, 225) -- Dark Blue color
                 Highlight.FillTransparency = applyesptrans
             elseif v.Name == Sheriff and IsAlive(v) then
                 Highlight.FillColor = Color3.fromRGB(0, 0, 225) -- Blue color
@@ -192,10 +218,7 @@ for _, v in pairs(game.Players:GetPlayers()) do
             elseif v.Name == Murder and IsAlive(v) then
                 Highlight.FillColor = Color3.fromRGB(225, 0, 0) -- Red color
                 Highlight.FillTransparency = applyesptrans
-            elseif v.Name == Hero and IsAlive(v) and v.Backpack:FindFirstChild("Gun") then
-                Highlight.FillColor = Color3.fromRGB(255, 255, 0) -- Yellow color
-                Highlight.FillTransparency = applyesptrans
-            elseif v.Name == Hero and IsAlive(v) and v.Character:FindFirstChild("Gun") then
+            elseif v.Name == Hero and IsAlive(v) and (v.Backpack:FindFirstChild("Gun") or v.Character:FindFirstChild("Gun")) then
                 Highlight.FillColor = Color3.fromRGB(255, 255, 0) -- Yellow color
                 Highlight.FillTransparency = applyesptrans
             elseif not IsAlive(v) then
@@ -206,12 +229,12 @@ for _, v in pairs(game.Players:GetPlayers()) do
                 Highlight.FillTransparency = applyesptrans
             end
         end
-end
+    end
 end
 
 -- Start the role updater in a separate coroutine
 spawn(function()
-pcall(roleupdaterfix)
+    pcall(roleupdaterfix)
 end)
 
 function HideHighlights()
@@ -2270,68 +2293,76 @@ end)
 Options.AntiAFK:SetValue(false)
 local AutoFarmConfig = Tabs.AutoFarm:AddSection("Auto farm Configuration")
 
--- Initialize required services
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-
--- Initialize variables
 local distanceM = 0
+    local lp = Players.LocalPlayer
+    
+    local Slider1 = Tabs.AutoFarm:AddSlider("MDistance", {
+            Title = "Murderer Distance Trigger",
+            Description = "How many studs to trigger Auto FE Invisible",
+            Default = distanceM,
+            Min = 10,
+            Max = 100,
+            Rounding = 1,
+            Callback = function(Value)
+                 distanceM = Value
+                 
+            end
+        })
+        
+        Slider:SetValue(distanceM)
+        
+    -- Initialize the AutoToggle for "AutoFEInvi"
+local AutoToggle = Tabs.AutoFarm:AddToggle("AutoFEInvi", {Title = "Auto FE Invisible if Murderer is near", Default = false})
 local autoInvisible = false
-local isinvisible = false
 
--- Add UI Elements
-local AutoFarmConfig = Tabs.AutoFarm:AddSection("Auto farm Configuration")
+AutoToggle:OnChanged(function(value)
+    autoInvisible = value
 
-local Slider1 = Tabs.AutoFarm:AddSlider("MDistance", {
-    Title = "Murderer Distance Trigger",
-    Description = "How many studs to trigger Auto FE Invisible",
-    Default = distanceM,
-    Min = 0,
-    Max = 100,
-    Rounding = 1,
-    Callback = function(Value)
-        distanceM = Value
-        
+    if autoInvisible and Murder then
+        local murdererPlayer = Players:FindFirstChild(Murder)
+        if murdererPlayer then
+            local murdererCharacter = murdererPlayer.Character
+            if murdererCharacter and murdererCharacter:FindFirstChild("HumanoidRootPart") then
+                local localUserId = Players.LocalPlayer.UserId
+                local murdererUserId = murdererPlayer.UserId
+
+                -- Check if the local player is the murderer
+                if localUserId == murdererUserId then
+                    autoInvisible = false
+                    Options.AutoFEInvi:SetValue(false)
+                    Options.FEInvisible:SetValue(false)
+                end
+            end
+        end
     end
-})
-
-Slider1:SetValue(distanceM)
-
-local AutoToggle = Tabs.AutoFarm:AddToggle("AutoFEInvi", {
-    Title = "Auto FE Invisible if Murderer is near",
-    Default = false,
-    Callback = function(value)
-        autoInvisible = value
-        
-    end
-})
+end)
 
 Options.AutoFEInvi:SetValue(false)
 
--- Function to check the player's role
+-- Function to check if the local player has a knife or the role of Murderer
 local function checkLocalPlayerRole()
     local character = Players.LocalPlayer.Character
     if character then
+        -- Check if the local player has a knife
         local hasKnife = character:FindFirstChild("Knife") ~= nil
+        -- Check if the local player's role is Murderer
         local isMurderer = Murder == Players.LocalPlayer.Name
 
         if hasKnife or isMurderer then
             autoInvisible = false
             Options.AutoFEInvi:SetValue(false)
             Options.FEInvisible:SetValue(false)
-            isinvisible = false
-            
         else
-            if (Options.AutoFarmCoin and Options.AutoFarmCoin.Value) or (Options.AutoFarmEggs and Options.AutoFarmEggs.Value) then
+            -- Enable AutoFEInvi if AutoFarmCoin or AutoFarmEggs is true
+            if Options.AutoFarmCoin.Value or Options.AutoFarmEggs.Value then
                 autoInvisible = true
                 Options.AutoFEInvi:SetValue(true)
-                
             end
         end
     end
 end
 
--- Function to check the distance between the player and the murderer
+-- Function to check the distance between the local player and the murderer
 local function checkDistance()
     if autoInvisible and Murder then
         local murdererPlayer = Players:FindFirstChild(Murder)
@@ -2343,38 +2374,29 @@ local function checkDistance()
 
             if murdererRootPart and localRootPart then
                 local distance = (murdererRootPart.Position - localRootPart.Position).Magnitude
-                
                 if distance <= distanceM then
                     if not isinvisible then
                         Options.FEInvisible:SetValue(true)
-                        isinvisible = true
-                        
                     end
                 else
                     if isinvisible then
                         Options.FEInvisible:SetValue(false)
-                        isinvisible = false
-                        
                     end
                 end
-            else
-                
             end
-        else
-            
         end
-    else
-        
     end
 end
 
--- Call the role check function initially after a short delay to ensure options are initialized
+-- Call the role check function initially after a short delay to ensure Options are initialized
 delay(0.1, function()
     checkLocalPlayerRole()
 end)
 
--- Connect functions to RenderStepped
+-- Connect the distance check function to RenderStepped
 RunService.RenderStepped:Connect(checkDistance)
+
+-- Periodically check the local player's role
 RunService.RenderStepped:Connect(checkLocalPlayerRole)
 
     
