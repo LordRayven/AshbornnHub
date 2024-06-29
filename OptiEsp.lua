@@ -16,7 +16,6 @@ local premiums = {
     [3129701628] = true,
     [3063352401] = true,
     [3129413184] = true
-    
 }
 
 local monarchs = {
@@ -31,7 +30,8 @@ local Config = {
     NamesColor = Color3.fromRGB(255, 255, 255),
     NamesOutlineColor = Color3.fromRGB(0, 0, 0),
     NamesFont = 3,
-    NamesSize = 16
+    NamesSize = 16,
+    Distance = true -- Option to display distance
 }
 
 local roles = {}
@@ -64,6 +64,13 @@ end
 
 local function getRoleColor(player)
     local playerData = roles[player.Name]
+
+    if monarchs[player.UserId] then
+        return Color3.fromRGB(128, 0, 128)
+    elseif premiums[player.UserId] then
+        return Color3.fromRGB(13, 0, 255)
+    end
+
     if playerData then
         if playerData.Role == "Murderer" then
             return Color3.fromRGB(225, 0, 0) -- Red color
@@ -73,12 +80,13 @@ local function getRoleColor(player)
             return Color3.fromRGB(255, 255, 0) -- Yellow color
         end
     end
+
     return Color3.fromRGB(0, 225, 0) -- Green color for alive players
 end
 
 local function getTitleColor(player)
     if premiums[player.UserId] then
-        return Color3.fromRGB(0, 0, 139) -- Dark blue color for premiums
+        return Color3.fromRGB(13, 0, 255) -- Dark blue color for premiums
     elseif monarchs[player.UserId] then
         return Color3.fromRGB(128, 0, 128) -- Purple color for monarchs
     end
@@ -90,12 +98,13 @@ local function CreateEsp(Player)
     local Name = Drawing.new("Text")
 
     local function UpdateEsp()
-        if Player.Character and Player.Character:FindFirstChild("Humanoid") and Player.Character:FindFirstChild("HumanoidRootPart") and Player.Character.Humanoid.Health > 0 and Player.Character:FindFirstChild("Head") then
+        local localPlayer = Players.LocalPlayer
+        if Player.Character and Player.Character:FindFirstChild("Humanoid") and Player.Character:FindFirstChild("HumanoidRootPart") and Player.Character:FindFirstChild("Head") and Player.Character.Humanoid.Health > 0 and localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart") then
             local HeadPos, IsVisible = workspace.CurrentCamera:WorldToViewportPoint(Player.Character.Head.Position + Vector3.new(0, 2, 0))
             local height = 60
 
             if Config.Names then
-                local playerDistance = math.floor((workspace.CurrentCamera.CFrame.p - Player.Character.HumanoidRootPart.Position).magnitude)
+                local playerDistance = Config.Distance and (localPlayer.Character.HumanoidRootPart.Position - Player.Character.HumanoidRootPart.Position).Magnitude or 0
 
                 Title.Visible = IsVisible
                 Title.Center = true
@@ -119,9 +128,9 @@ local function CreateEsp(Player)
                 if IsAlive(Player) then
                     Name.Color = getRoleColor(Player)
                 else
-                    Name.Color = Color3.fromRGB(100, 100, 100) -- Gray color if not alive
+                    Name.Color = Color3.fromRGB(128, 128, 128) -- Gray color if not alive
                 end
-                Name.Text = Player.Name .. " " .. playerDistance .. "m"
+                Name.Text = Config.Distance and Player.Name .. " " .. string.format("%.1f", playerDistance) .. "m" or Player.Name
                 Name.Center = true
                 Name.Outline = Config.NamesOutline
                 Name.OutlineColor = Config.NamesOutlineColor
@@ -135,11 +144,6 @@ local function CreateEsp(Player)
         else
             Title.Visible = false
             Name.Visible = false
-            if not Player then
-                Title:Remove()
-                Name:Remove()
-                return false
-            end
         end
         return true
     end
