@@ -4,7 +4,7 @@ getgenv().flingloop = true
 while getgenv().flingloop do
 function flingloopfix()
 
-local Targets = {FLINGTARGET} -- "All", "Target Name"
+local Targets = getgenv().FLINGTARGETS -- Use the global variable for targets
 
 local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
@@ -18,15 +18,15 @@ local GetPlayer = function(Name)
         return
     elseif Name == "random" then
         local GetPlayers = Players:GetPlayers()
-        if table.find(GetPlayers,Player) then table.remove(GetPlayers,table.find(GetPlayers,Player)) end
+        if table.find(GetPlayers, Player) then table.remove(GetPlayers, table.find(GetPlayers, Player)) end
         return GetPlayers[math.random(#GetPlayers)]
     elseif Name ~= "random" and Name ~= "all" and Name ~= "others" then
-        for _,x in next, Players:GetPlayers() do
+        for _, x in next, Players:GetPlayers() do
             if x ~= Player then
-                if x.Name:lower():match("^"..Name) then
-                    return x;
-                elseif x.DisplayName:lower():match("^"..Name) then
-                    return x;
+                if x.Name:lower():match("^" .. Name) then
+                    return x
+                elseif x.DisplayName:lower():match("^" .. Name) then
+                    return x
                 end
             end
         end
@@ -36,11 +36,11 @@ local GetPlayer = function(Name)
 end
 
 local Message = function(_Title, _Text, Time)
-            Fluent:Notify({
-                Title = _Title,
-                Content = _Text,
-                Duration = Time
-            })
+    Fluent:Notify({
+        Title = _Title,
+        Content = _Text,
+        Duration = Time
+    })
 end
 
 local SkidFling = function(TargetPlayer)
@@ -67,7 +67,7 @@ local SkidFling = function(TargetPlayer)
     if TCharacter:FindFirstChildOfClass("Accessory") then
         Accessory = TCharacter:FindFirstChildOfClass("Accessory")
     end
-    if Accessoy and Accessory:FindFirstChild("Handle") then
+    if Accessory and Accessory:FindFirstChild("Handle") then
         Handle = Accessory.Handle
     end
 
@@ -76,7 +76,7 @@ local SkidFling = function(TargetPlayer)
             getgenv().OldPos = RootPart.CFrame
         end
         if THumanoid and THumanoid.Sit and not AllBool then
-            return Message("Error Occurred", "Targeting is sitting", 5) -- u can remove dis part if u want lol
+            return Message("Error Occurred", "Targeting is sitting", 5) -- You can remove this part if you want
         end
         if THead then
             workspace.CurrentCamera.CameraSubject = THead
@@ -106,7 +106,7 @@ local SkidFling = function(TargetPlayer)
                     if BasePart.Velocity.Magnitude < 50 then
                         Angle = Angle + 100
 
-                        FPos(BasePart, CFrame.new(0, 1.5, 0) + THumanoid.MoveDirection * BasePart.Velocity.Magnitude / 1.25, CFrame.Angles(math.rad(Angle),0 ,0))
+                        FPos(BasePart, CFrame.new(0, 1.5, 0) + THumanoid.MoveDirection * BasePart.Velocity.Magnitude / 1.25, CFrame.Angles(math.rad(Angle), 0, 0))
                         task.wait()
 
                         FPos(BasePart, CFrame.new(0, -1.5, 0) + THumanoid.MoveDirection * BasePart.Velocity.Magnitude / 1.25, CFrame.Angles(math.rad(Angle), 0, 0))
@@ -118,10 +118,10 @@ local SkidFling = function(TargetPlayer)
                         FPos(BasePart, CFrame.new(-2.25, -1.5, 2.25) + THumanoid.MoveDirection * BasePart.Velocity.Magnitude / 1.25, CFrame.Angles(math.rad(Angle), 0, 0))
                         task.wait()
 
-                        FPos(BasePart, CFrame.new(0, 1.5, 0) + THumanoid.MoveDirection,CFrame.Angles(math.rad(Angle), 0, 0))
+                        FPos(BasePart, CFrame.new(0, 1.5, 0) + THumanoid.MoveDirection, CFrame.Angles(math.rad(Angle), 0, 0))
                         task.wait()
 
-                        FPos(BasePart, CFrame.new(0, -1.5, 0) + THumanoid.MoveDirection,CFrame.Angles(math.rad(Angle), 0, 0))
+                        FPos(BasePart, CFrame.new(0, -1.5, 0) + THumanoid.MoveDirection, CFrame.Angles(math.rad(Angle), 0, 0))
                         task.wait()
                     else
                         FPos(BasePart, CFrame.new(0, 1.5, THumanoid.WalkSpeed), CFrame.Angles(math.rad(90), 0, 0))
@@ -148,7 +148,7 @@ local SkidFling = function(TargetPlayer)
                         FPos(BasePart, CFrame.new(0, -1.5, 0), CFrame.Angles(0, 0, 0))
                         task.wait()
 
-                        FPos(BasePart, CFrame.new(0, -1.5 ,0), CFrame.Angles(math.rad(-90), 0, 0))
+                        FPos(BasePart, CFrame.new(0, -1.5, 0), CFrame.Angles(math.rad(-90), 0, 0))
                         task.wait()
 
                         FPos(BasePart, CFrame.new(0, -1.5, 0), CFrame.Angles(0, 0, 0))
@@ -160,13 +160,13 @@ local SkidFling = function(TargetPlayer)
             until BasePart.Velocity.Magnitude > 500 or BasePart.Parent ~= TargetPlayer.Character or TargetPlayer.Parent ~= Players or not TargetPlayer.Character == TCharacter or THumanoid.Sit or Humanoid.Health <= 0 or tick() > Time + TimeToWait
         end
 
-        workspace.FallenPartsDestroyHeight = 0/0
+        workspace.FallenPartsDestroyHeight = 0 / 0
 
         local BV = Instance.new("BodyVelocity")
         BV.Name = "EpixVel"
         BV.Parent = RootPart
         BV.Velocity = Vector3.new(9e8, 9e8, 9e8)
-        BV.MaxForce = Vector3.new(1/0, 1/0, 1/0)
+        BV.MaxForce = Vector3.new(1 / 0, 1 / 0, 1 / 0)
 
         Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, false)
 
@@ -207,12 +207,12 @@ local SkidFling = function(TargetPlayer)
     end
 end
 
-if not Welcome then Message("AshbornnHub Says:","Fling Script has been loaded",3) end
+if not Welcome then Message("AshbornnHub Says:", "Fling Script has been loaded", 3) end
 getgenv().Welcome = true
-if Targets[1] then for _,x in next, Targets do GetPlayer(x) end else return end
+if Targets[1] then for _, x in next, Targets do GetPlayer(x) end else return end
 
 if AllBool then
-    for _,x in next, Players:GetPlayers() do
+    for _, x in next, Players:GetPlayers() do
         SkidFling(x)
     end
 end
@@ -235,11 +235,9 @@ local WhitelistedUserIDs = {
     [3063352401] = true,
     [6135258891] = true,
     [3129413184] = true
-
 }
 
-
-for _,x in next, Targets do
+for _, x in next, Targets do
     local TPlayer = GetPlayer(x)
     if TPlayer and TPlayer ~= Player then
         if not WhitelistedUserIDs[TPlayer.UserId] then
@@ -247,7 +245,6 @@ for _,x in next, Targets do
                 SkidFling(TPlayer)
             end
         else
-            
             Message("Error Occurred", "Player Whitelisted Lol", 5)
         end
     elseif not TPlayer and not AllBool then
