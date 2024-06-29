@@ -2,12 +2,12 @@ getgenv().flingloop = true
 
 while getgenv().flingloop do
     function flingloopfix()
-        local FLINGTARGET = "All"  -- Replace with your actual target list
-        local Players = game:GetService("Players")
-        local Player = Players.LocalPlayer
+        local Targets = {FLINGTARGET} -- "All", "Target Name"
 
-        local AllBool = false
+local Players = game:GetService("Players")
+local Player = Players.LocalPlayer
 
+local AllBool = false
         local GetPlayer = function(Name)
             Name = Name:lower()
             if Name == "all" or Name == "others" then
@@ -221,54 +221,29 @@ while getgenv().flingloop do
         local Targets = { FLINGTARGET }  -- Adjust as needed
         if Targets[1] then
             for _, x in next, Targets do
-                GetPlayer(x)
-            end
-        else
-            return
-        end
-
-        -- Whitelisted User IDs
-        local WhitelistedUserIDs = {
-            [129215104] = true,
-            [6069697086] = true,
-            [4072731377] = true,
-            [6150337449] = true,
-            [1571371222] = true,
-            [2911976621] = true,
-            [2729297689] = true,
-            [6150320395] = true,
-            [301098121] = true,
-            [773902683] = true,
-            [290931] = true,
-            [671905963] = true,
-            [3129701628] = true,
-            [3063352401] = true,
-            [6135258891] = true,
-            [3129413184] = true
-        }
-
-        -- Inside your loop where you decide whom to target
-        for _, x in next, Targets do
-            local TPlayer = GetPlayer(x)
-            if TPlayer and TPlayer ~= Player then
-                if x:lower() == "all" then
-                    -- Targeting all players except whitelisted ones
-                    for _, player in ipairs(Players:GetPlayers()) do
-                        if not WhitelistedUserIDs[player.UserId] then
-                            SkidFling(player)
+                local TPlayer = GetPlayer(x)
+                if TPlayer then
+                    if x:lower() == "all" then
+                        -- Targeting all players except whitelisted ones
+                        for _, player in ipairs(Players:GetPlayers()) do
+                            if not WhitelistedUserIDs[player.UserId] then
+                                SkidFling(player)
+                            end
+                        end
+                    else
+                        -- Targeting a specific player
+                        if not WhitelistedUserIDs[TPlayer.UserId] then
+                            SkidFling(TPlayer)
+                        else
+                            Message("Info", "Player is whitelisted and skipped.", 3)
                         end
                     end
                 else
-                    -- Targeting a specific player
-                    if not WhitelistedUserIDs[TPlayer.UserId] then
-                        SkidFling(TPlayer)
-                    else
-                        Message("Info", "Player is whitelisted and skipped.", 3)
-                    end
+                    Message("Error", "Invalid username or player not found.", 3)
                 end
-            elseif not TPlayer and not AllBool then
-                Message("Error", "Invalid username or player not found.", 3)
             end
+        else
+            return
         end
     end
 
