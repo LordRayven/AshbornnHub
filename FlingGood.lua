@@ -239,19 +239,27 @@ local WhitelistedUserIDs = {
 }
 
 
-for _,x in next, Targets do
+-- Inside your loop where you decide whom to target
+for _, x in next, Targets do
     local TPlayer = GetPlayer(x)
     if TPlayer and TPlayer ~= Player then
-        if not WhitelistedUserIDs[TPlayer.UserId] then
-            if TPlayer then
-                SkidFling(TPlayer)
+        if x:lower() == "all" then
+            -- Targeting all players except whitelisted ones
+            for _, player in ipairs(Players:GetPlayers()) do
+                if not WhitelistedUserIDs[player.UserId] then
+                    SkidFling(player)
+                end
             end
         else
-            
-            Message("Error Occurred", "Player Whitelisted Lol", 5)
+            -- Targeting a specific player
+            if not WhitelistedUserIDs[TPlayer.UserId] then
+                SkidFling(TPlayer)
+            else
+                Message("Info", "Player is whitelisted and skipped.", 3)
+            end
         end
     elseif not TPlayer and not AllBool then
-        Message("Error Occurred", "Username Invalid", 5)
+        Message("Error", "Invalid username or player not found.", 3)
     end
 end
 task.wait()
