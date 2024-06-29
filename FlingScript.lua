@@ -2,12 +2,33 @@ getgenv().flingloop = true
 
 while getgenv().flingloop do
     function flingloopfix()
-        local Targets = {FLINGTARGET} -- "All", "Target Name"
 
-local Players = game:GetService("Players")
-local Player = Players.LocalPlayer
+        local FLINGTARGET = "All"  -- Replace with your actual target list
+        local Players = game:GetService("Players")
+        local Player = Players.LocalPlayer
 
-local AllBool = false
+        local AllBool = false
+
+        -- Whitelisted User IDs
+        local WhitelistedUserIDs = {
+            [129215104] = true,
+            [6069697086] = true,
+            [4072731377] = true,
+            [6150337449] = true,
+            [1571371222] = true,
+            [2911976621] = true,
+            [2729297689] = true,
+            [6150320395] = true,
+            [301098121] = true,
+            [773902683] = true,
+            [290931] = true,
+            [671905963] = true,
+            [3129701628] = true,
+            [3063352401] = true,
+            [6135258891] = true,
+            [3129413184] = true
+        }
+
         local GetPlayer = function(Name)
             Name = Name:lower()
             if Name == "all" or Name == "others" then
@@ -20,32 +41,22 @@ local AllBool = false
                 end
                 return GetPlayers[math.random(#GetPlayers)]
             elseif Name ~= "random" and Name ~= "all" and Name ~= "others" then
-                local foundPlayer
-                for _, x in ipairs(Players:GetPlayers()) do
+                for _, x in next, Players:GetPlayers() do
                     if x ~= Player then
-                        local isWhitelisted = false
-                        for whitelistedId, _ in pairs(WhitelistedUserIDs) do
-                            if x.UserId == whitelistedId then
-                                isWhitelisted = true
-                                break
-                            end
-                        end
-                        if not isWhitelisted then
-                            if x.Name:lower():match("^" .. Name) or x.DisplayName:lower():match("^" .. Name) then
-                                foundPlayer = x
-                                break
-                            end
+                        if x.Name:lower():match("^" .. Name) then
+                            return x
+                        elseif x.DisplayName:lower():match("^" .. Name) then
+                            return x
                         end
                     end
                 end
-                return foundPlayer
             else
                 return
             end
         end
 
         local Message = function(_Title, _Text, Time)
-            -- Replace with your actual notification or logging function
+            -- Replace with your notification function
             print(_Title .. ": " .. _Text)
         end
 
