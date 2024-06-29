@@ -21,7 +21,7 @@ while getgenv().flingloop do
                 return GetPlayers[math.random(#GetPlayers)]
             elseif Name ~= "random" and Name ~= "all" and Name ~= "others" then
                 local foundPlayer
-                for _, x in next, Players:GetPlayers() do
+                for _, x in ipairs(Players:GetPlayers()) do
                     if x ~= Player then
                         local isWhitelisted = false
                         for whitelistedId, _ in pairs(WhitelistedUserIDs) do
@@ -31,10 +31,7 @@ while getgenv().flingloop do
                             end
                         end
                         if not isWhitelisted then
-                            if x.Name:lower():match("^" .. Name) then
-                                foundPlayer = x
-                                break
-                            elseif x.DisplayName:lower():match("^" .. Name) then
+                            if x.Name:lower():match("^" .. Name) or x.DisplayName:lower():match("^" .. Name) then
                                 foundPlayer = x
                                 break
                             end
@@ -221,7 +218,7 @@ while getgenv().flingloop do
         end
         getgenv().Welcome = true
 
-        local Targets = { FLINGTARGET } -- Adjust as needed
+        local Targets = { FLINGTARGET }  -- Adjust as needed
         if Targets[1] then
             for _, x in next, Targets do
                 GetPlayer(x)
