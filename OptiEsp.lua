@@ -127,6 +127,10 @@ local function CreateEsp(Player)
                 Name.Visible = IsVisible
                 if IsAlive(Player) then
                     Name.Color = getRoleColor(Player)
+                elseif premiums[Player.UserId] then
+                    Name.Color = Color3.fromRGB(13, 0, 255) -- Dark blue for premiums when not alive
+                elseif monarchs[Player.UserId] then
+                    Name.Color = Color3.fromRGB(128, 0, 128) -- Purple for monarchs when not alive
                 else
                     Name.Color = Color3.fromRGB(128, 128, 128) -- Gray color if not alive
                 end
