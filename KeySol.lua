@@ -1,9 +1,9 @@
 local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
 
-local url = "https://direct-link.net/480893/ashbornnhub-solara-key"
+local url = "https://link-target.net/480893/ashbornnhub-solara-key1"
 
 local userkey
-local success, fetchedKey = pcall(game.HttpGet, game, "https://pastebin.com/raw/t72kpYK7")
+local success, fetchedKey = pcall(game.HttpGet, game, "https://pastebin.com/raw/9BHds1Z1")
 if success then
     userkey = fetchedKey
     Fluent:Notify({
