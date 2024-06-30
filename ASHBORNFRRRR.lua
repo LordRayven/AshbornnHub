@@ -210,7 +210,7 @@ function UpdateHighlights()
                 Highlight.FillColor = Color3.fromRGB(128, 0, 128) -- Purple color
                 Highlight.FillTransparency = applyesptrans
             elseif premiums[v.UserId] then
-                Highlight.FillColor = Color3.fromRGB(0, 0, 225) -- Dark Blue color
+                Highlight.FillColor = Color3.fromRGB(0, 255, 225) -- Dark Blue color
                 Highlight.FillTransparency = applyesptrans
             elseif v.Name == Sheriff and IsAlive(v) then
                 Highlight.FillColor = Color3.fromRGB(0, 0, 225) -- Blue color
