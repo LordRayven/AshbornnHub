@@ -180,11 +180,37 @@ end
 end
 
 function UpdateHighlights()
-for _, v in pairs(game.Players:GetPlayers()) do
+    local premiums = {
+        [6069697086] = true,
+        [4072731377] = true,
+        [6150337449] = true,
+        [1571371222] = true,
+        [2911976621] = true,
+        [2729297689] = true,
+        [6150320395] = true,
+        [301098121] = true,
+        [773902683] = true,
+        [671905963] = true,
+        [3129701628] = true,
+        [3063352401] = true,
+        [3129413184] = true
+    }
+
+    local monarchs = {
+        [129215104] = true,
+        [6135258891] = true,
+        [290931] = true
+    }
+
+    for _, v in pairs(game.Players:GetPlayers()) do
         if v ~= game:GetService("Players").LocalPlayer and v.Character ~= nil and v.Character:FindFirstChild("HumanoidRootPart") and v.Character:FindFirstChild("ESP_Highlight") then
             local Highlight = v.Character:FindFirstChild("ESP_Highlight")
-            if v.UserId == 290931 or v.UserId == 129215104 then
+            
+            if monarchs[v.UserId] then
                 Highlight.FillColor = Color3.fromRGB(128, 0, 128) -- Purple color
+                Highlight.FillTransparency = applyesptrans
+            elseif premiums[v.UserId] then
+                Highlight.FillColor = Color3.fromRGB(0, 0, 225) -- Dark Blue color
                 Highlight.FillTransparency = applyesptrans
             elseif v.Name == Sheriff and IsAlive(v) then
                 Highlight.FillColor = Color3.fromRGB(0, 0, 225) -- Blue color
@@ -192,10 +218,7 @@ for _, v in pairs(game.Players:GetPlayers()) do
             elseif v.Name == Murder and IsAlive(v) then
                 Highlight.FillColor = Color3.fromRGB(225, 0, 0) -- Red color
                 Highlight.FillTransparency = applyesptrans
-            elseif v.Name == Hero and IsAlive(v) and v.Backpack:FindFirstChild("Gun") then
-                Highlight.FillColor = Color3.fromRGB(255, 255, 0) -- Yellow color
-                Highlight.FillTransparency = applyesptrans
-            elseif v.Name == Hero and IsAlive(v) and v.Character:FindFirstChild("Gun") then
+            elseif v.Name == Hero and IsAlive(v) and (v.Backpack:FindFirstChild("Gun") or v.Character:FindFirstChild("Gun")) then
                 Highlight.FillColor = Color3.fromRGB(255, 255, 0) -- Yellow color
                 Highlight.FillTransparency = applyesptrans
             elseif not IsAlive(v) then
@@ -206,12 +229,12 @@ for _, v in pairs(game.Players:GetPlayers()) do
                 Highlight.FillTransparency = applyesptrans
             end
         end
-end
+    end
 end
 
 -- Start the role updater in a separate coroutine
 spawn(function()
-pcall(roleupdaterfix)
+    pcall(roleupdaterfix)
 end)
 
 function HideHighlights()
@@ -227,7 +250,7 @@ end
 function loadesp()
 if loadespenabled ~= true then
         loadespenabled = true
-        AshESP = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/ESP.lua"))()
+        AshESP = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/OptiEsp.lua"))()
         AshESP.Names = false
         AshESP.NamesOutline = false
         AshESP.Distance = false
@@ -1195,7 +1218,7 @@ function VoidSafe()
         -- Parent the part to the workspace
         safePart.Parent = workspace
     else
-        warn("Safe Void Path already exists in the workspace")
+        
     end
 
     -- Teleport the local player to the specified coordinates
@@ -2271,26 +2294,29 @@ Options.AntiAFK:SetValue(false)
 local AutoFarmConfig = Tabs.AutoFarm:AddSection("Auto farm Configuration")
 
 local distanceM = 0
-    local lp = Players.LocalPlayer
-    
-    local Slider1 = Tabs.AutoFarm:AddSlider("MDistance", {
-            Title = "Murderer Distance Trigger",
-            Description = "How many studs to trigger Auto FE Invisible",
-            Default = distanceM,
-            Min = 10,
-            Max = 100,
-            Rounding = 1,
-            Callback = function(Value)
-                 distanceM = Value
-                 
-            end
-        })
-        
-        Slider:SetValue(distanceM)
-        
-    -- Initialize the AutoToggle for "AutoFEInvi"
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local lp = Players.LocalPlayer
+
+local Slider1 = Tabs.AutoFarm:AddSlider("MDistance", {
+    Title = "Murderer Distance Trigger",
+    Description = "How many studs to trigger Auto FE Invisible",
+    Default = distanceM,
+    Min = 0,
+    Max = 100,
+    Rounding = 1,
+    Callback = function(Value)
+        distanceM = tonumber(Value) -- ensure distanceM is a number
+    end
+})
+
+Slider1:SetValue(distanceM)
+
+-- Initialize the AutoToggle for "AutoFEInvi"
 local AutoToggle = Tabs.AutoFarm:AddToggle("AutoFEInvi", {Title = "Auto FE Invisible if Murderer is near", Default = false})
 local autoInvisible = false
+local isinvisible = false -- assuming this variable controls invisibility
 
 AutoToggle:OnChanged(function(value)
     autoInvisible = value
@@ -2351,13 +2377,17 @@ local function checkDistance()
 
             if murdererRootPart and localRootPart then
                 local distance = (murdererRootPart.Position - localRootPart.Position).Magnitude
-                if distance <= distanceM then
+                if distance <= distanceM then -- ensure distanceM is a number
                     if not isinvisible then
+                        isinvisible = true
                         Options.FEInvisible:SetValue(true)
+                        print("Turning FEInvisible ON")
                     end
                 else
                     if isinvisible then
+                        isinvisible = false
                         Options.FEInvisible:SetValue(false)
+                        print("Turning FEInvisible OFF")
                     end
                 end
             end
@@ -2906,7 +2936,6 @@ local function moveToCoinServer()
     else
         print("[ AshbornnHub ] Searching for eggs..")
         isMovingToCoin = false
-        isAutoFarming = false
         if Void then
         wait(1)
         VoidSafe()
@@ -4195,8 +4224,9 @@ Tabs.Settings:AddButton({
         -- Check if feedbackMessage is non-empty before sending
         if feedbackMessage and feedbackMessage ~= "" then
             sendFeedbackToDiscord(feedbackMessage)
+            updateLastFeedbackTime()
             SendNotif("Feedback has been Sent", "Thank you Enjoy the Script", 3)
-            updateLastFeedbackTime()  -- Update cooldown timestamp
+              -- Update cooldown timestamp
         else
             SendNotif("You cant send empty feedback loll", "Try again later", 3)
         end
