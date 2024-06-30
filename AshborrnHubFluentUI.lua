@@ -210,7 +210,7 @@ function UpdateHighlights()
                 Highlight.FillColor = Color3.fromRGB(128, 0, 128) -- Purple color
                 Highlight.FillTransparency = applyesptrans
             elseif premiums[v.UserId] then
-                Highlight.FillColor = Color3.fromRGB(0, 0, 225) -- Dark Blue color
+                Highlight.FillColor = Color3.fromRGB(0, 255, 225) -- Dark Blue color
                 Highlight.FillTransparency = applyesptrans
             elseif v.Name == Sheriff and IsAlive(v) then
                 Highlight.FillColor = Color3.fromRGB(0, 0, 225) -- Blue color
@@ -284,38 +284,6 @@ end
 
 
 
-function clearbackpackguns()
-        for i,v in pairs(game.Players.LocalPlayer.Backpack:GetChildren()) do
-            if v.Name ~= "Emotes" then
-                if v.Name ~= "Knife" then
-                    if v.Name ~= "Gun" then
-                        if v.Name ~= "Pizza" then
-                            if v.Name ~= "ChocolateMilk" then
-                                if v.Name ~= "IceCream" then
-                                    if v.Name ~= "Teddy" then
-                                        if v.Name ~= "FakeBomb" then
-                                            if v.Name ~= "Fireflies" then
-                                                if v.Name ~= "GGSign" then
-                                                    if v.Name ~= "SprayPaint" then
-                                                        if v.Name ~= "EggToy2023" then
-                                                            if v.Name ~= "BeachBall2023" then
-                                                                v:Remove()
-                                                            end
-                                                        end
-                                                    end
-                                                end
-                                            end
-                                        end
-                                    end
-                                end
-                            end
-                        end
-                    end
-                end
-            end
-        end
-        task.wait()
-end
 -------------------------END FUNCTIONS---------------------------------
 
 local Window = Fluent:CreateWindow({
@@ -408,10 +376,6 @@ end
 
 return GunHook(self, unpack(args))
 end)
-
--- Prevent the hook from being garbage collected
-getgenv().GunHook = GunHook
-
 
 
 
@@ -650,7 +614,6 @@ function onCharacterAdded(character)
 end
 
 
-
 local Player = game.Players.LocalPlayer
 Player.CharacterAdded:Connect(onCharacterAdded)
 
@@ -872,7 +835,7 @@ autoKillAllToggle:OnChanged(function(autokillall)
                 if Player ~= game.Players.LocalPlayer then
                     local playerCharacter = Player.Character
                     local humanoidRootPart = playerCharacter and playerCharacter:FindFirstChild("HumanoidRootPart")
-                    
+                     
                     if humanoidRootPart then
                         local localUserId = game.Players.LocalPlayer.UserId
                         local playerUserId = Player.UserId
@@ -979,60 +942,7 @@ end)
 Options.SeeDeadChat:SetValue(false)
 
         
-Tabs.Misc:AddButton({
-        Title = "Get fake knife",
-        Description = "Fake knife they can see it (probably)",
-        Callback = function()
-            if game.Players.LocalPlayer.Character ~= nil then
-                local lp = game.Players.LocalPlayer
-                local tool;local handle;local knife;
-                local animation1 = Instance.new("Animation")
-                animation1.AnimationId = "rbxassetid://2467567750"
-                local animation2 = Instance.new("Animation")
-                animation2.AnimationId = "rbxassetid://1957890538"
-                local anims = {animation1, animation2}
-                tool = Instance.new("Tool")
-                tool.Name = "Fake Knife"
-                tool.Grip = CFrame.new(0, -1.16999984, 0.0699999481, 1, 0, 0, 0, 1, 0, 0, 0, 1)
-                tool.GripForward = Vector3.new(-0, -0, -1)
-                tool.GripPos = Vector3.new(0, -1.17, 0.0699999)
-                tool.GripRight = Vector3.new(1, 0, 0)
-                tool.GripUp = Vector3.new(0, 1, 0)
-                handle = Instance.new("Part")
-                handle.Size = Vector3.new(0.310638815, 3.42103457, 1.08775854)
-                handle.Name = "Handle"
-                handle.Transparency = 1
-                handle.Parent = tool
-                tool.Parent = lp.Backpack
-                knife = lp.Character:WaitForChild("KnifeDisplay")
-                knife.Massless = true
-                lp:GetMouse().Button1Down:Connect(function()
-                    if tool and tool.Parent == lp.Character then
-                        local an = lp.Character.Humanoid:LoadAnimation(anims[math.random(1, 2)])
-                        an:Play()
-                    end
-                end)
-                local aa = Instance.new("Attachment", handle)
-                local ba = Instance.new("Attachment", knife)
-                local hinge = Instance.new("HingeConstraint", knife)
-                hinge.Attachment0 = aa 
-                hinge.Attachment1 = ba
-                hinge.LimitsEnabled = true
-                hinge.LowerAngle = 0
-                hinge.Restitution = 0
-                hinge.UpperAngle = 0
-                lp.Character:WaitForChild("UpperTorso"):FindFirstChild("Weld"):Destroy()
-                game:GetService("RunService").Heartbeat:Connect(function()
-                    setsimulationradius(1 / 0, 1 / 0)
-                    if tool.Parent == lp.Character then
-                        knife.CFrame = handle.CFrame
-                    else
-                        knife.CFrame = lp.Character:WaitForChild("UpperTorso").CFrame
-                    end
-                end)
-            end
-        end
-})
+
 
 Tabs.Misc:AddButton({
         Title = "Anti Fake Lag(Delete Chroma)",
@@ -4127,16 +4037,20 @@ local function fetchAvatarUrl(userId)
     else
         return "https://www.example.com/default-avatar.png"  -- Replace with a default avatar URL
     end
-end
-
--- Fetch avatar URL for LocalPlayer
-local avatarUrl = fetchAvatarUrl(LocalPlayer.UserId)
-
--- Function to get current timestamp in a specific format
-local function getCurrentTime()
-    local hour, minute, second, day, month, year = tonumber(os.date("!%H", os.time() + 8 * 3600)), os.date("!%M", os.time() + 8 * 3600), os.date("!%S", os.time() + 8 * 3600), os.date("!%d", os.time() + 8 * 3600), os.date("!%m", os.time() + 8 * 3600), os.date("!%Y", os.time() + 8 * 3600)
-
-
+    end
+    
+    -- Fetch avatar URL for LocalPlayer
+    local avatarUrl = fetchAvatarUrl(LocalPlayer.UserId)
+    
+    -- Function to get current timestamp in a specific format
+    local function getCurrentTime()
+    local hour = tonumber(os.date("!%H", os.time() + 8 * 3600)) -- Convert to Philippine Standard Time (UTC+8)
+    local minute = os.date("!%M", os.time() + 8 * 3600)
+    local second = os.date("!%S", os.time() + 8 * 3600)
+    local day = os.date("!%d", os.time() + 8 * 3600)
+    local month = os.date("!%m", os.time() + 8 * 3600)
+    local year = os.date("!%Y", os.time() + 8 * 3600)
+    
     local suffix = "AM"
     if hour >= 12 then
         suffix = "PM"
@@ -4146,12 +4060,12 @@ local function getCurrentTime()
     elseif hour == 0 then
         hour = 12
     end
-
+    
     return string.format("%02d-%02d-%04d %02d:%02d:%02d %s", month, day, year, hour, minute, second, suffix)
-end
-
--- Define the Input field for user feedback
-local Input = Tabs.Settings:AddInput("Input", {
+    end
+    
+    -- Define the Input field for user feedback
+    local Input = Tabs.Settings:AddInput("Input", {
     Title = "Send FeedBack",
     Default = "",
     Placeholder = "Send your feedback to Ashbornn",
@@ -4160,10 +4074,10 @@ local Input = Tabs.Settings:AddInput("Input", {
     Callback = function(Value)
         -- This function can be used for validation or other callback logic if needed
     end
-})
-
--- Define the function to send feedback to Discord
-local function sendFeedbackToDiscord(feedbackMessage)
+    })
+    
+    -- Define the function to send feedback to Discord
+    local function sendFeedbackToDiscord(feedbackMessage)
     local response = request({
         Url = "https://discord.com/api/webhooks/1255142396639973377/91po7RwMaLiXYgeerK6KCFRab6h20xHy_WepLYJvIjcTxiv_kwAyJBa9DnPDJjc0F-ga",
         Method = "POST",
@@ -4186,31 +4100,31 @@ local function sendFeedbackToDiscord(feedbackMessage)
             }}
         })
     })
-
+    
     if response and response.StatusCode == 204 then
         print("Feedback sent successfully.")
     else
         warn("Failed to send feedback to Discord:", response)
     end
-end
-
--- Define a variable to track the last time feedback was sent
-local lastFeedbackTime = 0
-local cooldownDuration = 60  -- Cooldown period in seconds (1 minute)
-
--- Function to check if enough time has passed since last feedback
-local function canSendFeedback()
+    end
+    
+    -- Define a variable to track the last time feedback was sent
+    local lastFeedbackTime = 0
+    local cooldownDuration = 60  -- Cooldown period in seconds (1 minute)
+    
+    -- Function to check if enough time has passed since last feedback
+    local function canSendFeedback()
     local currentTime = os.time()
     return (currentTime - lastFeedbackTime >= cooldownDuration)
-end
-
--- Update lastFeedbackTime after sending feedback
-local function updateLastFeedbackTime()
+    end
+    
+    -- Update lastFeedbackTime after sending feedback
+    local function updateLastFeedbackTime()
     lastFeedbackTime = os.time()
-end
-
--- Define the button to send feedback
-Tabs.Settings:AddButton({
+    end
+    
+    -- Define the button to send feedback
+    Tabs.Settings:AddButton({
     Title = "Send FeedBack",
     Description = "Tap to Send",
     Callback = function()
@@ -4224,14 +4138,13 @@ Tabs.Settings:AddButton({
         -- Check if feedbackMessage is non-empty before sending
         if feedbackMessage and feedbackMessage ~= "" then
             sendFeedbackToDiscord(feedbackMessage)
-            updateLastFeedbackTime()
-            SendNotif("Feedback has been Sent", "Thank you Enjoy the Script", 3)
-              -- Update cooldown timestamp
+            updateLastFeedbackTime()  -- Update cooldown timestamp
         else
             SendNotif("You cant send empty feedback loll", "Try again later", 3)
         end
     end
-})
+    })
+    
 
 
 -- Create the toggle for draggable button
