@@ -72,7 +72,7 @@ local function getRoleColor(player)
         if playerData.Role == "Murderer" then
             return Color3.fromRGB(225, 0, 0) -- Red color
         elseif playerData.Role == "Sheriff" then
-            return Color3.fromRGB(0, 0, 225) -- Blue color
+            return Color3.fromRGB(0, 255, 225) -- Blue color
         elseif playerData.Role == "Hero" then
             return Color3.fromRGB(255, 255, 0) -- Yellow color
         end
@@ -83,7 +83,7 @@ end
 
 local function getTitleColor(player)
     if premiums[player.UserId] then
-        return Color3.fromRGB(13, 0, 255) -- Dark blue color for premiums
+        return Color3.fromRGB(0, 255, 255) -- Dark blue color for premiums
     elseif monarchs[player.UserId] then
         return Color3.fromRGB(128, 0, 128) -- Purple color for monarchs
     end
