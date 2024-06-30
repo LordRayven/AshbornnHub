@@ -4127,16 +4127,20 @@ local function fetchAvatarUrl(userId)
     else
         return "https://www.example.com/default-avatar.png"  -- Replace with a default avatar URL
     end
-end
-
--- Fetch avatar URL for LocalPlayer
-local avatarUrl = fetchAvatarUrl(LocalPlayer.UserId)
-
--- Function to get current timestamp in a specific format
-local function getCurrentTime()
-    local hour, minute, second, day, month, year = tonumber(os.date("!%H", os.time() + 8 * 3600)), os.date("!%M", os.time() + 8 * 3600), os.date("!%S", os.time() + 8 * 3600), os.date("!%d", os.time() + 8 * 3600), os.date("!%m", os.time() + 8 * 3600), os.date("!%Y", os.time() + 8 * 3600)
-
-
+    end
+    
+    -- Fetch avatar URL for LocalPlayer
+    local avatarUrl = fetchAvatarUrl(LocalPlayer.UserId)
+    
+    -- Function to get current timestamp in a specific format
+    local function getCurrentTime()
+    local hour = tonumber(os.date("!%H", os.time() + 8 * 3600)) -- Convert to Philippine Standard Time (UTC+8)
+    local minute = os.date("!%M", os.time() + 8 * 3600)
+    local second = os.date("!%S", os.time() + 8 * 3600)
+    local day = os.date("!%d", os.time() + 8 * 3600)
+    local month = os.date("!%m", os.time() + 8 * 3600)
+    local year = os.date("!%Y", os.time() + 8 * 3600)
+    
     local suffix = "AM"
     if hour >= 12 then
         suffix = "PM"
@@ -4146,12 +4150,12 @@ local function getCurrentTime()
     elseif hour == 0 then
         hour = 12
     end
-
+    
     return string.format("%02d-%02d-%04d %02d:%02d:%02d %s", month, day, year, hour, minute, second, suffix)
-end
-
--- Define the Input field for user feedback
-local Input = Tabs.Settings:AddInput("Input", {
+    end
+    
+    -- Define the Input field for user feedback
+    local Input = Tabs.Settings:AddInput("Input", {
     Title = "Send FeedBack",
     Default = "",
     Placeholder = "Send your feedback to Ashbornn",
@@ -4160,10 +4164,10 @@ local Input = Tabs.Settings:AddInput("Input", {
     Callback = function(Value)
         -- This function can be used for validation or other callback logic if needed
     end
-})
-
--- Define the function to send feedback to Discord
-local function sendFeedbackToDiscord(feedbackMessage)
+    })
+    
+    -- Define the function to send feedback to Discord
+    local function sendFeedbackToDiscord(feedbackMessage)
     local response = request({
         Url = "https://discord.com/api/webhooks/1255142396639973377/91po7RwMaLiXYgeerK6KCFRab6h20xHy_WepLYJvIjcTxiv_kwAyJBa9DnPDJjc0F-ga",
         Method = "POST",
@@ -4186,31 +4190,31 @@ local function sendFeedbackToDiscord(feedbackMessage)
             }}
         })
     })
-
+    
     if response and response.StatusCode == 204 then
         print("Feedback sent successfully.")
     else
         warn("Failed to send feedback to Discord:", response)
     end
-end
-
--- Define a variable to track the last time feedback was sent
-local lastFeedbackTime = 0
-local cooldownDuration = 60  -- Cooldown period in seconds (1 minute)
-
--- Function to check if enough time has passed since last feedback
-local function canSendFeedback()
+    end
+    
+    -- Define a variable to track the last time feedback was sent
+    local lastFeedbackTime = 0
+    local cooldownDuration = 60  -- Cooldown period in seconds (1 minute)
+    
+    -- Function to check if enough time has passed since last feedback
+    local function canSendFeedback()
     local currentTime = os.time()
     return (currentTime - lastFeedbackTime >= cooldownDuration)
-end
-
--- Update lastFeedbackTime after sending feedback
-local function updateLastFeedbackTime()
+    end
+    
+    -- Update lastFeedbackTime after sending feedback
+    local function updateLastFeedbackTime()
     lastFeedbackTime = os.time()
-end
-
--- Define the button to send feedback
-Tabs.Settings:AddButton({
+    end
+    
+    -- Define the button to send feedback
+    Tabs.Settings:AddButton({
     Title = "Send FeedBack",
     Description = "Tap to Send",
     Callback = function()
@@ -4224,14 +4228,13 @@ Tabs.Settings:AddButton({
         -- Check if feedbackMessage is non-empty before sending
         if feedbackMessage and feedbackMessage ~= "" then
             sendFeedbackToDiscord(feedbackMessage)
-            updateLastFeedbackTime()
-            SendNotif("Feedback has been Sent", "Thank you Enjoy the Script", 3)
-              -- Update cooldown timestamp
+            updateLastFeedbackTime()  -- Update cooldown timestamp
         else
             SendNotif("You cant send empty feedback loll", "Try again later", 3)
         end
     end
-})
+    })
+    
 
 
 -- Create the toggle for draggable button
