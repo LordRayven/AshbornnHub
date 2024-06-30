@@ -2294,26 +2294,29 @@ Options.AntiAFK:SetValue(false)
 local AutoFarmConfig = Tabs.AutoFarm:AddSection("Auto farm Configuration")
 
 local distanceM = 0
-    local lp = Players.LocalPlayer
-    
-    local Slider1 = Tabs.AutoFarm:AddSlider("MDistance", {
-            Title = "Murderer Distance Trigger",
-            Description = "How many studs to trigger Auto FE Invisible",
-            Default = distanceM,
-            Min = 10,
-            Max = 100,
-            Rounding = 1,
-            Callback = function(Value)
-                 distanceM = Value
-                 
-            end
-        })
-        
-        Slider:SetValue(distanceM)
-        
-    -- Initialize the AutoToggle for "AutoFEInvi"
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local lp = Players.LocalPlayer
+
+local Slider1 = Tabs.AutoFarm:AddSlider("MDistance", {
+    Title = "Murderer Distance Trigger",
+    Description = "How many studs to trigger Auto FE Invisible",
+    Default = distanceM,
+    Min = 10,
+    Max = 100,
+    Rounding = 1,
+    Callback = function(Value)
+        distanceM = tonumber(Value) -- ensure distanceM is a number
+    end
+})
+
+Slider1:SetValue(distanceM)
+
+-- Initialize the AutoToggle for "AutoFEInvi"
 local AutoToggle = Tabs.AutoFarm:AddToggle("AutoFEInvi", {Title = "Auto FE Invisible if Murderer is near", Default = false})
 local autoInvisible = false
+local isinvisible = false -- assuming this variable controls invisibility
 
 AutoToggle:OnChanged(function(value)
     autoInvisible = value
@@ -2374,7 +2377,7 @@ local function checkDistance()
 
             if murdererRootPart and localRootPart then
                 local distance = (murdererRootPart.Position - localRootPart.Position).Magnitude
-                if distance <= distanceM then
+                if distance <= tonumber(distanceM) then -- ensure distanceM is a number
                     if not isinvisible then
                         Options.FEInvisible:SetValue(true)
                     end
