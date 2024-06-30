@@ -1218,7 +1218,7 @@ function VoidSafe()
         -- Parent the part to the workspace
         safePart.Parent = workspace
     else
-        warn("Safe Void Path already exists in the workspace")
+        
     end
 
     -- Teleport the local player to the specified coordinates
