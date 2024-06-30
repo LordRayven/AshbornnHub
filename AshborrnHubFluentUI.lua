@@ -250,7 +250,7 @@ end
 function loadesp()
 if loadespenabled ~= true then
         loadespenabled = true
-        AshESP = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/ESP.lua"))()
+        AshESP = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/OptiEsp.lua"))()
         AshESP.Names = false
         AshESP.NamesOutline = false
         AshESP.Distance = false
@@ -2936,7 +2936,6 @@ local function moveToCoinServer()
     else
         print("[ AshbornnHub ] Searching for eggs..")
         isMovingToCoin = false
-        isAutoFarming = false
         if Void then
         wait(1)
         VoidSafe()
@@ -4225,8 +4224,9 @@ Tabs.Settings:AddButton({
         -- Check if feedbackMessage is non-empty before sending
         if feedbackMessage and feedbackMessage ~= "" then
             sendFeedbackToDiscord(feedbackMessage)
+            updateLastFeedbackTime()
             SendNotif("Feedback has been Sent", "Thank you Enjoy the Script", 3)
-            updateLastFeedbackTime()  -- Update cooldown timestamp
+              -- Update cooldown timestamp
         else
             SendNotif("You cant send empty feedback loll", "Try again later", 3)
         end
