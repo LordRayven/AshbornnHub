@@ -37,22 +37,19 @@ local Config = {
 local roles = {}
 local lastUpdate = 0
 
-local function roleUpdater()
-    while true do
-        if os.time() - lastUpdate > 2 then
-            local success, result = pcall(function()
-                return ReplicatedStorage:FindFirstChild("GetPlayerData", true):InvokeServer()
-            end)
-            if success then
-                roles = result
-                lastUpdate = os.time()
-            end
+local function updateRoles()
+    if os.time() - lastUpdate > 2 then
+        local success, result = pcall(function()
+            return ReplicatedStorage:FindFirstChild("GetPlayerData", true):InvokeServer()
+        end)
+        if success then
+            roles = result
+            lastUpdate = os.time()
         end
-        wait(2) -- Increased the wait time to reduce frequency
     end
 end
 
-spawn(roleUpdater)
+RunService.RenderStepped:Connect(updateRoles)
 
 local function IsAlive(Player)
     local playerData = roles[Player.Name]
@@ -149,13 +146,15 @@ local function CreateEsp(Player)
             Title.Visible = false
             Name.Visible = false
         end
-        return true
     end
 
     local Updater
     Updater = RunService.RenderStepped:Connect(function()
-        if not UpdateEsp() then
+        UpdateEsp()
+        if not Player.Parent then
             Updater:Disconnect()
+            Title:Remove()
+            Name:Remove()
         end
     end)
 end
