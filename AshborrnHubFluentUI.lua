@@ -2303,7 +2303,7 @@ local Slider1 = Tabs.AutoFarm:AddSlider("MDistance", {
     Title = "Murderer Distance Trigger",
     Description = "How many studs to trigger Auto FE Invisible",
     Default = distanceM,
-    Min = 10,
+    Min = 0,
     Max = 100,
     Rounding = 1,
     Callback = function(Value)
@@ -2377,13 +2377,17 @@ local function checkDistance()
 
             if murdererRootPart and localRootPart then
                 local distance = (murdererRootPart.Position - localRootPart.Position).Magnitude
-                if distance <= tonumber(distanceM) then -- ensure distanceM is a number
+                if distance <= distanceM then -- ensure distanceM is a number
                     if not isinvisible then
+                        isinvisible = true
                         Options.FEInvisible:SetValue(true)
+                        print("Turning FEInvisible ON")
                     end
                 else
                     if isinvisible then
+                        isinvisible = false
                         Options.FEInvisible:SetValue(false)
+                        print("Turning FEInvisible OFF")
                     end
                 end
             end
