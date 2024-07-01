@@ -23,7 +23,7 @@ local Players = game:GetService("Players")
 local HttpService = game:GetService("HttpService")
 local Touchscreen = UIS.TouchEnabled
 local placeId = game.PlaceId
-local GameName = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name
+local GameName = game.Name
 
 local games = {
     [142823291] = 'AshborrnHubFluentUI',
