@@ -3873,9 +3873,9 @@ setupGui("StabSheriff", "TP Stab Sheriff/Hero", function()
                 })
             end
 end)
-setupGui("Stabniggers", "Teleport and Kill Niggers ", function()
-print("KILL NIGGERS")
-end)
+--setupGui("Stabniggers", "Teleport and Kill Niggers ", function()
+--print("KILL NIGGERS")
+--end)
 
 
 
