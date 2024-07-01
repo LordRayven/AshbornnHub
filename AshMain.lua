@@ -153,7 +153,29 @@ if selectedGames[game.PlaceId] then
         Content = "Game is supported! 🥳",
         Duration = 3
     })
-    loadstring(game:HttpGet('https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/' .. selectedGames[game.PlaceId] .. '.lua'))()
+    
+    if identifyexecutor() == "Delta" then
+        if game.PlaceId == 142823291 or game.PlaceId == 335132309 or game.PlaceId == 636649648 then
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/AshborrnBackup.lua", true))()
+        else 
+            Fluent:Notify({
+                Title = "AshbornnHub Says:",
+                Content = "Game is not supported. 😔",
+                Duration = 3
+            })
+        end
+    else
+        if selectedGames[game.PlaceId] then
+            loadstring(game:HttpGet('https://raw.githubusercontent.com/LordRayven/AshbornnHub/main/' .. selectedGames[game.PlaceId] .. '.lua'))()
+        else
+            Fluent:Notify({
+                Title = "AshbornnHub Says:",
+                Content = "Game is not supported. 😔",
+                Duration = 3
+            })
+        end
+    end
+    
 else
     sendnotification("Game not supported. 😔", false)
     if not ownerUserIds[LocalPlayer.UserId] then
