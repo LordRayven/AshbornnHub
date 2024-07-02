@@ -78,11 +78,12 @@ end
 
 avatarUrl = fetchAvatarUrl(LocalPlayer.UserId)
 
-local selectedGames
 if Ash_Hook == "[✅]Supported" and Ash_Drawing == "[✅]Supported" then
     selectedGames = (Ash_Device == "PC" and gamesPc) or (Ash_Device == "Mobile" and games)
-else
+elseif Ash_Hook == "[⛔]Unsupported" and Ash_Drawing == "[✅]Supported" then
     selectedGames = gamesPc
+else
+    sendnotification("Unknown Executor detected, script has been cancelled", nil)
 end
 
 local ownerUserIds = {
