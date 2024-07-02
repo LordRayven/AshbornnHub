@@ -46,8 +46,7 @@ local UserInputService = game:GetService("UserInputService")
 local Touchscreen = UserInputService.TouchEnabled
 getgenv().Ash_Device = Touchscreen and "Mobile" or "PC"
 local placeId = game.PlaceId
-local GameName = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name
-
+local GameName = game.Name
 local TrapSystem = ReplicatedStorage:WaitForChild("TrapSystem")
 local PlaceTrap = TrapSystem:WaitForChild("PlaceTrap")
 
